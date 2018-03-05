@@ -11,6 +11,8 @@ import java.util.HashSet;
 import interfaces.Connection;
 import interfaces.Graph;
 import interfaces.Node;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
@@ -20,6 +22,7 @@ public class UndirectedGraph implements Graph{
 
     private HashMap<Integer, Node> vertices = new HashMap<>();
     private HashSet<Connection> edges = new HashSet<>();
+    private HashMap<Integer, Node> terminals = new HashMap<>();
     private int numberOfTerminals = 0;
     
     public UndirectedGraph(){}
@@ -47,7 +50,6 @@ public class UndirectedGraph implements Graph{
         if(!(N instanceof Vertex) || this.vertices.containsValue((Vertex) N)){
             return;
         }
-        this.numberOfTerminals++;
         this.vertices.put(((Vertex)N).getKey(), N);
     }
     
@@ -80,6 +82,30 @@ public class UndirectedGraph implements Graph{
         
     }
 
+    public void setTerminals(){
+        Set keys = this.vertices.keySet();
+        Iterator it = keys.iterator();
+        int key;
+        while(it.hasNext()) {
+            key = (Integer)it.next();
+            if(((Vertex)this.vertices.get(key)).isTerminal()){
+                this.terminals.put(key, this.vertices.get(key));
+                this.numberOfTerminals++;
+            }
+        }
+    }
+    
+    public void removeUnnecessaryVertices(){
+        Set keys = this.vertices.keySet();
+        Iterator it = keys.iterator();
+        int key;
+        while(it.hasNext()) {
+            key = (Integer)it.next();
+            if(this.vertices.get(key).getNeighbors().size() <= 1 && !((Vertex)this.vertices.get(key)).isTerminal()){
+                this.vertices.remove(key);
+            }
+        }
+    }
     @Override
     public void removeNode(Node N) {
         this.vertices.remove(((Vertex) N).getKey());

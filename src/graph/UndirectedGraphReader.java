@@ -57,7 +57,7 @@ public class UndirectedGraphReader implements GraphReader {
 				else if(section.contains("Terminals")) {
 					if(currentLine.contains("T ")) {
 						((Vertex)G.getNode().get(Integer.parseInt(currentLine.split(" ")[1]))).setTerminal(true);
-						if(((Vertex)G.getNode().get(Integer.parseInt(currentLine.split(" ")[1]))).getTerminal()) terminalCounter++;
+						if(((Vertex)G.getNode().get(Integer.parseInt(currentLine.split(" ")[1]))).isTerminal()) terminalCounter++;
 					}
 					if(currentLine.contains("Terminals")) {
 						numTerminals = Integer.parseInt(currentLine.split(" ")[1]);

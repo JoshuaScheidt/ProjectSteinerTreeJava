@@ -8,6 +8,7 @@ package graph;
 import java.util.HashSet;
 import interfaces.Connection;
 import interfaces.Node;
+import java.util.Iterator;
 
 /**
  *
@@ -16,7 +17,7 @@ import interfaces.Node;
 public class Vertex extends Object implements Node{
 
     private int key;
-    private HashSet<Node> neighbors = new HashSet<>();
+    private HashSet<Connection> neighbors = new HashSet<>();
     private boolean isTerminal = false;
     
     public Vertex(){}
@@ -29,24 +30,29 @@ public class Vertex extends Object implements Node{
         this.key = key;
     }
 
-    public void addNeighbor(Vertex v){
-        this.neighbors.add(v);
+    public void addNeighbor(Connection c){
+        this.neighbors.add(c);
     }
     @Override
     public HashSet<Node> getNeighbors() {
-        return this.neighbors;
+        HashSet<Node> temp = new HashSet<>();
+        Iterator it = this.neighbors.iterator();
+        while(it.hasNext()){
+            temp.add((Node) it.next());
+        }
+        return temp;
     }
 
     @Override
     public boolean isNeighbor(Node N) {
-        if(this.neighbors.contains((Vertex) N)){
+        if(this.getNeighbors().contains((Vertex) N)){
             return true;
         } else {
             return false;
         }
     }
     
-    public boolean getTerminal() {
+    public boolean isTerminal() {
     	return this.isTerminal;
     }
     

@@ -22,8 +22,8 @@ public class Edge extends Object implements Connection{
         if(!v1.isNeighbor(v2)){
             this.connected.add(v1);
             this.connected.add(v2);
-            v1.addNeighbor(v2);
-            v2.addNeighbor(v1);
+            v1.addNeighbor(this);
+            v2.addNeighbor(this);
             this.cost = Optional.of(c);
         }
     }
