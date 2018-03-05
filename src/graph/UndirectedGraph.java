@@ -95,6 +95,19 @@ public class UndirectedGraph implements Graph{
         }
     }
     
+    public UndirectedGraph reduceSize(){
+        UndirectedGraph newGraph = this.clone();
+        Set keys = this.vertices.keySet();
+        Iterator it = keys.iterator();
+        Vertex temp;
+        while(it.hasNext()){
+            temp = (Vertex) it.next();
+            if(temp.getNeighbors().size() == 2){
+                
+            }
+        }
+        return null;
+    }
     public void removeUnnecessaryVertices(){
         Set keys = this.vertices.keySet();
         Iterator it = keys.iterator();
@@ -105,6 +118,17 @@ public class UndirectedGraph implements Graph{
                 this.vertices.remove(key);
             }
         }
+    }
+    @Override
+    public UndirectedGraph clone(){
+        UndirectedGraph graph = new UndirectedGraph();
+        for(Connection e : this.edges) {
+            graph.addEdge(new Vertex(((Vertex)(e.getNodes().get(0))).getKey()), new Vertex(((Vertex)(e.getNodes().get(1))).getKey()), e.getCost().get());
+        }
+        for(int key : this.terminals.keySet()) {
+            ((Vertex)graph.vertices.get(key)).setTerminal(true);
+        }
+        return graph;
     }
     @Override
     public void removeNode(Node N) {

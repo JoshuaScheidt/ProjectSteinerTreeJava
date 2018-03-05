@@ -17,7 +17,7 @@ import java.util.Iterator;
 public class Vertex extends Object implements Node{
 
     private int key;
-    private HashSet<Connection> neighbors = new HashSet<>();
+    private HashSet<Connection> connections = new HashSet<>();
     private boolean isTerminal = false;
     
     public Vertex(){}
@@ -31,14 +31,14 @@ public class Vertex extends Object implements Node{
     }
 
     public void addNeighbor(Connection c){
-        this.neighbors.add(c);
+        this.connections.add(c);
     }
     @Override
     public HashSet<Node> getNeighbors() {
         HashSet<Node> temp = new HashSet<>();
-        Iterator it = this.neighbors.iterator();
+        Iterator it = this.connections.iterator();
         while(it.hasNext()){
-            temp.add((Node) it.next());
+            temp.add(((Edge) it.next()).getOtherSide(this));
         }
         return temp;
     }
