@@ -150,10 +150,10 @@ public class UndirectedGraph {
     public UndirectedGraph clone() {
         UndirectedGraph graph = new UndirectedGraph();
         for (Edge e : this.edges) {
-            graph.addEdge(new Vertex((e.getVertices()[0]).getKey()), new Vertex((e.getVertices()[1]).getKey()), e.getCost().get());
+            graph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
         }
         for (int key : this.terminals.keySet()) {
-            ((Vertex) graph.vertices.get(key)).setTerminal(true);
+            (graph.vertices.get(key)).setTerminal(true);
         }
         return graph;
     }
@@ -182,15 +182,13 @@ public class UndirectedGraph {
             Vertex neighbor = e.getOtherSide(v);
             neighbor.getEdges().remove(e);
             this.edges.remove(e);
-            e = null;
         }
         int key = v.getKey();
         if (v.isTerminal()) {
             this.numberOfTerminals--;
-            this.terminals.remove(key);
+            this.terminals.keySet().remove(key);
         }
-        this.vertices.remove(key);
-        v = null;
+        this.vertices.keySet().remove(key);
     }
 
     /**
@@ -258,4 +256,23 @@ public class UndirectedGraph {
         return this.vertices.size();
     }
 
+    //The methods below are for testing and requesting certain information from the graph
+    public int[] countDegree(){
+        Set keyset = this.getVertices().keySet();
+        HashMap<Integer, Vertex> vertices = this.getVertices();
+        Iterator it = keyset.iterator();
+        int[] degrees = {0,0, 0,0, 0,0, 0,0, 0,0};
+        Vertex temp;
+        int key, number;
+        while(it.hasNext()){
+            key = (Integer) it.next();
+            temp = vertices.get(key);
+            number = temp.getNeighbors().size();
+            if(number >= degrees.length){
+                continue;
+            }
+            degrees[number]++;
+        }
+        return degrees;
+    }
 }

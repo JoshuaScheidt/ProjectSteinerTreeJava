@@ -54,7 +54,8 @@ public class PreProcess {
             current = vertices.get(key);
             while(!current.isTerminal() && current.getNeighbors().size() == 1){
                 newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-                it.remove();
+                this.graph.getVertices().keySet().remove(key);
+                //it.remove();
                 this.graph.removeVertex(current);
                 current = newCurrent;
             }
