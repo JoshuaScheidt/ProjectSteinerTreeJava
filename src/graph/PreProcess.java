@@ -28,7 +28,7 @@ public class PreProcess {
         while(it.hasNext()){
             temp = (Vertex) it.next();
             if(temp.getNeighbors().size() == 2){
-                
+                    
             }
         }
         return null;

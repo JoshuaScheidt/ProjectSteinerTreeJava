@@ -84,11 +84,11 @@ public class FlowProgram {
         while(it.hasNext()){
             e = (Edge) it.next();
             if(cnt == 0){
-                temp = temp.concat(e.getCost() + "x_" + ((Vertex) (e.getNodes().get(0))).getKey() + "" + ((Vertex) (e.getNodes().get(1))).getKey());
-                variables = variables.concat( "x_" + ((Vertex) (e.getNodes().get(0))).getKey() + "" + ((Vertex) (e.getNodes().get(1))).getKey() + "\n");
+                temp = temp.concat(e.getCost() + "x_" + ( (e.getVertices()[0])).getKey() + "" + ((e.getVertices()[1])).getKey());
+                variables = variables.concat( "x_" + ((e.getVertices()[0])).getKey() + "" + ((e.getVertices()[1])).getKey() + "\n");
             } else {
-                temp = temp.concat("+" + e.getCost() + "x_" + ((Vertex) (e.getNodes().get(0))).getKey() + "" + ((Vertex) (e.getNodes().get(1))).getKey());
-                variables = variables.concat( "x_" + ((Vertex) (e.getNodes().get(0))).getKey() + "" + ((Vertex) (e.getNodes().get(1))).getKey() + "\n");
+                temp = temp.concat("+" + e.getCost() + "x_" + ((e.getVertices()[0])).getKey() + "" + ((e.getVertices()[1])).getKey());
+                variables = variables.concat( "x_" + ( (e.getVertices()[0])).getKey() + "" + ((e.getVertices()[1])).getKey() + "\n");
             }
         }
         lines.add(temp);
