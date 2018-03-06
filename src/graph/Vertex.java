@@ -6,18 +6,16 @@
 package graph;
 
 import java.util.HashSet;
-import interfaces.Connection;
-import interfaces.Node;
 import java.util.Iterator;
 
 /**
  *
  * @author Marciano
  */
-public class Vertex extends Object implements Node{
+public class Vertex extends Object {
 
     private int key;
-    private HashSet<Connection> connections = new HashSet<>();
+    private HashSet<Edge> edges = new HashSet<>();
     private boolean isTerminal = false;
     
     public Vertex(){}
@@ -30,21 +28,23 @@ public class Vertex extends Object implements Node{
         this.key = key;
     }
 
-    public void addNeighbor(Connection c){
-        this.connections.add(c);
+    public void addNeighbor(Edge c){
+        this.edges.add(c);
     }
-    @Override
-    public HashSet<Node> getNeighbors() {
-        HashSet<Node> temp = new HashSet<>();
-        Iterator it = this.connections.iterator();
+    
+    public HashSet<Vertex> getNeighbors() {
+        HashSet<Vertex> temp = new HashSet<>();
+        Iterator it = this.edges.iterator();
         while(it.hasNext()){
-            temp.add(((Edge) it.next()).getOtherSide(this));
+            temp.add(((Edge)(it.next())).getOtherSide(this));
         }
         return temp;
     }
+    public HashSet<Edge> getEdges(){
+        return this.edges;
+    }
 
-    @Override
-    public boolean isNeighbor(Node N) {
+    public boolean isNeighbor(Vertex N) {
         if(this.getNeighbors().contains((Vertex) N)){
             return true;
         } else {

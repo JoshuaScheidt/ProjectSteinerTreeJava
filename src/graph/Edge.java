@@ -7,16 +7,16 @@ package graph;
 
 import java.util.ArrayList;
 import java.util.Optional;
-import interfaces.Connection;
-import interfaces.Node;
+import java.util.Stack;
 /**
  *
  * @author Marciano
  */
-public class Edge extends Object implements Connection{
+public class Edge extends Object {
 
-    private ArrayList<Node> connected = new ArrayList<>();
+    private ArrayList<Vertex> connected = new ArrayList<>();
     private Optional<Integer> cost;
+    
     
     public Edge(Vertex v1, Vertex v2, int c){
         if(!v1.isNeighbor(v2)){
@@ -27,14 +27,12 @@ public class Edge extends Object implements Connection{
             this.cost = Optional.of(c);
         }
     }
-
-    @Override
-    public ArrayList<Node> getNodes() {
+    
+    public ArrayList<Vertex> getNodes() {
         return this.connected;
     }
-
-    @Override
-    public Node getOtherSide(Node N) {
+    
+    public Vertex getOtherSide(Vertex N) {
         int index = -1;
         if(this.connected.get(0).equals(N) || this.connected.get(1).equals(N)){
             if(this.connected.get(0).equals(N)){
@@ -46,8 +44,7 @@ public class Edge extends Object implements Connection{
             return null;
         }
     }
-
-    @Override
+    
     public Optional<Integer> getCost() {
         return this.cost;
     }

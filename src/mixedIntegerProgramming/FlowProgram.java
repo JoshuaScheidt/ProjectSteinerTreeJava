@@ -10,7 +10,6 @@ import graph.UndirectedGraph;
 import graph.Vertex;
 import ilog.concert.*;
 import ilog.cplex.*;
-import interfaces.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -79,7 +78,7 @@ public class FlowProgram {
         lines.add("Minimize");
         String temp = "obj: ";
         String variables = "";
-        Iterator<Connection> it = this.g.getEdges().iterator();
+        Iterator<Edge> it = this.g.getEdges().iterator();
         Edge e;
         int cnt = 0;
         while(it.hasNext()){

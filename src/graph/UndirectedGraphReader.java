@@ -11,9 +11,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import interfaces.Graph;
-import interfaces.GraphReader;
-
 /**
  * (Class description)
  *
@@ -21,13 +18,9 @@ import interfaces.GraphReader;
  * @author Marciano Geijselaers
  * @author Joshua Scheidt
  */
-public class UndirectedGraphReader implements GraphReader {
-
-	/* (non-Javadoc)
-	 * @see structures.interfaces.GraphReader#read(java.io.File)
-	 */
-	@Override
-	public Graph read(File f) {
+public class UndirectedGraphReader {
+    
+	public UndirectedGraph read(File f) {
 		int numNodes = -1;
 		int numEdges = -1;
 		int numTerminals = -1;
@@ -37,7 +30,7 @@ public class UndirectedGraphReader implements GraphReader {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(f));
 			String currentLine;
-			Graph G = new UndirectedGraph();
+			UndirectedGraph G = new UndirectedGraph();
 			while((currentLine = reader.readLine()) != null) {
 				if(currentLine.contains("SECTION")) {
 					section = currentLine.split(" ")[1];
@@ -56,8 +49,8 @@ public class UndirectedGraphReader implements GraphReader {
 				}
 				else if(section.contains("Terminals")) {
 					if(currentLine.contains("T ")) {
-						((Vertex)G.getNode().get(Integer.parseInt(currentLine.split(" ")[1]))).setTerminal(true);
-						if(((Vertex)G.getNode().get(Integer.parseInt(currentLine.split(" ")[1]))).isTerminal()) terminalCounter++;
+						((Vertex)G.getVertices().get(Integer.parseInt(currentLine.split(" ")[1]))).setTerminal(true);
+						if(((Vertex)G.getVertices().get(Integer.parseInt(currentLine.split(" ")[1]))).isTerminal()) terminalCounter++;
 					}
 					if(currentLine.contains("Terminals")) {
 						numTerminals = Integer.parseInt(currentLine.split(" ")[1]);
@@ -72,10 +65,10 @@ public class UndirectedGraphReader implements GraphReader {
 				System.out.println("Number of read edges:" + numEdges);
 				System.out.println("Number of actual edges:" + G.getEdgesSize());
 			}
-			if(G.getNodesSize() != numNodes) {
+			if(G.getVerticesSize() != numNodes) {
 				System.out.println("Number of nodes wrong");
 				System.out.println("Number of read nodes:" + numNodes);
-				System.out.println("Number of actual nodes:" + G.getNodesSize());
+				System.out.println("Number of actual nodes:" + G.getVerticesSize());
 			}
 			if(terminalCounter != numTerminals) {
 				System.out.println("Number of terminals wrong");
