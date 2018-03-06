@@ -38,7 +38,7 @@ public class UndirectedGraphReader {
 				else if(section.contains("Graph")) {
 					if(currentLine.contains("E ")) {
 						String[] lineParts = currentLine.split(" ");
-						G.addEdge(new Vertex(Integer.parseInt(lineParts[1])), new Vertex(Integer.parseInt(lineParts[2])), Integer.parseInt(lineParts[3]));
+						G.addEdge(Integer.parseInt(lineParts[1]), Integer.parseInt(lineParts[2]), Integer.parseInt(lineParts[3]));
 					}
 					else if(currentLine.contains("Nodes")) {
 						numNodes = Integer.parseInt(currentLine.split(" ")[1]);
