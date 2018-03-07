@@ -7,7 +7,7 @@ public class mainTest {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		//UndirectedGraph graph = new UndirectedGraphReader().read(new File("E:\\Programming\\Java\\GeneralPurposeCodeJava\\test\\structures\\undirectedGraph\\testFiles\\instance199.gr"));
-		UndirectedGraph graph = new UndirectedGraphReader().read(new File("data\\heuristics\\instance197.gr"));
+		UndirectedGraph graph = new UndirectedGraphReader().read(new File("data\\heuristics\\instance191.gr"));
                 PreProcess improved = new PreProcess(graph);
                 
                 System.out.println("Original Degree Scale: ");
@@ -27,9 +27,11 @@ public class mainTest {
                 System.out.println("Original number of Vertices: " + improved.graph.getVerticesSize() + " Current number of Edges: " + improved.graph.getEdgesSize());
                 
                 improved.removeUnnecessaryVertices();
-                improved.reduceSize();
+                System.out.println("Leaf nodes removed. Current number of Vertices: " + improved.graph.getVerticesSize() + " Current number of Edges: " + improved.graph.getEdgesSize());
+                //improved.reduceSize();
+                //System.out.println("Non-terminal degree 2 removal. Current number of Vertices: " + improved.graph.getVerticesSize() + " Current number of Edges: " + improved.graph.getEdgesSize());
                 
-                System.out.println("Current number of Vertices: " + improved.graph.getVerticesSize() + " Current number of Edges: " + improved.graph.getEdgesSize());
+                
         }
 
 }

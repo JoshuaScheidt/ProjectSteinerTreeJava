@@ -21,21 +21,31 @@ public class PreProcess {
     public PreProcess(UndirectedGraph g){
         this.graph = g.clone();
     }
-    
+    //Doesn't work yet!!!
     public void reduceSize(){
         Set keys = this.graph.getVertices().keySet();
         Iterator it = keys.iterator();
         HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-        Vertex temp;
+        Vertex temp, n1, n2, prevn1, prevn2;
         ArrayList<Vertex> newNeighbors = new ArrayList<>();
         int combinedCost = 0;
         while(it.hasNext()){
-            temp = vertices.get(it.next());
+            temp = vertices.get((Integer)it.next());
             if(temp.getNeighbors().size() == 2 && !temp.isTerminal()){
+                n1 = ((Vertex) (temp.getNeighbors().toArray()[0]));
+                n2 = ((Vertex) (temp.getNeighbors().toArray()[1]));
+                while((n1.getEdges().size() == 2 && !n1.isTerminal())){
+                    prevn1 = n1;
+                    
+                }
+                while((n2.getEdges().size() == 2 && !n2.isTerminal())){
+                    
+                }
                 for(Edge e : temp.getEdges()){
                     combinedCost += e.getCost().get();
                     newNeighbors.add(e.getOtherSide(temp));
                 }
+                it.remove();
                 this.graph.removeVertex(temp);
                 this.graph.addEdge(newNeighbors.get(0), newNeighbors.get(1), combinedCost);
                 newNeighbors.clear();
@@ -54,10 +64,16 @@ public class PreProcess {
             current = vertices.get(key);
             while(!current.isTerminal() && current.getNeighbors().size() == 1){
                 newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-                this.graph.getVertices().keySet().remove(key);
-                //it.remove();
+                it.remove();
                 this.graph.removeVertex(current);
                 current = newCurrent;
+            }
+            while(current.isTerminal() && current.getNeighbors().size() == 1){
+                newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+                newCurrent.setTerminal(true);
+                newCurrent.pushStack(current.getSubsumed());
+                newCurrent.pushSubsumed(new int[]{newCurrent.getKey(), current.getKey(), ((Edge) current.getEdges().toArray()[0]).getCost().get()});
+                it.remove();
             }
         }
     }
