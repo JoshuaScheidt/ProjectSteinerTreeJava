@@ -275,4 +275,11 @@ public class UndirectedGraph {
         }
         return degrees;
     }
+    
+    public Edge edgeBetweenVertices(Vertex v, Vertex u) throws GraphException {
+    	for(Edge e : v.getEdges()) {
+    		if(e.getOtherSide(v) == u) return e;
+    	}
+    	throw new GraphException("No edges from v contain vertex u.");
+    }
 }

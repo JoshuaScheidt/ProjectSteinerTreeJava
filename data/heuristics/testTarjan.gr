@@ -1,0 +1,25 @@
+SECTION Graph
+Nodes 13
+Edges 15
+E 1 7 1
+E 1 11 1
+E 1 12 1
+E 2 3 1
+E 2 10 1
+E 2 13 1
+E 3 13 1
+E 4 6 1
+E 4 11 1
+E 5 6 1
+E 5 11 1
+E 7 8 1
+E 7 10 1
+E 9 12 1
+E 10 12 1
+END
+SECTION Terminals
+Terminals 0
+
+END
+
+EOF

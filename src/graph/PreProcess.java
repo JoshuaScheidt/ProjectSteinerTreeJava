@@ -97,4 +97,62 @@ public class PreProcess {
         }
         return degrees;
     }
+    
+    
+    /** The current count for the pre-order traversal */
+    private int count;
+    /** The array containing the count per Vertex for the pre-order traversal */
+    private int[] iteratedValues;
+    /** The lowest found count per Vertex */
+    private int[] lowestFoundLabels;
+    /** The found bridges */
+    private ArrayList<Edge> bridges;
+    
+    /**
+     * Completes the preprocess step for Tarjan's bridge finding algorithm.
+     *
+     * @param v The current Vertex
+     * @param parent The parent from the current Vertex (current from previous iteration)
+     *
+     * @author Joshua Scheidt
+     */
+    private void preorderTraversal(Vertex v, Vertex parent) {
+    	this.iteratedValues[v.getKey()-1] = this.count;
+    	this.count++;
+    	this.lowestFoundLabels[v.getKey()-1] = iteratedValues[v.getKey()-1];
+    	
+    	for(Vertex next : v.getNeighbors()) {
+    		if(this.iteratedValues[next.getKey()-1] == 0) {
+    			this.preorderTraversal(next, v);
+    			
+    			this.lowestFoundLabels[v.getKey()-1] = Math.min(this.lowestFoundLabels[v.getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
+    			if(this.lowestFoundLabels[next.getKey()-1] == this.iteratedValues[next.getKey()-1])
+					try {
+						this.bridges.add(this.graph.edgeBetweenVertices(v, next));
+					} catch (GraphException e) {
+						e.printStackTrace();
+					}
+    			else if(next != parent) {
+    				this.lowestFoundLabels[v.getKey()-1] = Math.min(this.lowestFoundLabels[v.getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
+    			}
+    		}
+    	}
+    }
+    
+    /**
+     * Performs Tarjan's bridge finding algorithm.
+     *
+     * @return All the bridges in the graph.
+     *
+     * @author Joshua Scheidt
+     */
+    public ArrayList<Edge> tarjanBridgeFinding() {
+    	this.count = 1;
+    	this.iteratedValues = new int[this.graph.getVerticesSize()];
+    	this.lowestFoundLabels = new int[this.graph.getVerticesSize()];
+    	this.bridges = new ArrayList<>();
+    	
+    	this.preorderTraversal(this.graph.getVertices().get(1), ((Vertex)this.graph.getVertices().get(1).getNeighbors().toArray()[0]));
+    	return this.bridges;
+    }
 }
