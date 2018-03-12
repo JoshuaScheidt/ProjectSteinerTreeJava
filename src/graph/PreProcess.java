@@ -72,7 +72,7 @@ public class PreProcess {
                 newCurrent = (Vertex) current.getNeighbors().toArray()[0];
                 newCurrent.setTerminal(true);
                 newCurrent.pushStack(current.getSubsumed());
-                newCurrent.pushSubsumed(new int[]{newCurrent.getKey(), current.getKey(), ((Edge) current.getEdges().toArray()[0]).getCost().get()});
+                newCurrent.pushSubsumed(new double[]{newCurrent.getKey(), current.getKey(), ((Edge) current.getEdges().toArray()[0]).getCost().get()});
                 it.remove();
             }
         }

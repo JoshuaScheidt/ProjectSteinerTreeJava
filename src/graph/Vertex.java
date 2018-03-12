@@ -17,7 +17,7 @@ public class Vertex extends Object {
 
     private int key;
     private HashSet<Edge> edges = new HashSet<>();
-    private Stack<int[]> subsumed;
+    private Stack<double[]> subsumed;
     private boolean isTerminal = false;
     
     /**
@@ -51,7 +51,7 @@ public class Vertex extends Object {
      * the top item of this objects Stack
      * @param stack Input Stack of another Vertex
      */
-    public void pushStack(Stack<int[]> stack){
+    public void pushStack(Stack<double[]> stack){
         if(this.subsumed.isEmpty()){
             this.subsumed = new Stack<>();
         }
@@ -63,7 +63,7 @@ public class Vertex extends Object {
      * Pushes Integer array to the Stack
      * @param keys Items to be added to Stack
      */
-    public void pushSubsumed(int[] keys){
+    public void pushSubsumed(double[] keys){
         if(this.subsumed.isEmpty()){
             this.subsumed = new Stack<>();
         }
@@ -73,14 +73,14 @@ public class Vertex extends Object {
      * Looks at the top item without removing
      * @return Integer array of the top item
      */
-    public int[] peekSubsumed(){
+    public double[] peekSubsumed(){
         return this.subsumed.peek();
     }
     /**
      * Removes the top item from the Stack
      * @return Integer array of the top item
      */
-    public int[] popSubsumed(){
+    public double[] popSubsumed(){
         return this.subsumed.pop();
     }
     /**
