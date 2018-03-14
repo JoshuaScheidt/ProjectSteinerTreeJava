@@ -6,8 +6,10 @@
 package graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
 import java.util.HashMap;
 
 /**
@@ -95,11 +97,84 @@ public class PreProcess {
 					} catch (GraphException e) {
 						e.printStackTrace();
 					}
-    			else if(next != parent) {
-    				this.lowestFoundLabels[v.getKey()-1] = Math.min(this.lowestFoundLabels[v.getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
+    		}
+			else if(next != parent) {
+				this.lowestFoundLabels[v.getKey()-1] = Math.min(this.lowestFoundLabels[v.getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
+			}
+    	}
+    }
+    
+    
+//WORKING DEPTH-FIRST SEARCH
+//	Stack<Vertex> stack = new Stack<>();
+//	Vertex next;
+//	Iterator<Vertex> it;
+//	stack.push(v);
+//	this.iteratedValues[v.getKey()-1] = this.count;
+//	this.count++;
+//	
+//	while(!stack.isEmpty()) {
+//		it = stack.peek().getNeighbors().iterator();
+//		while((next=it.next()) != null) {
+//			if(this.iteratedValues[next.getKey()-1] == 0) {
+//            	this.iteratedValues[next.getKey()-1] = this.count;
+//            	this.count++;
+//            	stack.push(next);
+//            	break;
+//			}
+//			else if(!it.hasNext()) {
+//        		stack.pop();
+//        		break;
+//        	}
+//		}
+//	}
+//	System.out.println(Arrays.toString(this.iteratedValues));   
+    
+    /**
+     * Completes the preprocess step for Tarjan's bridge finding algorithm.
+     * This method does NOT use recursions to decrease heap size.
+     *
+     * @param v The starting vertex
+     *
+     * @author Joshua Scheidt
+     */
+    private void preorderTraversalNoRec(Vertex v) {
+    	Stack<Vertex> stack = new Stack<>();
+    	Vertex next, latest;
+    	Iterator<Vertex> it;
+    	stack.push(v);
+    	this.iteratedValues[v.getKey()-1] = this.count;
+    	this.count++;
+    	this.lowestFoundLabels[v.getKey()-1] = iteratedValues[v.getKey()-1];
+    	
+    	while(!stack.isEmpty()) {
+    		it = stack.peek().getNeighbors().iterator();
+    		while((next=it.next()) != null) {
+    			if(this.iteratedValues[next.getKey()-1] == 0) {
+                	this.iteratedValues[next.getKey()-1] = this.count;
+                	this.count++;
+                	this.lowestFoundLabels[v.getKey()-1] = iteratedValues[v.getKey()-1];
+                	stack.push(next);
+                	break;
+    			}
+    			else if(!it.hasNext()) {
+            		stack.pop();
+        			this.lowestFoundLabels[stack.peek().getKey()-1] = Math.min(this.lowestFoundLabels[stack.peek().getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
+        			if(this.lowestFoundLabels[next.getKey()-1] == this.iteratedValues[next.getKey()-1])
+    					try {
+    						this.bridges.add(this.graph.edgeBetweenVertices(v, next));
+    					} catch (GraphException e) {
+    						e.printStackTrace();
+    					}
+        			
+        			break;
+            	}
+    			else if(next != stack.get(stack.indexOf(stack.peek())-1)) {
+    				this.lowestFoundLabels[stack.peek().getKey()-1] = Math.min(this.lowestFoundLabels[stack.peek().getKey()-1], this.lowestFoundLabels[next.getKey()-1]);
     			}
     		}
     	}
+    	System.out.println(Arrays.toString(this.iteratedValues));    	
     }
     
     /**
@@ -115,7 +190,8 @@ public class PreProcess {
     	this.lowestFoundLabels = new int[this.graph.getVertices().size()];
     	this.bridges = new ArrayList<>();
     	
-    	this.preorderTraversal(this.graph.getVertices().get(1), ((Vertex)this.graph.getVertices().get(1).getNeighbors().toArray()[0]));
+//    	this.preorderTraversal(this.graph.getVertices().get(1), ((Vertex)this.graph.getVertices().get(1).getNeighbors().toArray()[0]));
+    	this.preorderTraversalNoRec(this.graph.getVertices().get(1));
     	return this.bridges;
     }
 }
