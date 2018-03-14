@@ -205,6 +205,24 @@ public class UndirectedGraph {
         this.vertices.keySet().remove(key);
         v = null;
     }
+    
+    /**
+     * Removes a vertex from the graph this included removing all its edge
+     * connection and removing all of these edges from its neighbors
+     *
+     * @param key The key the to be removed vertex has
+     */
+    public void removeVertex(int key){
+        Vertex v = this.getVertices().get(key);
+        for (Edge e : v.getEdges()) {
+            this.edges.remove(e);
+        }
+        if (v.isTerminal()) {
+            this.terminals.keySet().remove(key);
+        }
+        this.vertices.keySet().remove(key);
+        v = null;
+    }
 
     /**
      * Returns the HashMap of the Vertices in the current graph
