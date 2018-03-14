@@ -38,37 +38,38 @@ public class PreProcess {
                 System.out.println("Enters Loop");
                 subsumed = new Stack<>();
                 firstVertex = (Vertex) current.getNeighbors().toArray()[0];
-                secondVertex = (Vertex) current.getNeighbors().toArray()[1];
-                firstEdge = current.getAdjoinedEdge(firstVertex);
-                secondEdge = current.getAdjoinedEdge(secondVertex);
+                secondVertex = current.getOtherNeighborVertex(firstVertex);
+                firstEdge = current.getConnectingEdge(firstVertex);
+                secondEdge = current.getConnectingEdge(secondVertex);
                 subsumed.push(new double[]{current.getKey(), firstVertex.getKey(), firstEdge.getCost().get()});
                 subsumed.push(new double[]{current.getKey(), secondVertex.getKey(), secondEdge.getCost().get()});
                 cost += firstEdge.getCost().get() + secondEdge.getCost().get();
                 toBeRemoved.add(current.getKey());
                 while(!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2){
-                    tempVertex = firstVertex.getOtherEdge(firstEdge).getOtherSide(firstVertex);
-                    System.out.println("tempEdge: " + tempEdge);
-                    System.out.println(tempVertex.getOtherEdge(firstEdge));
-                    tempEdge = tempVertex.getOtherEdge(firstEdge);
-                    System.out.println("tempEdge: " + tempEdge);
+                    tempEdge = firstVertex.getOtherEdge(firstEdge);
+                    tempVertex = tempEdge.getOtherSide(firstVertex);
                     subsumed.push(new double[]{firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get()});
                     toBeRemoved.add(firstVertex.getKey());
+                    cost += tempEdge.getCost().get();
                     firstVertex = tempVertex;
                     firstEdge = tempEdge;
                 }
                 while(!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2){
-                    tempVertex = (Vertex) secondVertex.getOtherEdge(secondEdge).getOtherSide(secondVertex);
-                    tempEdge = (Edge) tempVertex.getOtherEdge(secondEdge);
+                    tempEdge = secondVertex.getOtherEdge(secondEdge);
+                    tempVertex = tempEdge.getOtherSide(secondVertex);
                     subsumed.push(new double[]{secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get()});
                     toBeRemoved.add(secondVertex.getKey());
+                    cost += tempEdge.getCost().get();
                     secondVertex = tempVertex;
                     secondEdge = tempEdge;
                 }
+                //YOU NEED TO STILL ADD THAT THE STACK OF SUBSUMED EDGES AND VERTICES ARE IN THE NEW EDGE, ALSO FIX CONCURRENCY ERROR!!!
                 this.graph.addEdge(firstVertex, secondVertex, cost);
-                
                 for(int key : toBeRemoved){
+                    System.out.println(key);
                     this.graph.removeVertex(key);
                 }
+                it.remove();
             }
         }
     }

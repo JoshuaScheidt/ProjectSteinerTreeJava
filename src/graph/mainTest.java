@@ -7,7 +7,7 @@ public class mainTest {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		UndirectedGraph graph = new UndirectedGraphReader().read(new File("data\\heuristics\\instance197.gr"));
+		UndirectedGraph graph = new UndirectedGraphReader().read(new File("data\\heuristics\\test.gr"));
                 PreProcess improved = new PreProcess(graph);
                 
                 System.out.println("Original Degree Scale: ");
