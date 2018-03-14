@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.Stack;
 
 /**
  *
@@ -22,14 +23,53 @@ public class PreProcess {
         this.graph = g.clone();
     }
     
-    public void removeTerminalDegreeTwo(){
+    public void removeNonTerminalDegreeTwo(){
         Set keys = this.graph.getVertices().keySet();
         Iterator it = keys.iterator();
-        int key;
         HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-        Vertex current, newCurrent;
+        Vertex current, firstVertex, secondVertex, tempVertex;
+        Edge firstEdge, secondEdge, tempEdge = null;
+        Stack<double[]> subsumed;
+        ArrayList<Integer> toBeRemoved = new ArrayList<>();
+        int cost = 0;
         while(it.hasNext()){
-            key = (int) it.next();
+            current = vertices.get((int)it.next());
+            if(!current.isTerminal() && current.getNeighbors().size() == 2){
+                System.out.println("Enters Loop");
+                subsumed = new Stack<>();
+                firstVertex = (Vertex) current.getNeighbors().toArray()[0];
+                secondVertex = (Vertex) current.getNeighbors().toArray()[1];
+                firstEdge = current.getAdjoinedEdge(firstVertex);
+                secondEdge = current.getAdjoinedEdge(secondVertex);
+                subsumed.push(new double[]{current.getKey(), firstVertex.getKey(), firstEdge.getCost().get()});
+                subsumed.push(new double[]{current.getKey(), secondVertex.getKey(), secondEdge.getCost().get()});
+                cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+                toBeRemoved.add(current.getKey());
+                while(!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2){
+                    tempVertex = firstVertex.getOtherEdge(firstEdge).getOtherSide(firstVertex);
+                    System.out.println("tempEdge: " + tempEdge);
+                    System.out.println(tempVertex.getOtherEdge(firstEdge));
+                    tempEdge = tempVertex.getOtherEdge(firstEdge);
+                    System.out.println("tempEdge: " + tempEdge);
+                    subsumed.push(new double[]{firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get()});
+                    toBeRemoved.add(firstVertex.getKey());
+                    firstVertex = tempVertex;
+                    firstEdge = tempEdge;
+                }
+                while(!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2){
+                    tempVertex = (Vertex) secondVertex.getOtherEdge(secondEdge).getOtherSide(secondVertex);
+                    tempEdge = (Edge) tempVertex.getOtherEdge(secondEdge);
+                    subsumed.push(new double[]{secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get()});
+                    toBeRemoved.add(secondVertex.getKey());
+                    secondVertex = tempVertex;
+                    secondEdge = tempEdge;
+                }
+                this.graph.addEdge(firstVertex, secondVertex, cost);
+                
+                for(int key : toBeRemoved){
+                    this.graph.removeVertex(key);
+                }
+            }
         }
     }
     /**
