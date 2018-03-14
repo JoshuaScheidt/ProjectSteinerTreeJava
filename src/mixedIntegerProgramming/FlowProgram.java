@@ -43,7 +43,7 @@ public class FlowProgram {
                 
                 IloNumVar[] vars = lp.getNumVars();
                 double[]    vals = cplex.getValues(vars);
-                int lengthBasic = this.g.getEdgesSize();
+                int lengthBasic = this.g.getEdges().size();
                 if(DEBUG){
                     System.out.println(lengthBasic);
                     System.out.println(Arrays.toString(vars));
@@ -56,7 +56,7 @@ public class FlowProgram {
                 }
                 int cnt = 0;
                 for(int i = 0; i < vars.length; i++){
-                    if(vals[i] == 1 && i < g.getEdgesSize()){
+                    if(vals[i] == 1 && i < g.getEdges().size()){
                        basic[cnt] = i;
                        cnt++;
                     }

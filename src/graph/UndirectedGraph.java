@@ -21,7 +21,7 @@ public class UndirectedGraph {
     private HashMap<Integer, Vertex> vertices = new HashMap<>();
     private HashSet<Edge> edges = new HashSet<>();
     private HashMap<Integer, Vertex> terminals = new HashMap<>();
-    private int numberOfTerminals = 0;
+    private ArrayList<double[]> preliminaryResult = new ArrayList<>();
 
     /**
      * Empty constructor to allow for iterative additions of edges and vertices
@@ -96,6 +96,7 @@ public class UndirectedGraph {
             this.edges.add(e);
         }
     }
+    
     /**
      * Adds edge to the graph given 2 vertices and a cost It will add vertices
      * to the graph if they weren't already in there
@@ -131,14 +132,28 @@ public class UndirectedGraph {
      *
      * @param keys The keys for which vertex is a terminal
      */
-    public void setTerminals(int[] keys) {
-        for (int i = 0; i < keys.length; i++) {
-            if (this.vertices.containsKey(keys[i])) {
-                this.vertices.get(keys[i]).setTerminal(true);
-                this.terminals.put(keys[i], this.vertices.get(keys[i]));
+    public void setTerminals(Set<Integer> keys) {
+        for (Integer key : keys) {
+            if (this.vertices.containsKey(key)) {
+                this.vertices.get(key).setTerminal(true);
+                this.terminals.put(key, this.vertices.get(key));
             } else {
                 System.out.println("Terminal appointed to non-existing Vertex");
             }
+        }
+    }
+    
+    /**
+     * This method sets an individual Vertex to be a terminal
+     * 
+     * @param key Key of Vertex to be made terminal
+     */
+    public void setTerminal(int key){
+        if(this.vertices.containsKey(key)){
+            this.vertices.get(key).setTerminal(true);
+            this.terminals.put(key, this.vertices.get(key));
+        } else {
+            System.out.println("Terminal appointed to non-existing Vertex");
         }
     }
 
@@ -155,6 +170,7 @@ public class UndirectedGraph {
         for (int key : this.terminals.keySet()) {
             (graph.vertices.get(key)).setTerminal(true);
         }
+        graph.setTerminals(this.terminals.keySet());
         return graph;
     }
 
@@ -168,6 +184,7 @@ public class UndirectedGraph {
         for (Vertex v : e.getVertices()) {
             v.getEdges().remove(e);
         }
+        this.edges.remove(e);
         e = null;
     }
 
@@ -179,36 +196,14 @@ public class UndirectedGraph {
      */
     public void removeVertex(Vertex v) {
         for (Edge e : v.getEdges()) {
-            Vertex neighbor = e.getOtherSide(v);
-            neighbor.getEdges().remove(e);
             this.edges.remove(e);
         }
         int key = v.getKey();
         if (v.isTerminal()) {
-            this.numberOfTerminals--;
             this.terminals.keySet().remove(key);
         }
         this.vertices.keySet().remove(key);
-    }
-
-    /**
-     * A method which checks if a Vertex v resides in the current graph
-     *
-     * @param v The Vertex to be checked
-     * @return True if it contains the vertex, false if it doesn't contain it
-     */
-    public boolean containsVertex(Vertex v) {
-        return this.vertices.containsValue(v.getKey());
-    }
-
-    /**
-     * A method which checks if an Edge e resides in the current graph
-     *
-     * @param e The Edge to be checked
-     * @return True if it contains the vertex, false if it doesn't contain it
-     */
-    public boolean containsEdge(Edge e) {
-        return this.edges.contains(e);
+        v = null;
     }
 
     /**
@@ -235,25 +230,7 @@ public class UndirectedGraph {
      * @return Non-negative integer which holds the number of terminals
      */
     public int getNumberOfTerminals() {
-        return this.numberOfTerminals;
-    }
-
-    /**
-     * Get the number of Edges in the graph
-     *
-     * @return Non-negative integer which holds the number of Edges
-     */
-    public int getEdgesSize() {
-        return this.edges.size();
-    }
-
-    /**
-     * Get the number of Vertices in the graph
-     *
-     * @return Non-negative integer which holds the number of Vertices
-     */
-    public int getVerticesSize() {
-        return this.vertices.size();
+        return this.terminals.size();
     }
 
     //The methods below are for testing and requesting certain information from the graph

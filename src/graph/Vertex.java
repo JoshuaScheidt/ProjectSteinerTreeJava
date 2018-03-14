@@ -64,7 +64,7 @@ public class Vertex extends Object {
      * @param keys Items to be added to Stack
      */
     public void pushSubsumed(double[] keys){
-        if(this.subsumed.isEmpty()){
+        if(this.subsumed == null){
             this.subsumed = new Stack<>();
         }
         this.subsumed.push(keys);
