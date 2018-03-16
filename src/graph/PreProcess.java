@@ -112,6 +112,9 @@ public class PreProcess {
             }
             while(current.isTerminal() && current.getNeighbors().size() == 1){
                 newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+                if(current.getSubsumed().size() > 0){
+                    newCurrent.pushStack(current.getSubsumed());
+                }
                 newCurrent.pushSubsumed(new double[]{newCurrent.getKey(), current.getKey(), ((Edge)(current.getEdges().toArray()[0])).getCost().get()});
                 this.graph.setTerminal(newCurrent.getKey());
                 
