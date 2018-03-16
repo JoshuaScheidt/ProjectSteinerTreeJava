@@ -71,7 +71,7 @@ public class Vertex extends Object {
     }
 
     /**
-     * Pushes Integer array to the Stack
+     * Pushes Double array to the Stack
      *
      * @param keys Items to be added to Stack
      */
@@ -101,6 +101,78 @@ public class Vertex extends Object {
     }
 
     /**
+     * Checks if the input Vertex v is a neighbor of the current Vertex
+     *
+     * @param v Vertex to be checked
+     * @return True if the Vertex v is a neighbor, false if it isn't
+     */
+    public boolean isNeighbor(Vertex v) {
+        if (this.getNeighbors().contains((Vertex) v)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Should return the edge that connects this Vertex to Vertex v Returns null
+     * when v is not a neighbor of this object
+     *
+     * @param v Vertex to be compared to the edges in the current Vertex' Edges
+     * set
+     * @return Edge which should be the connection between this Vertex and v
+     */
+    public Edge getConnectingEdge(Vertex v) {
+        if (this.getNeighbors().contains(v)) {
+            for (Edge e : this.edges) {
+                if (e.getVertices()[0].getKey() == v.getKey()) {
+                    return e;
+                } else if (e.getVertices()[1].getKey() == v.getKey()) {
+                    return e;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Specialized method for use with degree 2 vertices This returns the
+     * neighbor which is not v, return null if v is not a neighbor
+     *
+     * @param v Vertex v is the neighbor that should not be selected
+     * @return The neighbor that is not v
+     */
+    public Vertex getOtherNeighborVertex(Vertex v) {
+        HashSet<Vertex> neigh = this.getNeighbors();
+        if (neigh.contains(v) && this.edges.size() == 2) {
+            if(((Vertex)(neigh.toArray()[0])).getKey() == v.getKey()){
+                return (Vertex)(neigh.toArray()[0]);
+            } else {
+                return (Vertex)(neigh.toArray()[1]);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This is a specialised method which assumes a Vertex has degree 2
+     *
+     * @param e Edge e should be checked against the other Edges and return not
+     * itself
+     * @return The other Edge will be returned
+     */
+    public Edge getOtherEdge(Edge e) {
+        if (this.edges.size() == 2 && this.edges.contains(e)) {
+            for (Edge n : this.edges) {
+                if (!n.equals(e)) {
+                    return n;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns a HashSet of Vertices which are neighbors connected through one
      * of the edges of this object
      *
@@ -116,26 +188,6 @@ public class Vertex extends Object {
     }
 
     /**
-     * This is a specialised method which assumes a Vertex has degree 2
-     *
-     * @param e Edge e should be checked against the other Edges and return not
-     * itself
-     * @return The other Edge will be returned
-     */
-    public Edge getOtherEdge(Edge e) {
-        if (this.edges.size() == 2 && this.edges.contains(e)) {
-            for (Edge n : this.edges) {
-                if (!n.equals(e)) {
-                    System.out.println(n);
-                    System.out.println("Returns Edge");
-                    return n;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
      * Returns HashSet of Edges that are connected to this Vertex
      *
      * @return Edges
@@ -144,30 +196,6 @@ public class Vertex extends Object {
         return this.edges;
     }
 
-    /**
-     * Checks if the input Vertex v is a neighbor of the current Vertex
-     *
-     * @param v Vertex to be checked
-     * @return True if the Vertex v is a neighbor, false if it isn't
-     */
-    public boolean isNeighbor(Vertex v) {
-        if (this.getNeighbors().contains((Vertex) v)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public Edge getAdjoinedEdge(Vertex v){
-        for(Edge e : this.edges){
-            if(e.getVertices()[0].getKey() == v.getKey()){
-                return e;
-            } else if(e.getVertices()[1].getKey() == v.getKey()){
-                return e;
-            }
-        }
-        return null;
-    }
     /**
      * Checks if the Vertex is a terminal
      *

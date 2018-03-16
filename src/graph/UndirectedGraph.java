@@ -104,8 +104,9 @@ public class UndirectedGraph {
      * @param v1 First Vertex to be added
      * @param v2 Second Vertex to be added
      * @param cost Cost of the Edge
+     * @return The created Edge
      */
-    public void addEdge(Vertex v1, Vertex v2, int cost) {
+    public Edge addEdge(Vertex v1, Vertex v2, int cost) {
         if (this.vertices.containsValue(v1) || this.vertices.containsValue(v2)) {
             if (this.vertices.containsValue(v1) && this.vertices.containsValue(v2)) {
                 Edge e = new Edge(v1, v2, cost);
@@ -124,7 +125,9 @@ public class UndirectedGraph {
             this.vertices.put((v2).getKey(), v2);
             Edge e = new Edge(v1, v2, cost);
             this.edges.add(e);
+            return e;
         }
+        return null;
     }
 
     /**

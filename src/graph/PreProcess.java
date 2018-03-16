@@ -26,6 +26,15 @@ public class PreProcess {
 		this.graph = g.clone();
 	}
 
+	/**
+	 * This method looks more complicated than what it actually does. It removes all
+	 * Non-terminals with degree 2. It iteratively checks its neighbors until it
+	 * finds a Terminal or a Vertex with degree higher than 2. It has to keep track
+	 * of subsumed vertices per New Edge. And it has to keep track of all Vertices
+	 * to be removed and Edges to be created. This cannot happen concurrently as the
+	 * Iterator doesn't allow it, if we do do this it could cause checks on newly
+	 * created edges which is unnecessary.
+	 */
 	public void removeNonTerminalDegreeTwo() {
 		Set keys = this.graph.getVertices().keySet();
 		Iterator it = keys.iterator();
@@ -36,42 +45,56 @@ public class PreProcess {
 		ArrayList<Integer> toBeRemoved = new ArrayList<>();
 		int cost = 0;
 		while (it.hasNext()) {
+			// Gets the current Vertex in the Iterator
 			current = vertices.get((int) it.next());
+			// Checks if Vertex is Non-Terminal and degree 2
 			if (!current.isTerminal() && current.getNeighbors().size() == 2) {
 				System.out.println("Enters Loop");
+				// Creates a stack to be used for all vertices that will be subsumed by the to
+				// be created Edge
 				subsumed = new Stack<>();
+				// Creating first steps left and right of current to iteratively find a terminal
+				// or degree greater than 2
 				firstVertex = (Vertex) current.getNeighbors().toArray()[0];
-				secondVertex = (Vertex) current.getNeighbors().toArray()[1];
-				firstEdge = current.getAdjoinedEdge(firstVertex);
-				secondEdge = current.getAdjoinedEdge(secondVertex);
+				secondVertex = current.getOtherNeighborVertex(firstVertex);
+				firstEdge = current.getConnectingEdge(firstVertex);
+				secondEdge = current.getConnectingEdge(secondVertex);
+				// Pushes the original two removable Edges in the form of their two keys and
+				// their respective costs
 				subsumed.push(new double[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
 				subsumed.push(new double[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
+				// The total cost of the new Edge is the sum of the removed Edges
 				cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+				// Keeps a list of the Vertices to be removed, Removal method will also remove
+				// all connected
+				// Edges so no need to store the Edge objects
 				toBeRemoved.add(current.getKey());
 				while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
-					tempVertex = firstVertex.getOtherEdge(firstEdge).getOtherSide(firstVertex);
-					System.out.println("tempEdge: " + tempEdge);
-					System.out.println(tempVertex.getOtherEdge(firstEdge));
-					tempEdge = tempVertex.getOtherEdge(firstEdge);
-					System.out.println("tempEdge: " + tempEdge);
+					tempEdge = firstVertex.getOtherEdge(firstEdge);
+					tempVertex = tempEdge.getOtherSide(firstVertex);
 					subsumed.push(new double[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
 					toBeRemoved.add(firstVertex.getKey());
+					cost += tempEdge.getCost().get();
 					firstVertex = tempVertex;
 					firstEdge = tempEdge;
 				}
 				while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
-					tempVertex = secondVertex.getOtherEdge(secondEdge).getOtherSide(secondVertex);
-					tempEdge = tempVertex.getOtherEdge(secondEdge);
+					tempEdge = secondVertex.getOtherEdge(secondEdge);
+					tempVertex = tempEdge.getOtherSide(secondVertex);
 					subsumed.push(new double[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
 					toBeRemoved.add(secondVertex.getKey());
+					cost += tempEdge.getCost().get();
 					secondVertex = tempVertex;
 					secondEdge = tempEdge;
 				}
+				// YOU NEED TO STILL ADD THAT THE STACK OF SUBSUMED EDGES AND VERTICES ARE IN
+				// THE NEW EDGE, ALSO FIX CONCURRENCY ERROR!!!
 				this.graph.addEdge(firstVertex, secondVertex, cost);
-
 				for (int key : toBeRemoved) {
+					System.out.println(key);
 					this.graph.removeVertex(key);
 				}
+				it.remove();
 			}
 		}
 	}
@@ -97,6 +120,9 @@ public class PreProcess {
 			}
 			while (current.isTerminal() && current.getNeighbors().size() == 1) {
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				if (current.getSubsumed().size() > 0) {
+					newCurrent.pushStack(current.getSubsumed());
+				}
 				newCurrent.pushSubsumed(
 						new double[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
 				this.graph.setTerminal(newCurrent.getKey());
