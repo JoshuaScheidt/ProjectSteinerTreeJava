@@ -18,13 +18,13 @@ public class mainTest {
 		System.out.println("");
 
 		System.out.println("Original number of (Vertices, Terminals): (" + improved.graph.getVertices().size() + ", "
-				+ improved.graph.getNumberOfTerminals() + ") Original number of Edges: "
-				+ improved.graph.getEdges().size());
-
+				+ improved.graph.getNumberOfTerminals() + ") Original number of Edges: " + improved.graph.getEdges().size());
+		long start = System.currentTimeMillis();
 		ArrayList<Edge> bridges = improved.tarjanBridgeFinding();
+		System.out.println("Time needed: " + (System.currentTimeMillis() - start) + " ms");
+		System.out.println("Found " + bridges.size() + " bridges.");
 		for (Edge e : bridges)
-			System.out.println("Bridge found on vertices: " + e.getVertices()[0].getKey() + " and  "
-					+ e.getVertices()[1].getKey());
+			System.out.println("Bridge found on vertices: " + e.getVertices()[0].getKey() + " and  " + e.getVertices()[1].getKey());
 		// System.out.println("done");
 		// improved.removeLeafNodes();
 		// System.out.println("Leaf nodes removed. Current number of (Vertices,
@@ -32,10 +32,11 @@ public class mainTest {
 		// improved.graph.getNumberOfTerminals() + ") Current number of Edges: " +
 		// improved.graph.getEdges().size());
 
-		improved.removeNonTerminalDegreeTwo();
-		System.out.println(
-				"Non-terminal degree 2 removal. Current number of Vertices: " + improved.graph.getVertices().size()
-						+ " Current number of Edges: " + improved.graph.getEdges().size());
+		// improved.removeNonTerminalDegreeTwo();
+		// System.out.println(
+		// "Non-terminal degree 2 removal. Current number of Vertices: " +
+		// improved.graph.getVertices().size()
+		// + " Current number of Edges: " + improved.graph.getEdges().size());
 
 		// System.out.println("Cloned Degree Scale: ");
 		// int[] clonedDegrees = improved.graph.countDegree();
