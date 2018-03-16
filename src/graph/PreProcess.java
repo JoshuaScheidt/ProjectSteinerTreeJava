@@ -25,6 +25,15 @@ public class PreProcess {
         this.graph = g.clone();
     }
     
+    /**
+     * This method looks more complicated than what it actually does. It removes all 
+     * Non-terminals with degree 2. It iteratively checks its neighbors until it finds
+     * a Terminal or a Vertex with degree higher than 2.
+     * It has to keep track of subsumed vertices per New Edge.
+     * And it has to keep track of all Vertices to be removed and Edges to be created.
+     * This cannot happen concurrently as the Iterator doesn't allow it, if we do do this
+     * it could cause checks on newly created edges which is unnecessary.
+     */
     public void removeNonTerminalDegreeTwo(){
         Set keys = this.graph.getVertices().keySet();
         Iterator it = keys.iterator();
@@ -35,17 +44,25 @@ public class PreProcess {
         ArrayList<Integer> toBeRemoved = new ArrayList<>();
         int cost = 0;
         while(it.hasNext()){
+            //Gets the current Vertex in the Iterator
             current = vertices.get((int)it.next());
+            //Checks if Vertex is Non-Terminal and degree 2
             if(!current.isTerminal() && current.getNeighbors().size() == 2){
                 System.out.println("Enters Loop");
+                //Creates a stack to be used for all vertices that will be subsumed by the to be created Edge
                 subsumed = new Stack<>();
+                //Creating first steps left and right of current to iteratively find a terminal or degree greater than 2
                 firstVertex = (Vertex) current.getNeighbors().toArray()[0];
                 secondVertex = current.getOtherNeighborVertex(firstVertex);
                 firstEdge = current.getConnectingEdge(firstVertex);
                 secondEdge = current.getConnectingEdge(secondVertex);
+                //Pushes the original two removable Edges in the form of their two keys and their respective costs
                 subsumed.push(new double[]{current.getKey(), firstVertex.getKey(), firstEdge.getCost().get()});
                 subsumed.push(new double[]{current.getKey(), secondVertex.getKey(), secondEdge.getCost().get()});
+                //The total cost of the new Edge is the sum of the removed Edges
                 cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+                //Keeps a list of the Vertices to be removed, Removal method will also remove all connected
+                //Edges so no need to store the Edge objects
                 toBeRemoved.add(current.getKey());
                 while(!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2){
                     tempEdge = firstVertex.getOtherEdge(firstEdge);
