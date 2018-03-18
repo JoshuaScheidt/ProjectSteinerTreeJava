@@ -27,24 +27,24 @@ public class mainTest {
 //			System.out.println("Bridge found on vertices: " + e.getVertices()[0].getKey() + " and  " + e.getVertices()[1].getKey());
         // System.out.println("done");
         //Leaf Node Removal
-        improved.removeLeafNodes();
-
-        //Non-Terminal Degree Two removal
-        long start = System.nanoTime();
-        improved.removeNonTerminalDegreeTwo();
-        long stop = System.nanoTime();
-        System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
-
-        printCurrentSize(improved);
-        printDegreeScale(improved);
-        
-        improved.removeLeafNodes();
-
-        printCurrentSize(improved);
-        printDegreeScale(improved);
-        
-        improved.removeNonTerminalDegreeTwo();
-        
+//        improved.removeLeafNodes();
+//
+//        //Non-Terminal Degree Two removal
+//        long start = System.nanoTime();
+//        improved.removeNonTerminalDegreeTwo();
+//        long stop = System.nanoTime();
+//        System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
+//
+//        printCurrentSize(improved);
+//        printDegreeScale(improved);
+//        
+//        improved.removeLeafNodes();
+//
+//        printCurrentSize(improved);
+//        printDegreeScale(improved);
+//        
+//        improved.removeNonTerminalDegreeTwo();
+        improved.removeTerminals();
     }
 
     public static void printCurrentSize(PreProcess improved) {

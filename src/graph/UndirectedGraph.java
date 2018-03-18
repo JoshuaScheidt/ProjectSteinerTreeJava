@@ -246,6 +246,14 @@ public class UndirectedGraph {
     }
 
     /**
+     * Returns HashMap of the Terminals in the graph
+     * 
+     * @return The HashMap in question
+     */
+    public HashMap<Integer, Vertex> getTerminals(){
+        return this.terminals;
+    }
+    /**
      * Returns the HashMap of the Edges in the current graph
      *
      * @return The HashMap in question
