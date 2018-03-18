@@ -37,6 +37,14 @@ public class Edge extends Object {
     }
 
     /**
+     * Sets the cost of the current Edge
+     * @param cost Parameter to exchange Edge cost
+     */
+    public void setCost(double cost){
+        this.cost = Optional.of(cost);
+    }
+    
+    /**
      * Pushes an entire Stack to the current Stack, it will retain the order of
      * the input Stack which means the top item of the input Stack will also be
      * the top item of this objects Stack

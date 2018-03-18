@@ -47,7 +47,7 @@ public class PreProcess {
         ArrayList<double[]> newEdges = new ArrayList<>();
         ArrayList<Stack<double[]>> containedWithinEdge = new ArrayList<>();
         Vertex current, firstVertex, secondVertex, tempVertex;
-        Edge firstEdge, secondEdge, tempEdge = null;
+        Edge firstEdge, secondEdge, tempEdge, temp;
         double cost;
         while (it.hasNext()) {
             // Gets the current Vertex in the Iterator
@@ -60,7 +60,6 @@ public class PreProcess {
                 cost = 0;
                 // Creating first steps left and right of current to iteratively find a terminal
                 // or degree greater than 2
-                
                 firstVertex = (Vertex) current.getNeighbors().toArray()[0];
                 secondVertex = current.getOtherNeighborVertex(firstVertex);
                 firstEdge = current.getConnectingEdge(firstVertex);
@@ -102,26 +101,26 @@ public class PreProcess {
                     if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
                         //Do Nothing the vertices can all be removed because there exists a shorter path between the two endpoints
                     } else {
-                        //THIS IS WHERE THAT SHIT NEED SO HAPPEN
-                        newEdges.add(new double[]{firstVertex.getKey(), secondVertex.getKey(), cost});
-                        containedWithinEdge.add(subsumed);
-                        toBeRemovedEdges.add(firstVertex.getConnectingEdge(secondVertex));
+                        temp = firstVertex.getConnectingEdge(secondVertex);
+                        temp.setCost(cost);
+                        temp.pushStack(subsumed);
                     }
                     edgeExists = true;
-                }
-                for(int i = 0; i < newEdges.size(); i++){
-                    if(newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()){
-                        if(newEdges.get(i)[2] > cost){
-                            newEdges.get(i)[2] = cost;
+                } else {
+                    for(int i = 0; i < newEdges.size(); i++){
+                        if(newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()){
+                            if(newEdges.get(i)[2] > cost){
+                                newEdges.get(i)[2] = cost;
+                            }
+                            edgeExists = true;
+                            break;
+                        } else if(newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()){
+                            if(newEdges.get(i)[2] > cost){
+                                newEdges.get(i)[2] = cost;
+                            }
+                            edgeExists = true;
+                            break;
                         }
-                        edgeExists = true;
-                        break;
-                    } else if(newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()){
-                        if(newEdges.get(i)[2] > cost){
-                            newEdges.get(i)[2] = cost;
-                        }
-                        edgeExists = true;
-                        break;
                     }
                 }
                 if(!edgeExists){
@@ -130,7 +129,6 @@ public class PreProcess {
                 }
             }
         }
-        Edge temp;
         for (int i = 0; i < newEdges.size(); i++) {
             temp = this.graph.addEdge((int) newEdges.get(i)[0], (int) newEdges.get(i)[1], newEdges.get(i)[2]);
             temp.pushStack(containedWithinEdge.get(i));

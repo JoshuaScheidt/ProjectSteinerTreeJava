@@ -10,6 +10,7 @@ public class mainTest {
         UndirectedGraph graph = new UndirectedGraphReader().read(new File("data\\heuristics\\instance197.gr"));
         PreProcess improved = new PreProcess(graph);
 
+        printCurrentSize(improved);
         System.out.println("Original Degree Scale: ");
         int[] degrees = graph.countDegree();
         for (int i = 0; i < degrees.length; i++) {
