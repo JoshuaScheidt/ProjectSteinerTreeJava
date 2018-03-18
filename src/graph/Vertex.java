@@ -17,7 +17,7 @@ public class Vertex extends Object {
 
     private int key;
     private HashSet<Edge> edges = new HashSet<>();
-    private Stack<double[]> subsumed;
+    private Stack<double[]> subsumed = null;
     private boolean isTerminal = false;
 
     /**
@@ -55,6 +55,13 @@ public class Vertex extends Object {
     }
 
     /**
+     * Removes an Edge e from the list of Edges
+     * @param e Edge to be removed
+     */
+    public void removeEdge(Edge e){
+        this.edges.remove(e);
+    }
+    /**
      * Pushes an entire Stack to the current Stack, it will retain the order of
      * the input Stack which means the top item of the input Stack will also be
      * the top item of this objects Stack
@@ -62,7 +69,7 @@ public class Vertex extends Object {
      * @param stack Input Stack of another Vertex
      */
     public void pushStack(Stack<double[]> stack) {
-        if (this.subsumed.isEmpty()) {
+        if (this.subsumed == null) {
             this.subsumed = new Stack<>();
         }
         for (int i = stack.size() - 1; i >= 0; i--) {
@@ -101,10 +108,10 @@ public class Vertex extends Object {
     }
 
     /**
-     * Checks if the input Vertex v is a neighbor of the current Vertex
+     * Checks if the input Vertex v is a neighbour of the current Vertex
      *
      * @param v Vertex to be checked
-     * @return True if the Vertex v is a neighbor, false if it isn't
+     * @return True if the Vertex v is a neighbour, false if it isn't
      */
     public boolean isNeighbor(Vertex v) {
         if (this.getNeighbors().contains((Vertex) v)) {
@@ -145,7 +152,7 @@ public class Vertex extends Object {
     public Vertex getOtherNeighborVertex(Vertex v) {
         HashSet<Vertex> neigh = this.getNeighbors();
         if (neigh.contains(v) && this.edges.size() == 2) {
-            if(((Vertex)(neigh.toArray()[0])).getKey() == v.getKey()){
+            if(((Vertex)(neigh.toArray()[0])).getKey() != v.getKey()){
                 return (Vertex)(neigh.toArray()[0]);
             } else {
                 return (Vertex)(neigh.toArray()[1]);

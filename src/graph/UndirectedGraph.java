@@ -75,26 +75,28 @@ public class UndirectedGraph {
      * @param key2 Key of the second Vertex
      * @param cost Cost of the Edge between the Vertices
      */
-    public void addEdge(int key1, int key2, int cost){
+    public Edge addEdge(int key1, int key2, double cost){
+        Edge e = null;
         if (this.vertices.containsKey(key1) || this.vertices.containsKey(key2)) {
             if (this.vertices.containsKey(key1) && this.vertices.containsKey(key2)) {
-                Edge e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
+                e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
                 this.edges.add(e);
             } else if (this.vertices.containsKey(key1)) {
                 this.vertices.put(key2, new Vertex(key2));
-                Edge e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
+                e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
                 this.edges.add(e);
             } else if (this.vertices.containsKey(key2)) {
                 this.vertices.put(key1, new Vertex(key1));
-                Edge e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
+                e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
                 this.edges.add(e);
             }
         } else {
             this.vertices.put(key1, new Vertex(key1));
             this.vertices.put(key2, new Vertex(key2));
-            Edge e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
+            e = new Edge(this.vertices.get(key1), this.vertices.get(key2), cost);
             this.edges.add(e);
         }
+        return e;
     }
     
     /**
@@ -107,27 +109,27 @@ public class UndirectedGraph {
      * @return The created Edge
      */
     public Edge addEdge(Vertex v1, Vertex v2, int cost) {
+        Edge e = null;
         if (this.vertices.containsValue(v1) || this.vertices.containsValue(v2)) {
             if (this.vertices.containsValue(v1) && this.vertices.containsValue(v2)) {
-                Edge e = new Edge(v1, v2, cost);
+                e = new Edge(v1, v2, cost);
                 this.edges.add(e);
             } else if (this.vertices.containsValue(v1)) {
                 this.vertices.put((v2).getKey(), v2);
-                Edge e = new Edge(v1, v2, cost);
+                e = new Edge(v1, v2, cost);
                 this.edges.add(e);
             } else if (this.vertices.containsValue(v2)) {
                 this.vertices.put((v1).getKey(), v1);
-                Edge e = new Edge(v1, v2, cost);
+                e = new Edge(v1, v2, cost);
                 this.edges.add(e);
             }
         } else {
             this.vertices.put((v1).getKey(), v1);
             this.vertices.put((v2).getKey(), v2);
-            Edge e = new Edge(v1, v2, cost);
+            e = new Edge(v1, v2, cost);
             this.edges.add(e);
-            return e;
         }
-        return null;
+        return e;
     }
 
     /**
@@ -211,19 +213,26 @@ public class UndirectedGraph {
     
     /**
      * Removes a vertex from the graph this included removing all its edge
-     * connection and removing all of these edges from its neighbors
+     * connection and removing all of these edges from its neighbours
      *
      * @param key The key the to be removed vertex has
      */
     public void removeVertex(int key){
         Vertex v = this.getVertices().get(key);
+        HashSet<Edge> toBeRemoved = new HashSet<>();
         for (Edge e : v.getEdges()) {
+            toBeRemoved.add(e);
             this.edges.remove(e);
+        }
+        for(Edge e : toBeRemoved){
+            v.removeEdge(e);
+            e.getOtherSide(v).removeEdge(e);
+            e = null;
         }
         if (v.isTerminal()) {
             this.terminals.keySet().remove(key);
         }
-        this.vertices.keySet().remove(key);
+        this.vertices.remove(key);
         v = null;
     }
 
@@ -266,10 +275,10 @@ public class UndirectedGraph {
             key = (Integer) it.next();
             temp = vertices.get(key);
             number = temp.getNeighbors().size();
-            if(number >= degrees.length){
+            if(number >= degrees.length+1){
                 continue;
             }
-            degrees[number]++;
+            degrees[number-1]++;
         }
         return degrees;
     }
