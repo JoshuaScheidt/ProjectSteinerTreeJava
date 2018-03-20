@@ -226,6 +226,15 @@ public class UndirectedGraph {
 	}
 
 	/**
+	 * Returns HashMap of the Terminals in the graph
+	 * 
+	 * @return The HashMap in question
+	 */
+	public HashMap<Integer, Vertex> getTerminals() {
+		return this.terminals;
+	}
+
+	/**
 	 * Removes a vertex from the graph this included removing all its edge
 	 * connection and removing all of these edges from its neighbours
 	 *

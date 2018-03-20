@@ -27,6 +27,30 @@ public class PreProcess {
 		this.graph = g.clone();
 	}
 
+	public void removeTerminals() {
+		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
+		Set keys = vertices.keySet();
+		Iterator it = keys.iterator();
+		Vertex current;
+		while (it.hasNext()) {
+			current = vertices.get((int) it.next());
+			int counter = 0;
+			Iterator neighbours = current.getNeighbors().iterator();
+			while (neighbours.hasNext()) {
+				if (((Vertex) neighbours.next()).isTerminal() && current.isTerminal()) {
+					counter++;
+				}
+			}
+			if (counter > 0)
+				System.out.println("This Terminal has " + counter + " Terminal neighbours");
+			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
+					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
+				System.out.println("This actually happens?");
+			}
+		}
+
+	}
+
 	/**
 	 * This method looks more complicated than what it actually does. It removes all
 	 * Non-terminals with degree 2. It iteratively checks its neighbours until it
@@ -381,6 +405,6 @@ public class PreProcess {
 		// this.preorderTraversal(this.graph.getVertices().get(1),
 		// ((Vertex)this.graph.getVertices().get(1).getNeighbors().toArray()[0]));
 		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(1));
-		this.analyseSections(bridge, bridges);
+		this.analyseSections(bridges);
 	}
 }
