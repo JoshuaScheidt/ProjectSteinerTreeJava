@@ -289,6 +289,22 @@ public class UndirectedGraph {
 
 	// The methods below are for testing and requesting certain information from the
 	// graph
+        public boolean[] preProcessable(){
+            boolean[] pp = new boolean[]{false, false};
+            Iterator it = this.vertices.keySet().iterator();
+            Vertex current;
+            int neighbours;
+            while(it.hasNext()){
+                current = this.vertices.get((int)it.next());
+                neighbours = current.getEdges().size();
+                if(neighbours == 1 && !pp[0]){
+                    pp[0] = true;
+                } else if(neighbours == 2 && !current.isTerminal() && !pp[1]){
+                    pp[1] = true;
+                }
+            }
+            return pp;
+        }
 	public int[] countDegree() {
 		Set keyset = this.getVertices().keySet();
 		HashMap<Integer, Vertex> vertices = this.getVertices();

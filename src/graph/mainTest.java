@@ -42,39 +42,48 @@ public class mainTest {
 			start = System.currentTimeMillis();
 			improved.removeLeafNodes();
 			end = System.currentTimeMillis();
-			results[fileIndex][1][0] = graph.getVertices().size();
-			results[fileIndex][1][1] = graph.getNumberOfTerminals();
-			results[fileIndex][1][2] = graph.getEdges().size();
+			results[fileIndex][1][0] = improved.graph.getVertices().size();
+			results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][1][2] = improved.graph.getEdges().size();
 			results[fileIndex][1][3] = (int) (end - start);
 
 			// Remove non-degree terminal
 			start = System.currentTimeMillis();
 			improved.removeNonTerminalDegreeTwo();
 			end = System.currentTimeMillis();
-			results[fileIndex][2][0] = graph.getVertices().size();
-			results[fileIndex][2][1] = graph.getNumberOfTerminals();
-			results[fileIndex][2][2] = graph.getEdges().size();
+			results[fileIndex][2][0] = improved.graph.getVertices().size();
+			results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][2][2] = improved.graph.getEdges().size();
 			results[fileIndex][2][3] = (int) (end - start);
 
 			// Iterative part here
 			start = System.currentTimeMillis();
-			// improved.removeNonTerminalDegreeTwo();
+			boolean[] keepPreProcessing = improved.graph.preProcessable();
+                        while(keepPreProcessing[0] || keepPreProcessing[1]){
+                            if(keepPreProcessing[0]){
+                                improved.removeLeafNodes();
+                            }
+                            if(keepPreProcessing[1]){
+                                improved.removeNonTerminalDegreeTwo();
+                            }
+                            keepPreProcessing = improved.graph.preProcessable();
+                        }
 			end = System.currentTimeMillis();
-			results[fileIndex][3][0] = graph.getVertices().size();
-			results[fileIndex][3][1] = graph.getNumberOfTerminals();
-			results[fileIndex][3][2] = graph.getEdges().size();
+			results[fileIndex][3][0] = improved.graph.getVertices().size();
+			results[fileIndex][3][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][3][2] = improved.graph.getEdges().size();
 			results[fileIndex][3][3] = (int) (end - start);
 
 			// Bridge Finding
-			start = System.currentTimeMillis();
-			improved.removeBridgesAndSections();
-			end = System.currentTimeMillis();
-			results[fileIndex][4][0] = graph.getVertices().size();
-			results[fileIndex][4][1] = graph.getNumberOfTerminals();
-			results[fileIndex][4][2] = graph.getEdges().size();
-			results[fileIndex][4][3] = (int) (end - start);
-
-			System.out.println("done");
+//			start = System.currentTimeMillis();
+//			improved.removeBridgesAndSections();
+//			end = System.currentTimeMillis();
+//			results[fileIndex][4][0] = graph.getVertices().size();
+//			results[fileIndex][4][1] = graph.getNumberOfTerminals();
+//			results[fileIndex][4][2] = graph.getEdges().size();
+//			results[fileIndex][4][3] = (int) (end - start);
+//
+//			System.out.println("done");
 
 			// Leaf Node Removal
 			// improved.removeLeafNodes();
