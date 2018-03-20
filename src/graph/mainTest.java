@@ -8,18 +8,22 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
+		File[] files = readFiles(new File("data\\heuristics"));
 
-		Integer[][][] results = new Integer[files.length][1][3]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
+		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 																	// index has to be changed depending on which comparisons we want. The first
 																	// index will always be the base graph without preprocess changes.
 
 		for (int fileIndex = 0; fileIndex < files.length; fileIndex++) {
 			// Read the standard graph and set its values to the first index of the results.
+			Long start, end;
+			start = System.currentTimeMillis();
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[fileIndex]);
+			end = System.currentTimeMillis();
 			results[fileIndex][0][0] = graph.getVertices().size();
 			results[fileIndex][0][1] = graph.getNumberOfTerminals();
 			results[fileIndex][0][2] = graph.getEdges().size();
+			results[fileIndex][0][3] = (int) (end - start);
 
 			// Create a cloned graph which will use preprocessing.
 			PreProcess improved = new PreProcess(graph);
@@ -34,35 +38,62 @@ public class mainTest {
 			}
 			System.out.println("");
 
+			// Leaf Node Removal
+			start = System.currentTimeMillis();
+			improved.removeLeafNodes();
+			end = System.currentTimeMillis();
+			results[fileIndex][1][0] = graph.getVertices().size();
+			results[fileIndex][1][1] = graph.getNumberOfTerminals();
+			results[fileIndex][1][2] = graph.getEdges().size();
+			results[fileIndex][1][3] = (int) (end - start);
+
+			// Remove non-degree terminal
+			start = System.currentTimeMillis();
+			improved.removeNonTerminalDegreeTwo();
+			end = System.currentTimeMillis();
+			results[fileIndex][2][0] = graph.getVertices().size();
+			results[fileIndex][2][1] = graph.getNumberOfTerminals();
+			results[fileIndex][2][2] = graph.getEdges().size();
+			results[fileIndex][2][3] = (int) (end - start);
+
+			// Iterative part here
+			start = System.currentTimeMillis();
+			// improved.removeNonTerminalDegreeTwo();
+			end = System.currentTimeMillis();
+			results[fileIndex][3][0] = graph.getVertices().size();
+			results[fileIndex][3][1] = graph.getNumberOfTerminals();
+			results[fileIndex][3][2] = graph.getEdges().size();
+			results[fileIndex][3][3] = (int) (end - start);
+
 			// Bridge Finding
-			// long start = System.currentTimeMillis();
-			// ArrayList<Edge> bridges = improved.tarjanBridgeFinding();
-			// System.out.println("Time needed: " + (System.currentTimeMillis() - start) + "
-			// ms");
-			// System.out.println("Found " + bridges.size() + " bridges.");
-			// for (Edge e : bridges)
-			// System.out.println("Bridge found on vertices: " + e.getVertices()[0].getKey()
-			// + " and " + e.getVertices()[1].getKey());
-			// System.out.println("done");
+			start = System.currentTimeMillis();
+			improved.removeBridgesAndSections();
+			end = System.currentTimeMillis();
+			results[fileIndex][4][0] = graph.getVertices().size();
+			results[fileIndex][4][1] = graph.getNumberOfTerminals();
+			results[fileIndex][4][2] = graph.getEdges().size();
+			results[fileIndex][4][3] = (int) (end - start);
+
+			System.out.println("done");
 
 			// Leaf Node Removal
-			improved.removeLeafNodes();
-
-			// Non-Terminal Degree Two removal
-			long start = System.nanoTime();
-			improved.removeNonTerminalDegreeTwo();
-			long stop = System.nanoTime();
-			System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
-
-			printCurrentSize(improved);
-			printDegreeScale(improved);
-
-			improved.removeLeafNodes();
-
-			printCurrentSize(improved);
-			printDegreeScale(improved);
-
-			improved.removeNonTerminalDegreeTwo();
+			// improved.removeLeafNodes();
+			//
+			// // Non-Terminal Degree Two removal
+			// long start = System.nanoTime();
+			// improved.removeNonTerminalDegreeTwo();
+			// long stop = System.nanoTime();
+			// System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeLeafNodes();
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeNonTerminalDegreeTwo();
 		}
 		System.out.println("\n\nTotal results:");
 		for (Integer[][] singleFileResults : results) {

@@ -389,6 +389,102 @@ public class PreProcess {
 	 * @author Joshua Scheidt
 	 */
 	private void analyseSections(ArrayList<Edge> bridges) {
+		int nrTerminals = 0, nrBridges = 0, nrEdges = 0;
+		boolean[] hasVisited;
+		HashMap<Integer, Vertex> bridgesOrTerms; // Save all the found bridges and terminals from current section
+		Stack<Vertex> stack = new Stack<>();
+		Vertex next;
+		Iterator<Vertex> it;
+		ArrayList<Integer> checkedVertices = new ArrayList<>(); // If multiple bridges are in same section, don't check section multiple times
+
+		ArrayList<Integer> allBridgeEndpoints = new ArrayList<>();
+		for (Edge bridge : bridges) {
+			for (Vertex endPoint : bridge.getVertices()) {
+				allBridgeEndpoints.add(endPoint.getKey());
+			}
+		}
+		System.out.println(Arrays.toString(allBridgeEndpoints.toArray()));
+
+		for (Edge bridge : bridges) {
+			for (Vertex endPoint : bridge.getVertices()) { // run 2 times
+				if (!checkedVertices.contains(endPoint.getKey())) {
+					nrTerminals = 0;
+					nrBridges = 0;
+					nrEdges = 0;
+					for (Vertex other : endPoint.getNeighbors())
+						if (!allBridgeEndpoints.contains(other.getKey()))
+							nrEdges++;
+					hasVisited = new boolean[this.graph.getVertices().size()];
+					bridgesOrTerms = new HashMap<>();
+
+					stack.push(endPoint);
+					hasVisited[endPoint.getKey() - 1] = true;
+
+					while (!stack.isEmpty()) {
+						it = stack.peek().getNeighbors().iterator();
+						while ((next = it.next()) != null) {
+							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())) {
+								if (it.hasNext())
+									continue;
+								else {
+									stack.pop();
+									break;
+								}
+							} else if (!hasVisited[next.getKey() - 1]) {
+								hasVisited[next.getKey() - 1] = true;
+								nrEdges += next.getNeighbors().size();
+
+								if (next.isTerminal() || allBridgeEndpoints.contains(next.getKey())) {
+									if (next.isTerminal())
+										nrTerminals++;
+									else {
+										nrBridges++;
+										checkedVertices.add(next.getKey());
+									}
+									bridgesOrTerms.put(next.getKey(), next);
+								}
+								stack.push(next);
+								break;
+							} else if (!it.hasNext()) {
+								stack.pop();
+								break;
+							}
+						}
+					}
+					nrEdges = (nrEdges - nrBridges) / 2;
+					System.out.println("Section (" + endPoint.getKey() + ") with " + nrBridges + " bridges, " + nrTerminals + " terminals and "
+							+ nrEdges + " edges.");
+					if (nrBridges == 0) {
+						if (nrTerminals == 0) {
+							// Remove section entirely
+							System.out.println("0-0");
+						} else if ((nrTerminals * (nrTerminals - 1)) / 2 + nrTerminals <= nrEdges) {
+							// Shortest path between terminals and bridge
+							System.out.println("0-n");
+						}
+					} else {
+						if (nrTerminals == 0) {
+							// Shortest path between bridges
+							System.out.println("n-0");
+						} else if (((nrTerminals * (nrTerminals - 1)) / 2 + (nrBridges + 1) * nrTerminals) <= nrEdges) {
+							// Shortest path between terminals and bridges
+							System.out.println("n-n");
+						}
+					}
+					// Else leave as is, probably shorter to perform normal algorithm than to change
+				}
+			}
+		}
+	}
+
+	/**
+	 * Removes a section entirely given one of the endpoints of the bridges.
+	 *
+	 * @param endPoint
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public void removeSection(Vertex endPoint) {
 
 	}
 
@@ -401,9 +497,6 @@ public class PreProcess {
 	 * @author Joshua Scheidt
 	 */
 	public void removeBridgesAndSections() {
-
-		// this.preorderTraversal(this.graph.getVertices().get(1),
-		// ((Vertex)this.graph.getVertices().get(1).getNeighbors().toArray()[0]));
 		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(1));
 		this.analyseSections(bridges);
 	}
