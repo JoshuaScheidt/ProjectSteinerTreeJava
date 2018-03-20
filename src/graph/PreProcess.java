@@ -452,23 +452,24 @@ public class PreProcess {
 						}
 					}
 					nrEdges = (nrEdges - nrBridges) / 2;
-					System.out.println("Section (" + endPoint.getKey() + ") with " + nrBridges + " bridges, " + nrTerminals + " terminals and "
-							+ nrEdges + " edges.");
+					// System.out.println("Section (" + endPoint.getKey() + ") with " + nrBridges +
+					// " bridges, " + nrTerminals + " terminals and "
+					// + nrEdges + " edges.");
 					if (nrBridges == 0) {
 						if (nrTerminals == 0) {
 							// Remove section entirely
-							System.out.println("0-0");
+							// System.out.println("0-0");
 						} else if ((nrTerminals * (nrTerminals - 1)) / 2 + nrTerminals <= nrEdges) {
 							// Shortest path between terminals and bridge
-							System.out.println("0-n");
+							// System.out.println("0-n");
 						}
 					} else {
 						if (nrTerminals == 0) {
 							// Shortest path between bridges
-							System.out.println("n-0");
+							// System.out.println("n-0");
 						} else if (((nrTerminals * (nrTerminals - 1)) / 2 + (nrBridges + 1) * nrTerminals) <= nrEdges) {
 							// Shortest path between terminals and bridges
-							System.out.println("n-n");
+							// System.out.println("n-n");
 						}
 					}
 					// Else leave as is, probably shorter to perform normal algorithm than to change
