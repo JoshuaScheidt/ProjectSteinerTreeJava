@@ -9,4 +9,8 @@ E 3 4 1
 
 END
 
+SECTION Terminals
+Terminals 0
+
+END
 EOF
