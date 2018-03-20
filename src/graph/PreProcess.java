@@ -294,15 +294,11 @@ public class PreProcess {
 	 *
 	 * @author Joshua Scheidt
 	 */
-	private ArrayList<Edge> TarjansBridgeFinding(Vertex v0) {
+	private ArrayList<Edge> TarjansBridgeFinding(Vertex v0, int totalVertices) {
 		int count = 1;
-		int[] iteratedValues = new int[this.graph.getVertices().size()];
-		int[] lowestFoundLabels = new int[this.graph.getVertices().size()];
+		int[] iteratedValues = new int[totalVertices];
+		int[] lowestFoundLabels = new int[totalVertices];
 		ArrayList<Edge> bridges = new ArrayList<>();
-		count = 1;
-		iteratedValues = new int[this.graph.getVertices().size()];
-		lowestFoundLabels = new int[this.graph.getVertices().size()];
-		bridges = new ArrayList<>();
 		Stack<Vertex> stack = new Stack<>();
 		Vertex fake = new Vertex(0);
 		stack.push(fake);
@@ -388,7 +384,7 @@ public class PreProcess {
 	 *
 	 * @author Joshua Scheidt
 	 */
-	private void analyseSections(ArrayList<Edge> bridges) {
+	private void analyseSections(ArrayList<Edge> bridges, int totalVertices) {
 		int nrTerminals = 0, nrBridges = 0, nrEdges = 0;
 		boolean[] hasVisited;
 		HashMap<Integer, Vertex> bridgesOrTerms; // Save all the found bridges and terminals from current section
@@ -414,7 +410,7 @@ public class PreProcess {
 					for (Vertex other : endPoint.getNeighbors())
 						if (!allBridgeEndpoints.contains(other.getKey()))
 							nrEdges++;
-					hasVisited = new boolean[this.graph.getVertices().size()];
+					hasVisited = new boolean[totalVertices];
 					bridgesOrTerms = new HashMap<>();
 
 					stack.push(endPoint);
@@ -497,8 +493,9 @@ public class PreProcess {
 	 *
 	 * @author Joshua Scheidt
 	 */
-	public void removeBridgesAndSections() {
-		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(1));
-		this.analyseSections(bridges);
+	public void removeBridgesAndSections(int totalVertices) {
+		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
+				totalVertices);
+		this.analyseSections(bridges, totalVertices);
 	}
 }
