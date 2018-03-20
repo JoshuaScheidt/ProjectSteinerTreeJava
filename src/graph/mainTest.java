@@ -59,15 +59,15 @@ public class mainTest {
 			// Iterative part here
 			start = System.currentTimeMillis();
 			boolean[] keepPreProcessing = improved.graph.preProcessable();
-                        while(keepPreProcessing[0] || keepPreProcessing[1]){
-                            if(keepPreProcessing[0]){
-                                improved.removeLeafNodes();
-                            }
-                            if(keepPreProcessing[1]){
-                                improved.removeNonTerminalDegreeTwo();
-                            }
-                            keepPreProcessing = improved.graph.preProcessable();
-                        }
+			while (keepPreProcessing[0] || keepPreProcessing[1]) {
+				if (keepPreProcessing[0]) {
+					improved.removeLeafNodes();
+				}
+				if (keepPreProcessing[1]) {
+					improved.removeNonTerminalDegreeTwo();
+				}
+				keepPreProcessing = improved.graph.preProcessable();
+			}
 			end = System.currentTimeMillis();
 			results[fileIndex][3][0] = improved.graph.getVertices().size();
 			results[fileIndex][3][1] = improved.graph.getNumberOfTerminals();
@@ -75,15 +75,15 @@ public class mainTest {
 			results[fileIndex][3][3] = (int) (end - start);
 
 			// Bridge Finding
-//			start = System.currentTimeMillis();
-//			improved.removeBridgesAndSections();
-//			end = System.currentTimeMillis();
-//			results[fileIndex][4][0] = graph.getVertices().size();
-//			results[fileIndex][4][1] = graph.getNumberOfTerminals();
-//			results[fileIndex][4][2] = graph.getEdges().size();
-//			results[fileIndex][4][3] = (int) (end - start);
-//
-//			System.out.println("done");
+			start = System.currentTimeMillis();
+			improved.removeBridgesAndSections(graph.getVertices().size());
+			end = System.currentTimeMillis();
+			results[fileIndex][4][0] = graph.getVertices().size();
+			results[fileIndex][4][1] = graph.getNumberOfTerminals();
+			results[fileIndex][4][2] = graph.getEdges().size();
+			results[fileIndex][4][3] = (int) (end - start);
+
+			System.out.println("done");
 
 			// Leaf Node Removal
 			// improved.removeLeafNodes();
