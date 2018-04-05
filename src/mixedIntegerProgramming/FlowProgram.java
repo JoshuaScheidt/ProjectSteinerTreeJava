@@ -12,6 +12,8 @@ import ilog.concert.*;
 import ilog.cplex.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -21,10 +23,35 @@ import java.util.Iterator;
 public class FlowProgram {
 
     private UndirectedGraph g;
+    private HashMap<Integer, Edge> edges; 
     private final boolean DEBUG = false;
     
     public FlowProgram(UndirectedGraph g){
         this.g = g;
+    }
+    
+    public void initiateCutSearch(){
+        this.createIdentifiableEdges();
+    }
+    
+    public void cutFinder(){
+        Iterator it1 = this.g.getVertices().keySet().iterator();
+        HashSet subset1, subset2;
+        while(it1.hasNext()){
+             
+        }
+    }
+    
+    public void createIdentifiableEdges(){
+        this.edges = new HashMap<>();
+        Iterator it = this.g.getEdges().iterator();
+        Edge e;
+        int counter = 1;
+        while(it.hasNext()){
+            e = (Edge)it.next();
+            this.edges.put(counter, e);
+            counter++;
+        }
     }
     
     public int[] activateCPLEX(String txt){
