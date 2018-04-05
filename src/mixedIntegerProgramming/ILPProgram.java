@@ -15,30 +15,61 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
  * @author Marciano
  */
-public class FlowProgram {
+public class ILPProgram {
 
     private UndirectedGraph g;
     private HashMap<Integer, Edge> edges; 
+    private HashSet<ArrayList<Integer>> result;
     private final boolean DEBUG = false;
     
-    public FlowProgram(UndirectedGraph g){
+    public ILPProgram(UndirectedGraph g){
         this.g = g;
     }
     
     public void initiateCutSearch(){
         this.createIdentifiableEdges();
+        Set keys = this.g.getTerminals().keySet();
+        Iterator it = keys.iterator();
+        int temp;
+        ArrayList sub1, sub2;
+        this.result = new HashSet<>();
+        while(it.hasNext()){
+            temp = (int)it.next();
+            sub1 = new ArrayList<>();
+            sub1.add(temp);
+            sub2 = new ArrayList<>();
+            sub2.addAll(keys);
+            sub2.remove(temp);
+            this.recursiveCut(sub1, sub2, 1);
+        }
+        System.out.println(this.result.size());
     }
     
-    public void cutFinder(){
-        Iterator it1 = this.g.getVertices().keySet().iterator();
-        HashSet subset1, subset2;
-        while(it1.hasNext()){
-             
+    public void recursiveCut(ArrayList<Integer> sub1, ArrayList<Integer> sub2, int term1){
+        if(term1 >= this.g.getNumberOfTerminals()){
+            return;
+        } else {
+            this.result.add(sub1);
+            int temp;
+            ArrayList<Integer> newSub1, newSub2;
+            for(int i = 0; i < sub2.size(); i++){
+                temp = sub2.get(i);
+                newSub1 = new ArrayList<>();
+                newSub1.add(temp);
+                newSub2 = new ArrayList<>();
+                newSub2.remove(temp);
+                if(this.g.getTerminals().containsKey(temp)){
+                    this.recursiveCut(newSub1, newSub2, term1++);
+                } else {
+                    this.recursiveCut(newSub1, newSub2, term1);
+                }
+            }
         }
     }
     
