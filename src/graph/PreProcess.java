@@ -389,9 +389,6 @@ public class PreProcess {
 		// bridgeCutted.removeEdge(bridge);
 		// }
 
-		System.out.println("NrVertices: " + this.graph.getVertices().size());
-		System.out.println("NrEdges: " + this.graph.getEdges().size());
-
 		int nrBridges = 0;
 		boolean[] hasVisited;
 		HashMap<Integer, Vertex> bridgesOrTerms; // Save all the found bridges and terminals from current section
@@ -406,7 +403,6 @@ public class PreProcess {
 				allBridgeEndpoints.add(endPoint.getKey());
 			}
 		}
-		// System.out.println(Arrays.toString(allBridgeEndpoints.toArray()));
 
 		Set<Vertex> verticesInSection = new HashSet<>();
 		Set<Vertex> terminalsInSection = new HashSet<>();
@@ -415,7 +411,6 @@ public class PreProcess {
 
 		for (Edge bridge : bridges) {
 			for (Vertex endPoint : bridge.getVertices()) { // run 2 times
-				System.out.println("In here with point: " + endPoint.getKey());
 				if (!checkedVertices.contains(endPoint.getKey())) {
 					nrBridges = 1;
 					verticesInSection = new HashSet<>();
@@ -437,13 +432,10 @@ public class PreProcess {
 
 					stack.push(endPoint);
 					hasVisited[endPoint.getKey() - 1] = true;
-					// System.out.println(endPoint);
-					// System.out.println(endPoint.getNeighbors().size());
 					while (!stack.isEmpty()) {
 						it = stack.peek().getNeighbors().iterator();
 
 						while ((next = it.next()) != null) {
-							System.out.println("Whiling -> " + next.getKey());
 							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())) {
 								if (it.hasNext())
 									continue;
@@ -510,7 +502,7 @@ public class PreProcess {
 						b.addAll(bridgeEndpointsInSection);
 						ArrayList<Edge> e = new ArrayList<>();
 						e.addAll(edgesInSection);
-						this.reduceSection(this.graph, v, t, b, e);
+						this.reduceSection(bridgeCutted, v, t, b, e);
 					}
 					// Else leave as is, probably shorter to perform normal algorithm than to change
 				}
@@ -536,30 +528,36 @@ public class PreProcess {
 	 */
 	public void reduceSection(UndirectedGraph cutted, ArrayList<Vertex> vertices, ArrayList<Vertex> terminals, ArrayList<Vertex> bridgeEndpoints,
 			ArrayList<Edge> edges) {
-		System.out.println("Vertices: " + vertices.size());
-		System.out.println("Terminals: " + terminals.size());
-		System.out.println("BridgePoint: " + bridgeEndpoints.size());
-		System.out.println("Edges: " + edges.size());
+
 		// Create new edges between bridges
 		ArrayList<Edge> toBeAddedEdges = new ArrayList<>();
-		for (int i = 0; i < bridgeEndpoints.size(); i++)
+		for (int i = 0; i < bridgeEndpoints.size(); i++) {
+			ArrayList<Vertex> ends = new ArrayList<>();
 			for (int j = i + 1; j < bridgeEndpoints.size(); j++) {
-				Edge tmp = PathFinding.DijkstraSingleEdge(cutted, bridgeEndpoints.get(i), bridgeEndpoints.get(j));
-				toBeAddedEdges.add(tmp);
+				ends.add(bridgeEndpoints.get(j));
 			}
+			ArrayList<Edge> tmp = PathFinding.DijkstraMultiPath(cutted, bridgeEndpoints.get(i), ends);
+			toBeAddedEdges.addAll(tmp);
+		}
 		// Create new edges between terminals
-		for (int i = 0; i < terminals.size(); i++)
+		for (int i = 0; i < terminals.size(); i++) {
+			ArrayList<Vertex> ends = new ArrayList<>();
 			for (int j = i + 1; j < terminals.size(); j++) {
-				Edge tmp = PathFinding.DijkstraSingleEdge(cutted, terminals.get(i), terminals.get(j));
-				toBeAddedEdges.add(tmp);
+				ends.add(terminals.get(j));
 			}
+			ArrayList<Edge> tmp = PathFinding.DijkstraMultiPath(cutted, terminals.get(i), ends);
+			toBeAddedEdges.addAll(tmp);
+		}
 
 		// Create new edges between the terminals and bridges
-		for (int i = 0; i < bridgeEndpoints.size(); i++)
+		for (int i = 0; i < bridgeEndpoints.size(); i++) {
+			ArrayList<Vertex> ends = new ArrayList<>();
 			for (int j = 0; j < terminals.size(); j++) {
-				Edge tmp = PathFinding.DijkstraSingleEdge(cutted, bridgeEndpoints.get(i), terminals.get(j));
-				toBeAddedEdges.add(tmp);
+				ends.add(terminals.get(j));
 			}
+			ArrayList<Edge> tmp = PathFinding.DijkstraMultiPath(cutted, bridgeEndpoints.get(i), ends);
+			toBeAddedEdges.addAll(tmp);
+		}
 
 		// Remove all vertices and edges which are now not needed anymore
 		for (Edge e : edges)
@@ -571,10 +569,10 @@ public class PreProcess {
 		for (Edge e : toBeAddedEdges)
 			this.graph.addEdge(e);
 
-		if (toBeAddedEdges.size() == 0 && bridgeEndpoints.size() == 1) {
-			System.out.println("removing");
-			this.graph.removeVertex(bridgeEndpoints.get(0).getKey());
-		}
+		// if (toBeAddedEdges.size() == 0 && bridgeEndpoints.size() == 1) {
+		// System.out.println("removing");
+		// this.graph.removeVertex(bridgeEndpoints.get(0).getKey());
+		// }
 	}
 
 	/**
@@ -588,7 +586,6 @@ public class PreProcess {
 	public void removeBridgesAndSections(int totalVertices) {
 		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
 				totalVertices);
-		System.out.println("NrBridges:" + bridges.size());
 		this.analyseSections(bridges, totalVertices);
 	}
 }

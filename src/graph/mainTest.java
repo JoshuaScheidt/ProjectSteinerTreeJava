@@ -8,11 +8,9 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
+		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
 
 		UndirectedGraph graphTest = new UndirectedGraphReader().read(files[0]);
-		System.out.println("NrVertices: " + graphTest.getVertices().size());
-		System.out.println("NrEdges: " + graphTest.getEdges().size());
 		// System.out.println(PathFinding.DijkstraSingleEdge(graphTest,
 		// graphTest.getVertices().get(13), graphTest.getVertices().get(6)));
 		PreProcess processed = new PreProcess(graphTest);
