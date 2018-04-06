@@ -188,7 +188,7 @@ public class PreProcess {
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
 
 				it.remove();
-				this.graph.removeVertex(current);
+				this.graph.removeVertex(current.getKey());
 				current = newCurrent;
 			}
 			while (current.isTerminal() && current.getNeighbors().size() == 1) {
@@ -203,7 +203,7 @@ public class PreProcess {
 				this.graph.setTerminal(newCurrent.getKey());
 
 				it.remove();
-				this.graph.removeVertex(current);
+				this.graph.removeVertex(current.getKey());
 				current = newCurrent;
 			}
 		}
