@@ -249,8 +249,8 @@ public class UndirectedGraph {
 			this.edges.remove(e);
 		}
 		for (Edge e : toBeRemoved) {
+                        e.getOtherSide(v).removeEdge(e);
 			v.removeEdge(e);
-			e.getOtherSide(v).removeEdge(e);
 			e = null;
 		}
 		if (v.isTerminal()) {
