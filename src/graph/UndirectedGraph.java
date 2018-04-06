@@ -142,6 +142,24 @@ public class UndirectedGraph {
 	}
 
 	/**
+	 * Adds an edge to the graph using an already constructed edge.
+	 *
+	 * @param edge
+	 * @return
+	 *
+	 * @author Marciano Geijselaers
+	 * @author Joshua Scheidt
+	 */
+	public Edge addEdge(Edge edge) {
+		if (!this.vertices.containsValue(edge.getVertices()[0]))
+			this.vertices.put(edge.getVertices()[0].getKey(), edge.getVertices()[0]);
+		if (!this.vertices.containsValue(edge.getVertices()[1]))
+			this.vertices.put(edge.getVertices()[1].getKey(), edge.getVertices()[1]);
+		this.edges.add(edge);
+		return edge;
+	}
+
+	/**
 	 * This method sets the terminals for the existing vertices in the graph
 	 *
 	 * @param keys
@@ -215,6 +233,7 @@ public class UndirectedGraph {
 	 */
 	public void removeVertex(Vertex v) {
 		for (Edge e : v.getEdges()) {
+			e.getOtherSide(v).removeEdge(e);
 			this.edges.remove(e);
 		}
 		int key = v.getKey();
@@ -289,22 +308,23 @@ public class UndirectedGraph {
 
 	// The methods below are for testing and requesting certain information from the
 	// graph
-        public boolean[] preProcessable(){
-            boolean[] pp = new boolean[]{false, false};
-            Iterator it = this.vertices.keySet().iterator();
-            Vertex current;
-            int neighbours;
-            while(it.hasNext()){
-                current = this.vertices.get((int)it.next());
-                neighbours = current.getEdges().size();
-                if(neighbours == 1 && !pp[0]){
-                    pp[0] = true;
-                } else if(neighbours == 2 && !current.isTerminal() && !pp[1]){
-                    pp[1] = true;
-                }
-            }
-            return pp;
-        }
+	public boolean[] preProcessable() {
+		boolean[] pp = new boolean[] { false, false };
+		Iterator it = this.vertices.keySet().iterator();
+		Vertex current;
+		int neighbours;
+		while (it.hasNext()) {
+			current = this.vertices.get((int) it.next());
+			neighbours = current.getEdges().size();
+			if (neighbours == 1 && !pp[0]) {
+				pp[0] = true;
+			} else if (neighbours == 2 && !current.isTerminal() && !pp[1]) {
+				pp[1] = true;
+			}
+		}
+		return pp;
+	}
+
 	public int[] countDegree() {
 		Set keyset = this.getVertices().keySet();
 		HashMap<Integer, Vertex> vertices = this.getVertices();
@@ -330,5 +350,24 @@ public class UndirectedGraph {
 				return e;
 		}
 		throw new GraphException("No edges from v contain vertex u.");
+	}
+
+	/**
+	 * Returns all the partial graphs from each separate component in this graph. If
+	 * the graph is connected, it will simply return the complete graph after
+	 * performing a complete search.
+	 *
+	 * @return List of separate graphs
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public ArrayList<UndirectedGraph> getDisconnectedComponents(ArrayList<Edge> bridges) {
+		Set<Vertex> bridgePoints = new HashSet<>();
+		for (Edge e : bridges) {
+			bridgePoints.add(e.getVertices()[0]);
+			bridgePoints.add(e.getVertices()[1]);
+		}
+
+		return null;
 	}
 }

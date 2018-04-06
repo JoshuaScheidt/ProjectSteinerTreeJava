@@ -8,7 +8,27 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics"));
+		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
+
+		UndirectedGraph graphTest = new UndirectedGraphReader().read(files[0]);
+		System.out.println("NrVertices: " + graphTest.getVertices().size());
+		System.out.println("NrEdges: " + graphTest.getEdges().size());
+		// System.out.println(PathFinding.DijkstraSingleEdge(graphTest,
+		// graphTest.getVertices().get(13), graphTest.getVertices().get(6)));
+		PreProcess processed = new PreProcess(graphTest);
+		long starts = System.currentTimeMillis();
+		processed.removeBridgesAndSections(graphTest.getVertices().size());
+		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
+		for (int v : processed.graph.getVertices().keySet())
+			System.out.print(v + " ");
+		System.out.println();
+		System.out.println("Total vertices: " + processed.graph.getVertices().size());
+		System.out.println("Total edges:" + processed.graph.getEdges().size());
+		// for (Edge e : processed.graph.getEdges()) {
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// }
+		System.exit(1);
 
 		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 																	// index has to be changed depending on which comparisons we want. The first
@@ -105,23 +125,23 @@ public class mainTest {
 			// improved.removeNonTerminalDegreeTwo();
 		}
 		System.out.println("\n\nTotal results:");
-                double[] percentileReductionVertices = new double[results.length];
-                double[] percentileReductionEdges = new double[results.length];
-                double[] percentileReductionTerminals = new double[results.length];
-                double[] averageTimeTaken = new double[results.length];
-                int counter = 0;
+		double[] percentileReductionVertices = new double[results.length];
+		double[] percentileReductionEdges = new double[results.length];
+		double[] percentileReductionTerminals = new double[results.length];
+		double[] averageTimeTaken = new double[results.length];
+		int counter = 0;
 		for (Integer[][] singleFileResults : results) {
-                        System.out.println(Arrays.toString(singleFileResults[0]));
-                       percentileReductionVertices[counter] = ((double)(singleFileResults[0][0] - singleFileResults[3][0])) / (double)singleFileResults[0][0];
-                       percentileReductionTerminals[counter] = ((double)(singleFileResults[0][1] - singleFileResults[3][1])) / (double)singleFileResults[0][1]; 
-                       percentileReductionEdges[counter] = ((double)(singleFileResults[0][2] - singleFileResults[3][2])) / (double)singleFileResults[0][2];
-                       averageTimeTaken[counter]= singleFileResults[1][3] + singleFileResults[2][3] + singleFileResults[3][3]; 
-                       counter++;
-                }
-                System.out.println(Arrays.toString(percentileReductionVertices));
-                System.out.println(Arrays.toString(percentileReductionEdges));
-                System.out.println(Arrays.toString(percentileReductionTerminals));
-                System.out.println(Arrays.toString(averageTimeTaken));
+			System.out.println(Arrays.toString(singleFileResults[0]));
+			percentileReductionVertices[counter] = ((double) (singleFileResults[0][0] - singleFileResults[3][0])) / (double) singleFileResults[0][0];
+			percentileReductionTerminals[counter] = ((double) (singleFileResults[0][1] - singleFileResults[3][1])) / (double) singleFileResults[0][1];
+			percentileReductionEdges[counter] = ((double) (singleFileResults[0][2] - singleFileResults[3][2])) / (double) singleFileResults[0][2];
+			averageTimeTaken[counter] = singleFileResults[1][3] + singleFileResults[2][3] + singleFileResults[3][3];
+			counter++;
+		}
+		System.out.println(Arrays.toString(percentileReductionVertices));
+		System.out.println(Arrays.toString(percentileReductionEdges));
+		System.out.println(Arrays.toString(percentileReductionTerminals));
+		System.out.println(Arrays.toString(averageTimeTaken));
 
 	}
 
