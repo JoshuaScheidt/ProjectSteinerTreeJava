@@ -434,7 +434,10 @@ public class PreProcess {
 					hasVisited[endPoint.getKey() - 1] = true;
 					while (!stack.isEmpty()) {
 						it = stack.peek().getNeighbors().iterator();
-
+						// if (!it.hasNext()) {
+						// stack.pop();
+						// continue;
+						// }
 						while ((next = it.next()) != null) {
 							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())) {
 								if (it.hasNext())
