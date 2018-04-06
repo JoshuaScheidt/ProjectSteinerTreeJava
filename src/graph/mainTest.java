@@ -8,8 +8,9 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics"));
-
+//		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+                File[] files = readFiles(new File("data\\test\\test.gr"));
+                
 		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 																	// index has to be changed depending on which comparisons we want. The first
 																	// index will always be the base graph without preprocess changes.
@@ -76,7 +77,7 @@ public class mainTest {
 
 			// Bridge Finding
 			start = System.currentTimeMillis();
-			improved.removeBridgesAndSections(graph.getVertices().size());
+			//improved.removeBridgesAndSections(graph.getVertices().size());
 			end = System.currentTimeMillis();
 			results[fileIndex][4][0] = graph.getVertices().size();
 			results[fileIndex][4][1] = graph.getNumberOfTerminals();
@@ -99,8 +100,8 @@ public class mainTest {
 			//
 			// improved.removeLeafNodes();
 			//
-			// printCurrentSize(improved);
-			// printDegreeScale(improved);
+			 printCurrentSize(improved);
+			 printDegreeScale(improved);
 			//
 			// improved.removeNonTerminalDegreeTwo();
 		}

@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package graph;
+package mixedIntegerProgramming;
 
+import graph.UndirectedGraph;
+import graph.UndirectedGraphReader;
 import java.io.File;
 import mixedIntegerProgramming.ILPProgram;
 

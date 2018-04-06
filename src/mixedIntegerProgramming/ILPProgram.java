@@ -63,6 +63,7 @@ public class ILPProgram {
                 newSub1 = new ArrayList<>();
                 newSub1.add(temp);
                 newSub2 = new ArrayList<>();
+                newSub2.addAll(sub2);
                 newSub2.remove(temp);
                 if(this.g.getTerminals().containsKey(temp)){
                     this.recursiveCut(newSub1, newSub2, term1++);
