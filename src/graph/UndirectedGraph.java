@@ -225,29 +225,6 @@ public class UndirectedGraph {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Removes a vertex from the graph this included removing all its edge
-	 * connection and removing all of these edges from its neighbors
-	 *
-	 * @param v
-	 *            The vertex to be removed
-	 */
-	public void removeVertex(Vertex v) {
-		for (Edge e : v.getEdges()) {
-			e.getOtherSide(v).removeEdge(e);
-			this.edges.remove(e);
-		}
-		int key = v.getKey();
-		if (v.isTerminal()) {
-			this.terminals.keySet().remove(key);
-		}
-		this.vertices.keySet().remove(key);
-		v = null;
-	}
-
-	/**
-=======
->>>>>>> development
 	 * Returns HashMap of the Terminals in the graph
 	 * 
 	 * @return The HashMap in question
@@ -271,7 +248,7 @@ public class UndirectedGraph {
 			this.edges.remove(e);
 		}
 		for (Edge e : toBeRemoved) {
-                        e.getOtherSide(v).removeEdge(e);
+			e.getOtherSide(v).removeEdge(e);
 			v.removeEdge(e);
 			e = null;
 		}

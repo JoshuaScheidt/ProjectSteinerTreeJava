@@ -8,7 +8,7 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
+		File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
 
 		UndirectedGraph graphTest = new UndirectedGraphReader().read(files[0]);
 		System.out.println("NrVertices: " + graphTest.getVertices().size());

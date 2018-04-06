@@ -50,17 +50,25 @@ public class PathFinding {
 				.println("Start:" + start.getKey() + "  End:" + end.getKey() + "  G(V):" + G.getVertices().size() + "   G(E):" + G.getEdges().size());
 		datamap.get(start.getKey()).dist = 0;
 
+		boolean reachedEnd = false;
+
+		System.out.println("In here");
+
 		while (!Q.isEmpty()) {
-			System.out.println(Q.size());
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
 			for (Vertex i : Q) {
 				if (datamap.get(i.getKey()).dist < smallestDist) {
 					current = i;
+					smallestDist = datamap.get(i.getKey()).dist;
 				}
 			}
+			if (reachedEnd && smallestDist > datamap.get(end.getKey()).dist)
+				break;
 			if (current == null)
 				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
+			if (current == end)
+				reachedEnd = true;
 			Q.remove(current);
 			int distToCur = datamap.get(current.getKey()).dist;
 			int totDistToNb = 0;
@@ -68,7 +76,7 @@ public class PathFinding {
 				totDistToNb = (int) (distToCur + current.getConnectingEdge(nb).getCost().get());
 				DijkstraInfo nbInfo = datamap.get(nb.getKey());
 				if (nbInfo == null)
-					System.out.println(nb.getKey());
+					System.out.println(nb.getKey() + " ???");
 				if (totDistToNb < nbInfo.dist) {
 					nbInfo.dist = totDistToNb;
 					nbInfo.parent = current;

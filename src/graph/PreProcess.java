@@ -187,7 +187,7 @@ public class PreProcess {
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
 
 				it.remove();
-				this.graph.removeVertex(current);
+				this.graph.removeVertex(current.getKey());
 				current = newCurrent;
 			}
 			while (current.isTerminal() && current.getNeighbors().size() == 1) {
@@ -202,7 +202,7 @@ public class PreProcess {
 				this.graph.setTerminal(newCurrent.getKey());
 
 				it.remove();
-				this.graph.removeVertex(current);
+				this.graph.removeVertex(current.getKey());
 				current = newCurrent;
 			}
 		}
@@ -384,10 +384,13 @@ public class PreProcess {
 	 * @author Joshua Scheidt
 	 */
 	private void analyseSections(ArrayList<Edge> bridges, int totalVertices) {
-		UndirectedGraph bridgeCutted = this.graph.clone();
-		for (Edge bridge : bridges) {
-			bridgeCutted.removeEdge(bridge);
-		}
+		// UndirectedGraph bridgeCutted = this.graph.clone();
+		// for (Edge bridge : bridges) {
+		// bridgeCutted.removeEdge(bridge);
+		// }
+
+		System.out.println("NrVertices: " + this.graph.getVertices().size());
+		System.out.println("NrEdges: " + this.graph.getEdges().size());
 
 		int nrBridges = 0;
 		boolean[] hasVisited;
@@ -412,6 +415,7 @@ public class PreProcess {
 
 		for (Edge bridge : bridges) {
 			for (Vertex endPoint : bridge.getVertices()) { // run 2 times
+				System.out.println("In here with point: " + endPoint.getKey());
 				if (!checkedVertices.contains(endPoint.getKey())) {
 					nrBridges = 1;
 					verticesInSection = new HashSet<>();
@@ -433,10 +437,13 @@ public class PreProcess {
 
 					stack.push(endPoint);
 					hasVisited[endPoint.getKey() - 1] = true;
-
+					// System.out.println(endPoint);
+					// System.out.println(endPoint.getNeighbors().size());
 					while (!stack.isEmpty()) {
 						it = stack.peek().getNeighbors().iterator();
+
 						while ((next = it.next()) != null) {
+							System.out.println("Whiling -> " + next.getKey());
 							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())) {
 								if (it.hasNext())
 									continue;
@@ -470,8 +477,10 @@ public class PreProcess {
 								stack.pop();
 								break;
 							}
+							// System.out.println(it.hasNext());
 						}
 					}
+					// System.out.println("Done");
 
 					// System.out.println("EndPoint " + endPoint.getKey());
 					// System.out.println("bridges " + nrBridges);
@@ -501,7 +510,7 @@ public class PreProcess {
 						b.addAll(bridgeEndpointsInSection);
 						ArrayList<Edge> e = new ArrayList<>();
 						e.addAll(edgesInSection);
-						this.reduceSection(bridgeCutted, v, t, b, e);
+						this.reduceSection(this.graph, v, t, b, e);
 					}
 					// Else leave as is, probably shorter to perform normal algorithm than to change
 				}
@@ -527,6 +536,10 @@ public class PreProcess {
 	 */
 	public void reduceSection(UndirectedGraph cutted, ArrayList<Vertex> vertices, ArrayList<Vertex> terminals, ArrayList<Vertex> bridgeEndpoints,
 			ArrayList<Edge> edges) {
+		System.out.println("Vertices: " + vertices.size());
+		System.out.println("Terminals: " + terminals.size());
+		System.out.println("BridgePoint: " + bridgeEndpoints.size());
+		System.out.println("Edges: " + edges.size());
 		// Create new edges between bridges
 		ArrayList<Edge> toBeAddedEdges = new ArrayList<>();
 		for (int i = 0; i < bridgeEndpoints.size(); i++)
@@ -559,7 +572,8 @@ public class PreProcess {
 			this.graph.addEdge(e);
 
 		if (toBeAddedEdges.size() == 0 && bridgeEndpoints.size() == 1) {
-			this.graph.removeVertex(bridgeEndpoints.get(0));
+			System.out.println("removing");
+			this.graph.removeVertex(bridgeEndpoints.get(0).getKey());
 		}
 	}
 
