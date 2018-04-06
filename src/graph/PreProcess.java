@@ -502,7 +502,7 @@ public class PreProcess {
 						b.addAll(bridgeEndpointsInSection);
 						ArrayList<Edge> e = new ArrayList<>();
 						e.addAll(edgesInSection);
-						this.reduceSection(bridgeCutted, v, t, b, e);
+						this.reduceSection(this.graph, v, t, b, e);
 					}
 					// Else leave as is, probably shorter to perform normal algorithm than to change
 				}
