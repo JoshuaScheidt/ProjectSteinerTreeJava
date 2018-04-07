@@ -35,41 +35,52 @@ public class ILPProgram {
     public void initiateCutSearch(){
         this.createIdentifiableEdges();
         Set keys = this.g.getTerminals().keySet();
+        Set others = this.g.getVertices().keySet();
         Iterator it = keys.iterator();
-        int temp;
+        Integer temp;
         ArrayList sub1, sub2;
         this.result = new HashSet<>();
+        int counter = 1;
         while(it.hasNext()){
-            temp = (int)it.next();
+            temp = (Integer)it.next();
             sub1 = new ArrayList<>();
             sub1.add(temp);
             sub2 = new ArrayList<>();
-            sub2.addAll(keys);
+            sub2.addAll(others);
             sub2.remove(temp);
+            System.out.println("sub2 size: " + sub2.size() + " sub1 size: " + sub1.size());
+            System.out.println("keys size: " + keys.size());
             this.recursiveCut(sub1, sub2, 1);
         }
-        System.out.println(this.result.size());
+        System.out.println("Number of cuts: " + this.result.size());
+        for(int i = 0; i < this.result.size(); i++){
+            System.out.println(this.result.toArray()[i].toString());
+        }
     }
     
     public void recursiveCut(ArrayList<Integer> sub1, ArrayList<Integer> sub2, int term1){
+        System.out.println(this.g.getNumberOfTerminals() + " " + term1);
         if(term1 >= this.g.getNumberOfTerminals()){
             return;
         } else {
             this.result.add(sub1);
-            int temp;
+            Integer temp;
             ArrayList<Integer> newSub1, newSub2;
             for(int i = 0; i < sub2.size(); i++){
                 temp = sub2.get(i);
                 newSub1 = new ArrayList<>();
+                newSub1.addAll(sub1);
                 newSub1.add(temp);
                 newSub2 = new ArrayList<>();
                 newSub2.addAll(sub2);
                 newSub2.remove(temp);
-                if(this.g.getTerminals().containsKey(temp)){
-                    this.recursiveCut(newSub1, newSub2, term1++);
-                } else {
-                    this.recursiveCut(newSub1, newSub2, term1);
+                if(this.g.getTerminals().containsKey((int)temp)){
+                    term1++;
                 }
+                System.out.println("term1 size before recurse: " + term1);
+                System.out.println("sub2 size: " + sub2.size() + " sub1 size: " + sub1.size());
+                System.out.println("This should happen 4 times");
+                this.recursiveCut(newSub1, newSub2, term1);
             }
         }
     }
