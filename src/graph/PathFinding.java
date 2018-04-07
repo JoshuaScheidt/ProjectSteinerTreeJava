@@ -121,6 +121,13 @@ public class PathFinding {
 	 */
 	public static ArrayList<Edge> DijkstraMultiPath(UndirectedGraph G, Vertex start, ArrayList<Vertex> end) {
 		ArrayList<Vertex> Q = new ArrayList<>();
+		System.out.println("start: " + start.getKey());
+		for (Vertex v : end) {
+			System.out.println("end: " + v.getKey());
+		}
+		for (Edge e : G.getEdges())
+			System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey());
+		System.out.println("\n\n\n");
 		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
 		for (Vertex i : G.getVertices().values()) {
 			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
@@ -176,14 +183,17 @@ public class PathFinding {
 			// for (Vertex i : path)
 			// System.out.print(i.getKey() + " - ");
 			// System.out.println();
-
+			System.out.println(path.get(0).getKey());
+			System.out.println(path.get(1).getKey());
+			System.out.println(path.get(1).isNeighbor(path.get(0)));
+			System.out.println(path.get(0).isNeighbor(path.get(1)));
 			Edge newEdge = new Edge(start, v, datamap.get(v.getKey()).dist, true);
 			for (int i = 0; i < path.size() - 1; i++) {
-				// System.out.println();
-				// System.out.println(path.get(i).getKey());
-				// System.out.println(path.get(i + 1).getKey());
-				// System.out.println(path.get(i).getConnectingEdge(path.get(i +
-				// 1)).getCost().get());
+				System.out.println();
+				System.out.println(path.get(i).getKey());
+				System.out.println(path.get(i + 1).getKey());
+				System.out.println(path.get(i).getNeighbors().contains(path.get(i + 1)));
+				System.out.println(path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get());
 				newEdge.pushSubsumed(new double[] { path.get(i).getKey(), path.get(i + 1).getKey(),
 						path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get() });
 			}

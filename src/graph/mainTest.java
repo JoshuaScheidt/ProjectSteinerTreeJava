@@ -8,7 +8,7 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+		File[] files = readFiles(new File("data\\test\\testAnalysis.gr"));
 
 		UndirectedGraph graphTest = new UndirectedGraphReader().read(files[0]);
 		// System.out.println(PathFinding.DijkstraSingleEdge(graphTest,
