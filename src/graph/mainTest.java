@@ -4,16 +4,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import mainAlgorithms.MobiusDynamics;
+import mainAlgorithms.SteinerTreeSolver;
+
 public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance139.gr"));
 		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
-		PreProcess processed = new PreProcess(graph);
+		// PreProcess processed = new PreProcess(graph);
 		long starts = System.currentTimeMillis();
-
-		processed.removeBridgesAndSections(graph.getVertices().size());
+		SteinerTreeSolver solver = new MobiusDynamics();
+		solver.solve(graph);
+		// processed.removeBridgesAndSections(graph.getVertices().size());
 
 		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
 
