@@ -40,8 +40,9 @@ public class PreProcess {
 					counter++;
 				}
 			}
-			if (counter > 0)
+			if (counter > 0) {
 				System.out.println("This Terminal has " + counter + " Terminal neighbours");
+			}
 			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
 					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
 				System.out.println("This actually happens?");
@@ -162,7 +163,7 @@ public class PreProcess {
 		}
 		it = toBeRemovedVertices.iterator();
 		while (it.hasNext()) {
-			this.graph.removeVertex((int) it.next());
+			this.graph.removeVertex(this.graph.getVertices().get((int) it.next()));
 			it.remove();
 		}
 		it = toBeRemovedEdges.iterator();
@@ -180,32 +181,46 @@ public class PreProcess {
 		Set keys = this.graph.getVertices().keySet();
 		Iterator it = keys.iterator();
 		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-		Vertex current, newCurrent;
+		HashSet<Vertex> toBeRemoved = new HashSet<>();
+		Vertex current, newCurrent, temp;
 		while (it.hasNext()) {
 			current = vertices.get((int) it.next());
-			while (!current.isTerminal() && current.getNeighbors().size() == 1) {
+			if (!current.isTerminal() && current.getNeighbors().size() == 1) {
+				toBeRemoved.add(current);
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-
-				it.remove();
-				this.graph.removeVertex(current.getKey());
-				current = newCurrent;
-			}
-			while (current.isTerminal() && current.getNeighbors().size() == 1) {
-				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-				if (current.getSubsumed() != null) {
-					if (current.getSubsumed().size() > 0) {
-						newCurrent.pushStack(current.getSubsumed());
-					}
+				while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+					temp = newCurrent.getOtherNeighborVertex(current);
+					current = newCurrent;
+					newCurrent = temp;
+					toBeRemoved.add(current);
 				}
-				newCurrent.pushSubsumed(
-						new double[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
-				this.graph.setTerminal(newCurrent.getKey());
-
-				it.remove();
-				this.graph.removeVertex(current.getKey());
-				current = newCurrent;
+			}
+			if (current.isTerminal() && current.getNeighbors().size() == 1) {
+				toBeRemoved.add(current);
+				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+					temp = newCurrent.getOtherNeighborVertex(current);
+					current = newCurrent;
+					newCurrent = temp;
+					if (current.getSubsumed() != null) {
+						if (current.getSubsumed().size() > 0) {
+							newCurrent.pushStack(current.getSubsumed());
+						}
+					}
+					newCurrent.pushSubsumed(
+							new double[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+					this.graph.setTerminal(newCurrent.getKey());
+					current = newCurrent;
+					toBeRemoved.add(current);
+				}
 			}
 		}
+		it = toBeRemoved.iterator();
+		while (it.hasNext()) {
+			this.graph.removeVertex((Vertex) it.next());
+			// it.remove();
+		}
+		it = null;
 	}
 
 	// /**
@@ -355,7 +370,6 @@ public class PreProcess {
 					}
 				}
 			}
-
 		}
 		return bridges;
 	}
@@ -573,7 +587,7 @@ public class PreProcess {
 			this.graph.removeEdge(e);
 
 		for (Vertex v : vertices)
-			this.graph.removeVertex(v.getKey());
+			this.graph.removeVertex(v);
 
 		for (Edge e : toBeAddedEdges)
 			this.graph.addEdge(e);

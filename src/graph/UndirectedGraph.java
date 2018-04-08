@@ -237,11 +237,10 @@ public class UndirectedGraph {
 	 * Removes a vertex from the graph this included removing all its edge
 	 * connection and removing all of these edges from its neighbours
 	 *
-	 * @param key
+	 * @param v
 	 *            The key the to be removed vertex has
 	 */
-	public void removeVertex(int key) {
-		Vertex v = this.getVertices().get(key);
+	public void removeVertex(Vertex v) {
 		HashSet<Edge> toBeRemoved = new HashSet<>();
 		for (Edge e : v.getEdges()) {
 			toBeRemoved.add(e);
@@ -249,13 +248,12 @@ public class UndirectedGraph {
 		}
 		for (Edge e : toBeRemoved) {
 			e.getOtherSide(v).removeEdge(e);
-			v.removeEdge(e);
 			e = null;
 		}
 		if (v.isTerminal()) {
-			this.terminals.keySet().remove(key);
+			this.terminals.remove(v.getKey());
 		}
-		this.vertices.remove(key);
+		this.vertices.remove(v.getKey());
 		v = null;
 	}
 
@@ -319,6 +317,7 @@ public class UndirectedGraph {
 			if (number >= degrees.length + 1) {
 				continue;
 			}
+			System.out.println("Key number: " + key);
 			degrees[number - 1]++;
 		}
 		return degrees;

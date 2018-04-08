@@ -94,7 +94,7 @@ public class mainTest {
 
 			// Bridge Finding
 			start = System.currentTimeMillis();
-			improved.removeBridgesAndSections(graph.getVertices().size());
+			// improved.removeBridgesAndSections(graph.getVertices().size());
 			end = System.currentTimeMillis();
 			results[fileIndex][4][0] = graph.getVertices().size();
 			results[fileIndex][4][1] = graph.getNumberOfTerminals();
@@ -117,8 +117,8 @@ public class mainTest {
 			//
 			// improved.removeLeafNodes();
 			//
-			// printCurrentSize(improved);
-			// printDegreeScale(improved);
+			printCurrentSize(improved);
+			printDegreeScale(improved);
 			//
 			// improved.removeNonTerminalDegreeTwo();
 		}
