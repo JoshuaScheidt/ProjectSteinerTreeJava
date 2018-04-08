@@ -22,7 +22,7 @@ public class ILPTester {
         fileName = fileName.substring(fileName.indexOf("\\") + 1);
         fileName = fileName.substring(0, fileName.indexOf("."));
         UndirectedGraph graph = new UndirectedGraphReader().read(file);
-        ILPProgram fp = new ILPProgram(graph, fileName);
+        CutILP fp = new CutILP(graph, fileName);
         fp.initiateCutSearch();
     }
 }

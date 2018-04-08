@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  *
  * @author Marciano
  */
-public class ILPProgram {
+public class CutILP {
 
     private UndirectedGraph g;
     private HashMap<Integer, Edge> edges;
@@ -38,7 +38,7 @@ public class ILPProgram {
     private String LPFile;
     private final boolean DEBUG = false;
     
-    public ILPProgram(UndirectedGraph g, String fileName){
+    public CutILP(UndirectedGraph g, String fileName){
         this.g = g;
         this.fileName = fileName;
     }
@@ -120,7 +120,7 @@ public class ILPProgram {
         try {
             Files.write(file, lines, Charset.forName("UTF-8"));
         } catch (IOException ex) {
-            Logger.getLogger(ILPProgram.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
