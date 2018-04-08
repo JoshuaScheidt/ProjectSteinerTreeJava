@@ -8,7 +8,6 @@ package mixedIntegerProgramming;
 import graph.UndirectedGraph;
 import graph.UndirectedGraphReader;
 import java.io.File;
-import mixedIntegerProgramming.ILPProgram;
 
 /**
  *
@@ -17,9 +16,13 @@ import mixedIntegerProgramming.ILPProgram;
 public class ILPTester {
     
     public static void main(String[] args){
-        File file = new File("data\\test\\testILP.gr");
+        String fileName = "data\\heuristics\\instance039.gr";
+        File file = new File(fileName);
+        fileName = fileName.substring(fileName.indexOf("\\") + 1);
+        fileName = fileName.substring(fileName.indexOf("\\") + 1);
+        fileName = fileName.substring(0, fileName.indexOf("."));
         UndirectedGraph graph = new UndirectedGraphReader().read(file);
-        ILPProgram fp = new ILPProgram(graph);
+        ILPProgram fp = new ILPProgram(graph, fileName);
         fp.initiateCutSearch();
     }
 }
