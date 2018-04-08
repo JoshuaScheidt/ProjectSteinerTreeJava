@@ -389,7 +389,6 @@ public class PreProcess {
 			bridgeCutted.removeEdge(bridgeCutted.getVertices().get(bridge.getVertices()[0].getKey())
 					.getConnectingEdge(bridgeCutted.getVertices().get(bridge.getVertices()[1].getKey())));
 		}
-		UndirectedGraph separateGraph = new UndirectedGraph();
 
 		int nrBridges = 0;
 		boolean[] hasVisited;
