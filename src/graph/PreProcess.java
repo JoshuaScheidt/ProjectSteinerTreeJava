@@ -386,7 +386,8 @@ public class PreProcess {
 	private void analyseSections(ArrayList<Edge> bridges, int totalVertices) {
 		UndirectedGraph bridgeCutted = this.graph.clone();
 		for (Edge bridge : bridges) {
-			bridgeCutted.removeEdge(bridge);
+			bridgeCutted.removeEdge(bridgeCutted.getVertices().get(bridge.getVertices()[0].getKey())
+					.getConnectingEdge(bridgeCutted.getVertices().get(bridge.getVertices()[1].getKey())));
 		}
 
 		int nrBridges = 0;

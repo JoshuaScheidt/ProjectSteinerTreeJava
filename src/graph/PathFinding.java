@@ -180,13 +180,26 @@ public class PathFinding {
 				current = datamap.get(current.getKey()).parent;
 			}
 			path.add(current);
+			System.out.println(path.get(0).toString());
+			System.out.println(G.getVertices().get(5).toString());
+			System.out.println(path.get(0).equals(G.getVertices().get(5)));
 			// for (Vertex i : path)
 			// System.out.print(i.getKey() + " - ");
 			// System.out.println();
+			for (Vertex t : path.get(0).getNeighbors()) {
+				System.out.println(t.getKey());
+				System.out.println(path.get(0).isNeighbor(t));
+				System.out.println(path.get(0).getConnectingEdge(t));
+			}
+			System.out.println(path.get(0).getNeighbors().size());
 			System.out.println(path.get(0).getKey());
 			System.out.println(path.get(1).getKey());
 			System.out.println(path.get(1).isNeighbor(path.get(0)));
 			System.out.println(path.get(0).isNeighbor(path.get(1)));
+			System.out.println(G.getVertices().get(path.get(0).getKey()).getKey());
+			System.out.println(G.getVertices().get(path.get(1).getKey()).getKey());
+			System.out.println(G.getVertices().get(path.get(0).getKey()).isNeighbor(G.getVertices().get(path.get(1).getKey())));
+			System.out.println(G.getVertices().get(path.get(1).getKey()).isNeighbor(G.getVertices().get(path.get(0).getKey())));
 			Edge newEdge = new Edge(start, v, datamap.get(v.getKey()).dist, true);
 			for (int i = 0; i < path.size() - 1; i++) {
 				System.out.println();
@@ -195,7 +208,7 @@ public class PathFinding {
 				System.out.println(path.get(i).getNeighbors().contains(path.get(i + 1)));
 				System.out.println(path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get());
 				newEdge.pushSubsumed(new double[] { path.get(i).getKey(), path.get(i + 1).getKey(),
-						path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get() });
+						G.getVertices().get(path.get(i).getKey()).getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
 			}
 			result.add(newEdge);
 		}
