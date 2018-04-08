@@ -9,24 +9,26 @@ public class mainTest {
 	public static void main(String[] args) {
 
 		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
-
-		UndirectedGraph graphTest = new UndirectedGraphReader().read(files[0]);
-		// System.out.println(PathFinding.DijkstraSingleEdge(graphTest,
-		// graphTest.getVertices().get(13), graphTest.getVertices().get(6)));
-		PreProcess processed = new PreProcess(graphTest);
+		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
+		PreProcess processed = new PreProcess(graph);
 		long starts = System.currentTimeMillis();
-		processed.removeBridgesAndSections(graphTest.getVertices().size());
+
+		processed.removeBridgesAndSections(graph.getVertices().size());
+
 		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-		for (int v : processed.graph.getVertices().keySet())
-			System.out.print(v + " ");
-		System.out.println();
-		System.out.println("Total vertices: " + processed.graph.getVertices().size());
-		System.out.println("Total edges:" + processed.graph.getEdges().size());
-		// for (Edge e : processed.graph.getEdges()) {
-		// System.out.println(e.getVertices()[0].getKey() + " " +
-		// e.getVertices()[1].getKey() + " " + e.getCost().get());
-		// }
-		System.exit(1);
+
+		// doAnalysis(files);
+	}
+
+	/**
+	 * Perform analysis
+	 *
+	 * @param files
+	 *
+	 * @author Marciano Geijselaers
+	 * @author Joshua Scheidt
+	 */
+	private static void doAnalysis(File[] files) {
 
 		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 																	// index has to be changed depending on which comparisons we want. The first
@@ -140,7 +142,6 @@ public class mainTest {
 		System.out.println(Arrays.toString(percentileReductionEdges));
 		System.out.println(Arrays.toString(percentileReductionTerminals));
 		System.out.println(Arrays.toString(averageTimeTaken));
-
 	}
 
 	/**
