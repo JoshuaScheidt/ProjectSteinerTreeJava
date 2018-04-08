@@ -121,13 +121,6 @@ public class PathFinding {
 	 */
 	public static ArrayList<Edge> DijkstraMultiPath(UndirectedGraph G, Vertex start, ArrayList<Vertex> end) {
 		ArrayList<Vertex> Q = new ArrayList<>();
-		System.out.println("start: " + start.getKey());
-		for (Vertex v : end) {
-			System.out.println("end: " + v.getKey());
-		}
-		for (Edge e : G.getEdges())
-			System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey());
-		System.out.println("\n\n\n");
 		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
 		for (Vertex i : G.getVertices().values()) {
 			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
@@ -139,7 +132,7 @@ public class PathFinding {
 		datamap.get(start.getKey()).dist = 0;
 
 		int numReachedEnd = 0;
-
+		// System.out.println(G.getVertices().get(5).getNeighbors().size());
 		while (!Q.isEmpty()) {
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
@@ -153,8 +146,9 @@ public class PathFinding {
 				break;
 			if (current == null)
 				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
-			if (end.contains(current))
-				numReachedEnd++;
+			for (Vertex i : end)
+				if (i.getKey() == current.getKey())
+					numReachedEnd++;
 			Q.remove(current);
 			int distToCur = datamap.get(current.getKey()).dist;
 			int totDistToNb = 0;
@@ -180,33 +174,8 @@ public class PathFinding {
 				current = datamap.get(current.getKey()).parent;
 			}
 			path.add(current);
-			System.out.println(path.get(0).toString());
-			System.out.println(G.getVertices().get(5).toString());
-			System.out.println(path.get(0).equals(G.getVertices().get(5)));
-			// for (Vertex i : path)
-			// System.out.print(i.getKey() + " - ");
-			// System.out.println();
-			for (Vertex t : path.get(0).getNeighbors()) {
-				System.out.println(t.getKey());
-				System.out.println(path.get(0).isNeighbor(t));
-				System.out.println(path.get(0).getConnectingEdge(t));
-			}
-			System.out.println(path.get(0).getNeighbors().size());
-			System.out.println(path.get(0).getKey());
-			System.out.println(path.get(1).getKey());
-			System.out.println(path.get(1).isNeighbor(path.get(0)));
-			System.out.println(path.get(0).isNeighbor(path.get(1)));
-			System.out.println(G.getVertices().get(path.get(0).getKey()).getKey());
-			System.out.println(G.getVertices().get(path.get(1).getKey()).getKey());
-			System.out.println(G.getVertices().get(path.get(0).getKey()).isNeighbor(G.getVertices().get(path.get(1).getKey())));
-			System.out.println(G.getVertices().get(path.get(1).getKey()).isNeighbor(G.getVertices().get(path.get(0).getKey())));
 			Edge newEdge = new Edge(start, v, datamap.get(v.getKey()).dist, true);
 			for (int i = 0; i < path.size() - 1; i++) {
-				System.out.println();
-				System.out.println(path.get(i).getKey());
-				System.out.println(path.get(i + 1).getKey());
-				System.out.println(path.get(i).getNeighbors().contains(path.get(i + 1)));
-				System.out.println(path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get());
 				newEdge.pushSubsumed(new double[] { path.get(i).getKey(), path.get(i + 1).getKey(),
 						G.getVertices().get(path.get(i).getKey()).getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
 			}

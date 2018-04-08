@@ -389,10 +389,11 @@ public class PreProcess {
 			bridgeCutted.removeEdge(bridgeCutted.getVertices().get(bridge.getVertices()[0].getKey())
 					.getConnectingEdge(bridgeCutted.getVertices().get(bridge.getVertices()[1].getKey())));
 		}
+		UndirectedGraph separateGraph = new UndirectedGraph();
 
 		int nrBridges = 0;
 		boolean[] hasVisited;
-		HashMap<Integer, Vertex> bridgesOrTerms; // Save all the found bridges and terminals from current section
+		HashSet<Integer> bridgesOrTerms; // Save all the found bridges and terminals from current section
 		Stack<Vertex> stack = new Stack<>();
 		Vertex next;
 		Iterator<Vertex> it;
@@ -413,6 +414,7 @@ public class PreProcess {
 		for (Edge bridge : bridges) {
 			for (Vertex endPoint : bridge.getVertices()) { // run 2 times
 				if (!checkedVertices.contains(endPoint.getKey())) {
+					checkedVertices.add(endPoint.getKey());
 					nrBridges = 1;
 					verticesInSection = new HashSet<>();
 					terminalsInSection = new HashSet<>();
@@ -429,7 +431,8 @@ public class PreProcess {
 								terminalsInSection.add(other);
 						}
 					hasVisited = new boolean[totalVertices];
-					bridgesOrTerms = new HashMap<>();
+					bridgesOrTerms = new HashSet<>();
+					bridgesOrTerms.add(endPoint.getKey());
 
 					stack.push(endPoint);
 					hasVisited[endPoint.getKey() - 1] = true;
@@ -440,7 +443,8 @@ public class PreProcess {
 							continue;
 						}
 						while ((next = it.next()) != null) {
-							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())) {
+							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())
+									&& bridges.contains(stack.peek().getConnectingEdge(next))) {
 								if (it.hasNext())
 									continue;
 								else {
@@ -452,7 +456,8 @@ public class PreProcess {
 								if (!allBridgeEndpoints.contains(next.getKey()) && !next.isTerminal())
 									verticesInSection.add(next);
 								for (Vertex nb : next.getNeighbors()) {
-									if (!allBridgeEndpoints.contains(next.getKey()) || !allBridgeEndpoints.contains(nb.getKey()))
+									if (!allBridgeEndpoints.contains(next.getKey()) || !allBridgeEndpoints.contains(nb.getKey())
+											|| !bridges.contains(next.getConnectingEdge(nb)))
 										edgesInSection.add(next.getConnectingEdge(nb));
 								}
 
@@ -464,7 +469,7 @@ public class PreProcess {
 										bridgeEndpointsInSection.add(next);
 										checkedVertices.add(next.getKey());
 									}
-									bridgesOrTerms.put(next.getKey(), next);
+									bridgesOrTerms.add(next.getKey());
 								}
 								stack.push(next);
 								break;
@@ -495,7 +500,7 @@ public class PreProcess {
 					// i.getVertices()[1].getKey() + " ");
 					// System.out.println();
 
-					if (((terminalsInSection.size() * (terminalsInSection.size() - 1)) / 2 + (nrBridges) * terminalsInSection.size()
+					if (((terminalsInSection.size() * (terminalsInSection.size() - 1)) / 2 + (nrBridges) * (bridgesOrTerms.size() - nrBridges)
 							+ (nrBridges * (nrBridges - 1) / 2)) <= edgesInSection.size()) {
 						ArrayList<Vertex> v = new ArrayList<>();
 						v.addAll(verticesInSection);
@@ -531,7 +536,6 @@ public class PreProcess {
 	 */
 	public void reduceSection(UndirectedGraph cutted, ArrayList<Vertex> vertices, ArrayList<Vertex> terminals, ArrayList<Vertex> bridgeEndpoints,
 			ArrayList<Edge> edges) {
-
 		// Create new edges between bridges
 		ArrayList<Edge> toBeAddedEdges = new ArrayList<>();
 		ArrayList<Vertex> ends;
