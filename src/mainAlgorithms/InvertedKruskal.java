@@ -2,8 +2,11 @@ package mainAlgorithms;
 
 import graph.Edge;
 import graph.UndirectedGraph;
+import graph.Vertex;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -15,20 +18,39 @@ import java.util.HashMap;
  *
  * @author Marciano
  */
-public class InvertedKruskal {
+public class InvertedKruskal implements SteinerTreeSolver{
     
     private UndirectedGraph g;
     private ArrayList<Edge> sorted;
-    private HashMap<Integer, Boolean> connected;
+    private HashSet<Integer> connected;
     
     public InvertedKruskal(UndirectedGraph g){
         this.g = g;
         this.sorted = new ArrayList<>();
-        this.connected = new HashMap<>();
+        this.connected = new HashSet<>();
+    }
+    
+    @Override
+    public List<Edge> solve(UndirectedGraph G) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public void start(){
         this.createSortedEdgeList();
+        
+    }
+    
+    public void removeEdges(){
+        for(int i = 0; i < this.sorted.size(); i++){
+            if(this.canBeRemoved(this.sorted.get(i))){
+                
+            }
+        }
+    }
+    
+    public boolean canBeRemoved(Edge e){
+        Vertex current = e.getVertices()[0];
+        return false;
     }
     
     public void createSortedEdgeList(){
