@@ -4,9 +4,9 @@ import graph.Edge;
 import graph.UndirectedGraph;
 import graph.Vertex;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Stack;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -23,108 +23,139 @@ public class InvertedKruskal implements SteinerTreeSolver{
     private UndirectedGraph g;
     private ArrayList<Edge> sorted;
     private HashSet<Integer> connected;
+    private HashSet<Integer> connectedTerminals;
+    private static final boolean DEBUG = true;
     
     public InvertedKruskal(UndirectedGraph g){
         this.g = g;
         this.sorted = new ArrayList<>();
         this.connected = new HashSet<>();
+        this.connectedTerminals = new HashSet<>();
     }
     
     @Override
     public List<Edge> solve(UndirectedGraph G) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    public void start(){
         this.createSortedEdgeList();
-        
+        this.removeEdges();
+        return new ArrayList<>(this.g.getEdges());
     }
     
     public void removeEdges(){
         for(int i = 0; i < this.sorted.size(); i++){
             if(this.canBeRemoved(this.sorted.get(i))){
-                
+                this.g.removeEdge(this.sorted.get(i));
             }
+            this.connected.removeAll(this.connected);
+            this.connectedTerminals.removeAll(this.connectedTerminals);
         }
     }
     
     public boolean canBeRemoved(Edge e){
         Vertex current = e.getVertices()[0];
-        return false;
+        Vertex neighbour = e.getOtherSide(current);
+        if(!current.isTerminal() && neighbour.isTerminal()){
+            Vertex temp = neighbour;
+            neighbour = current;
+            current = temp;
+        }
+        if(current.isTerminal()){
+            this.connectedTerminals.add(current.getKey());
+        }
+        this.connected.add(current.getKey());
+        
+        Stack<Vertex> toBeExplored = new Stack<>();
+        for(Vertex v : current.getNeighbors()){
+            if(v.equals(neighbour)){
+               continue; 
+            } else {
+                toBeExplored.add(v);
+            }
+        }
+        while(!toBeExplored.isEmpty()){
+            current = toBeExplored.pop();
+            if(current.isTerminal()){
+                this.connectedTerminals.add(current.getKey());
+            }
+            this.connected.add(current.getKey());
+            for(Vertex n : current.getNeighbors()){
+                if(this.connected.contains(n.getKey())){
+                    continue;
+                } else {
+                    toBeExplored.push(n);
+                }
+            }
+        }
+        return this.connectedTerminals.containsAll(this.g.getTerminals().keySet());
     }
     
     public void createSortedEdgeList(){
         this.sorted.addAll(this.g.getEdges());
-        
-        System.out.println(this.sorted.size());
-        
-//        this.sorted = this.mergeSort(sorted);
-        this.sorted = this.insertionSort(sorted);
-        
-        System.out.println(this.sorted.size());
-        
-        System.out.print("[");
-        for(int i = 0; i < this.sorted.size(); i++){
-            System.out.print(this.sorted.get(i).getCost().get() + ", ");
+//        this.sorted = this.insertionSort(this.sorted);
+        this.sorted = this.mergeSort(this.sorted);
+        if(DEBUG){
+            System.out.println("Sorted size: " + this.sorted.size());
+            for(int i = 0; i < this.sorted.size(); i++){
+                System.out.print(this.sorted.get(i).getCost().get() + " ");
+            }
+            System.out.println("");
         }
-        System.out.println("]");
     }
     
-    public ArrayList<Edge> insertionSort(ArrayList<Edge> x){
-        ArrayList<Edge> sorted = new ArrayList<>();
-        sorted.add(x.get(0));
-        for(int i = 1; i < x.size(); i++){
-            for(int j = 0; j < sorted.size(); j++){
-                if(x.get(i).getCost().get() < sorted.get(j).getCost().get()){
-                    if(j == sorted.size() - 1){
-                        sorted.add(x.get(i));
-                        break;
-                    }
+    public ArrayList<Edge> insertionSort(ArrayList<Edge> toBeSorted){
+        Edge temp;
+        for(int i = 0; i < toBeSorted.size(); i++){
+            for(int j = 0; j < i; j++){
+                if(toBeSorted.get(i).getCost().get() < toBeSorted.get(j).getCost().get()){
+                    continue;
                 } else {
-                    sorted.add(j, x.get(i));
-                    break;
+                    temp = toBeSorted.get(i);
+                    toBeSorted.remove(i);
+                    toBeSorted.add(j, temp);
                 }
-            }   
+            }
         }
         return sorted;
     }
-    public ArrayList<Edge> mergeSort(ArrayList<Edge> x){
-        if(x.size() == 1){
-            return x;
-        } else {
-            ArrayList<Edge> a = new ArrayList<>(), b = new ArrayList<>();
-            for(int i = 0; i < x.size(); i++){
-                if(i < x.size()/2){
-                    a.add(x.get(i));
-                } else {
-                    b.add(x.get(i));
+    
+    public ArrayList<Edge> merge(ArrayList<Edge> leftSide, ArrayList<Edge> rightSide){
+        ArrayList<Edge> sorted = new ArrayList<>();
+        int counterLeft = 0, counterRight = 0;
+        for(int i = 0; i < leftSide.size()+rightSide.size(); i++){
+            if(counterLeft == leftSide.size()){
+                for(int j = counterRight; j < rightSide.size(); j++){
+                    sorted.add(rightSide.get(j));
                 }
-            }
-            a = mergeSort(a);
-            b = mergeSort(b);
-            ArrayList<Edge> sorted = new ArrayList<>();
-            outerloop: for(int i = 0; i < a.size(); i++){
-                for(int j = 0; j < b.size(); j++){
-                    if(a.get(i).getCost().get() > b.get(j).getCost().get()){
-                        sorted.add(a.get(i));
-                        if(i == a.size()-1){
-                            for(int k = j; k < b.size(); k++){
-                                sorted.add(b.get(k));
-                            }
-                        }
-                        break;
-                    } else {
-                        sorted.add(b.get(j));
-                        if(j == b.size()-1){
-                            for(int k = i; k < a.size(); k++){
-                                sorted.add(a.get(k));
-                            }
-                            break outerloop;
-                        }
-                    }
+                break;
+            } else if(counterRight == rightSide.size()){
+                for(int j = counterLeft; j < leftSide.size(); j++){
+                    sorted.add(leftSide.get(j));
                 }
+                break;
+            } else if(leftSide.get(counterLeft).getCost().get() > rightSide.get(counterRight).getCost().get()){
+                sorted.add(leftSide.get(counterLeft));
+                counterLeft++;
+            } else {
+                sorted.add(rightSide.get(counterRight));
+                counterRight++;
             }
-            return sorted;
         }
+        return sorted;
+    }
+    
+    public ArrayList<Edge> mergeSort(ArrayList<Edge> edges){
+        if(edges.size() == 1){
+            return edges;
+        }
+        ArrayList<Edge> leftSide = new ArrayList<>(), rightSide = new ArrayList<>();
+        for(int i = 0; i < edges.size(); i++){
+            if(i < edges.size()/2){
+                leftSide.add(edges.get(i));
+            } else {
+                rightSide.add(edges.get(i));
+            }
+        }
+        leftSide = mergeSort(leftSide);
+        rightSide = mergeSort(rightSide);
+        return merge(leftSide, rightSide);
     }
 }

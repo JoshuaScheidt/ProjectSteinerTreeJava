@@ -166,26 +166,25 @@ public class CutILP {
     public void recursiveCut(HashSet<Integer> sub1, HashSet<Integer> sub2, int term1){
         if(term1 >= this.g.getNumberOfTerminals()){
             return;
-        } else {
-            this.result.add(sub1);
-            Integer temp;
-            HashSet<Integer> newSub1, newSub2;
-            Set alreadyUsed = new HashSet<>();
-            Iterator it = sub2.iterator();
-            while(it.hasNext()){
-                temp = (Integer) it.next();
-                alreadyUsed.add(temp);
-                newSub1 = new HashSet<>();
-                newSub1.addAll(sub1);
-                newSub1.add(temp);
-                newSub2 = new HashSet<>();
-                newSub2.addAll(sub2);
-                newSub2.removeAll(alreadyUsed);
-                if(this.g.getTerminals().containsKey((int)temp)){
-                    term1++;
-                }
-                this.recursiveCut(newSub1, newSub2, term1);
+        }
+        this.result.add(sub1);
+        Integer temp;
+        HashSet<Integer> newSub1, newSub2;
+        HashSet<Integer> alreadyUsed = new HashSet<>();
+        Iterator it = sub2.iterator();
+        while(it.hasNext()){
+            temp = (Integer) it.next();
+            alreadyUsed.add(temp);
+            newSub1 = new HashSet<>();
+            newSub1.addAll(sub1);
+            newSub1.add(temp);
+            newSub2 = new HashSet<>();
+            newSub2.addAll(sub2);
+            newSub2.removeAll(alreadyUsed);
+            if(this.g.getTerminals().containsKey((int)temp)){
+                term1++;
             }
+            this.recursiveCut(newSub1, newSub2, term1);
         }
     }
     

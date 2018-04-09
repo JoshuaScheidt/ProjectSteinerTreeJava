@@ -18,9 +18,13 @@ E 9 12 2
 E 10 12 1
 END
 SECTION Terminals
-Terminals 2
-T 12
-T 10
+Terminals 6
+T 9
+T 2
+T 8
+T 11
+T 5
+T 6
 
 END
 
