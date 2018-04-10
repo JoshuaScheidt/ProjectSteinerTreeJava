@@ -5,14 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import mainAlgorithms.InvertedKruskal;
-
-import mainAlgorithms.MobiusDynamics;
 import mainAlgorithms.SteinerTreeSolver;
 
 public class mainTest {
 
 	public static void main(String[] args) {
-
 		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
 		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
                 PreProcess pp = new PreProcess(graph);
@@ -43,7 +40,18 @@ public class mainTest {
 //                fp.initiateCutSearch();
 
 		//System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-
+		
+		// SteinerTreeSolver solver = new MobiusDynamics();
+		// solver.solve(graph);
+//		ArrayList<Vertex[]> articulationBridges = processed.articulationBridgeFinding(graph.getVertices().get(1), graph.getVertices().size());
+//
+//		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
+//		for (Vertex[] v : articulationBridges) {
+//			if (v.length == 2) {
+//				System.out.println(v[0].getKey() + " " + v[1].getKey());
+//			} else
+//				System.out.println(v[0].getKey());
+//		}
 		// doAnalysis(files);
 	}
 
