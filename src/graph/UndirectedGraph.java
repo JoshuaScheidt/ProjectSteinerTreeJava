@@ -81,7 +81,7 @@ public class UndirectedGraph {
 	 * @param cost
 	 *            Cost of the Edge between the Vertices
 	 */
-	public Edge addEdge(int key1, int key2, double cost) {
+	public Edge addEdge(int key1, int key2, int cost) {
 		Edge e = null;
 		if (this.vertices.containsKey(key1) || this.vertices.containsKey(key2)) {
 			if (this.vertices.containsKey(key1) && this.vertices.containsKey(key2)) {

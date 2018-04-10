@@ -24,10 +24,9 @@ public class InvertedKruskal implements SteinerTreeSolver{
     private ArrayList<Edge> sorted;
     private HashSet<Integer> connected;
     private HashSet<Integer> connectedTerminals;
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     
-    public InvertedKruskal(UndirectedGraph g){
-        this.g = g;
+    public InvertedKruskal(){
         this.sorted = new ArrayList<>();
         this.connected = new HashSet<>();
         this.connectedTerminals = new HashSet<>();
@@ -35,6 +34,7 @@ public class InvertedKruskal implements SteinerTreeSolver{
     
     @Override
     public List<Edge> solve(UndirectedGraph G) {
+        this.g = G;
         this.createSortedEdgeList();
         this.removeEdges();
         return new ArrayList<>(this.g.getEdges());
@@ -95,7 +95,7 @@ public class InvertedKruskal implements SteinerTreeSolver{
         if(DEBUG){
             System.out.println("Sorted size: " + this.sorted.size());
             for(int i = 0; i < this.sorted.size(); i++){
-                System.out.print(this.sorted.get(i).getCost().get() + " ");
+                System.out.print(this.sorted.get(i).getCost() + " ");
             }
             System.out.println("");
         }

@@ -74,7 +74,7 @@ public class UndirectedGraphReader {
 				System.out.println("Number of actual terminals:" + terminalCounter);
 				System.exit(1);
 			}
-			System.out.println("Parsed correctly");
+			//System.out.println("Parsed correctly");
 			return G;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

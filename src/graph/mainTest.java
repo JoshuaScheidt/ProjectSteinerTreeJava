@@ -3,6 +3,8 @@ package graph;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import mainAlgorithms.InvertedKruskal;
 
 import mainAlgorithms.MobiusDynamics;
 import mainAlgorithms.SteinerTreeSolver;
@@ -11,19 +13,77 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\exact\\instance139.gr"));
+		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
 		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
+                PreProcess pp = new PreProcess(graph);
+                boolean[] preProcessable;
+                do{
+                    preProcessable = pp.graph.preProcessable();
+                    if(preProcessable[0]){
+                        pp.removeLeafNodes();
+                    }
+                    if(preProcessable[1]){
+                        pp.removeNonTerminalDegreeTwo();
+                    }
+                } while (preProcessable[0] || preProcessable[1]);
 		// PreProcess processed = new PreProcess(graph);
 		long starts = System.currentTimeMillis();
-		SteinerTreeSolver solver = new MobiusDynamics();
-		solver.solve(graph);
+                
+                SteinerTreeSolver solver = new InvertedKruskal();
+                printSolution(solver.solve(pp.graph));
+//		SteinerTreeSolver solver = new MobiusDynamics();
+//		solver.solve(graph);
 		// processed.removeBridgesAndSections(graph.getVertices().size());
+                
+//              Below is used to create a file with same name in lp format
+//                fileName = fileName.substring(fileName.indexOf("\\") + 1);
+//                fileName = fileName.substring(fileName.indexOf("\\") + 1);
+//                fileName = fileName.substring(0, fileName.indexOf("."));
+//                CutILP fp = new CutILP(graph, fileName);
+//                fp.initiateCutSearch();
 
-		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
+		//System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
 
 		// doAnalysis(files);
 	}
 
+        /**
+         * Prints solution to standard out. Checks each edge and vertex to see if it contains other hidden
+         * edges and or vertices that need to be included
+         * @param solution Solution including all the edges in the solution
+         */
+        private static void printSolution(List<Edge> solution){
+        String temp = "";
+        int sum = 0;
+        int[] subsumed;
+        for(int i = 0; i < solution.size(); i++){
+            if(!(solution.get(i).getVertices()[0].getSubsumed() == null)){
+                while(!solution.get(i).getVertices()[0].getSubsumed().isEmpty()){
+                    subsumed = solution.get(i).getVertices()[0].getSubsumed().pop();
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    sum+= subsumed[2];
+                }
+            }
+            if(!(solution.get(i).getVertices()[1].getSubsumed() == null)){
+                while(!solution.get(i).getVertices()[1].getSubsumed().isEmpty()){
+                    subsumed = solution.get(i).getVertices()[1].getSubsumed().pop();
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    sum+= subsumed[2];
+                }
+            }
+            if(!(solution.get(i).getStack() == null)){
+                while(!solution.get(i).getStack().isEmpty()){
+                    subsumed = solution.get(i).getStack().pop();
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    sum+= subsumed[2];
+                }
+            }
+            temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
+            sum += solution.get(i).getCost().get();
+        }
+        System.out.println("VALUE " + sum);
+        System.out.println(temp);
+        }
 	/**
 	 * Perform analysis
 	 *

@@ -15,8 +15,8 @@ import java.util.Stack;
 public class Edge extends Object {
 
 	private Vertex[] connected = new Vertex[2];
-	private Optional<Double> cost;
-	private Stack<double[]> subsumed = new Stack<>();
+	private Optional<Integer> cost;
+	private Stack<int[]> subsumed;
 
 	/**
 	 * Constructor for creating an Edge given 2 Vertices and a cost
@@ -28,7 +28,7 @@ public class Edge extends Object {
 	 * @param c
 	 *            Cost of taking this Edge into your Minimum Steiner Tree
 	 */
-	public Edge(Vertex v1, Vertex v2, double c) {
+	public Edge(Vertex v1, Vertex v2, int c) {
 		if (!v1.isNeighbor(v2)) {
 			this.connected[0] = v1;
 			this.connected[1] = v2;
@@ -50,7 +50,7 @@ public class Edge extends Object {
 	 * @param c
 	 *            Cost of taking this Edge into your Minimum Steiner Tree
 	 */
-	public Edge(Vertex v1, Vertex v2, double c, boolean force) {
+	public Edge(Vertex v1, Vertex v2, int c, boolean force) {
 		if (force) {
 			this.connected[0] = v1;
 			this.connected[1] = v2;
@@ -66,7 +66,7 @@ public class Edge extends Object {
 	 * @param cost
 	 *            Parameter to exchange Edge cost
 	 */
-	public void setCost(double cost) {
+	public void setCost(int cost) {
 		this.cost = Optional.of(cost);
 	}
 
@@ -78,8 +78,8 @@ public class Edge extends Object {
 	 * @param stack
 	 *            Input Stack of another Vertex
 	 */
-	public void pushStack(Stack<double[]> stack) {
-		if (this.subsumed.isEmpty()) {
+	public void pushStack(Stack<int[]> stack) {
+		if (this.subsumed == null) {
 			this.subsumed = new Stack<>();
 		}
 		for (int i = stack.size() - 1; i >= 0; i--) {
@@ -93,29 +93,11 @@ public class Edge extends Object {
 	 * @param keys
 	 *            Items to be added to Stack
 	 */
-	public void pushSubsumed(double[] keys) {
+	public void pushSubsumed(int[] keys) {
 		if (this.subsumed == null) {
 			this.subsumed = new Stack<>();
 		}
 		this.subsumed.push(keys);
-	}
-
-	/**
-	 * Looks at the top item without removing
-	 *
-	 * @return Integer array of the top item
-	 */
-	public double[] peekSubsumed() {
-		return this.subsumed.peek();
-	}
-
-	/**
-	 * Removes the top item from the Stack
-	 *
-	 * @return Integer array of the top item
-	 */
-	public double[] popSubsumed() {
-		return this.subsumed.pop();
 	}
 
 	/**
@@ -125,7 +107,7 @@ public class Edge extends Object {
 	 *
 	 * @author Joshua Scheidt
 	 */
-	public Stack<double[]> getStack() {
+	public Stack<int[]> getStack() {
 		return this.subsumed;
 	}
 
@@ -165,7 +147,7 @@ public class Edge extends Object {
 	 * @return Optional Integer from which the Integer can be received and can be
 	 *         checked if it had been set
 	 */
-	public Optional<Double> getCost() {
+	public Optional<Integer> getCost() {
 		return this.cost;
 	}
 }

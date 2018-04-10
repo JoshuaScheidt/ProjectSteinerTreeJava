@@ -99,7 +99,7 @@ public class PathFinding {
 		Edge newEdge = new Edge(start, end, datamap.get(end.getKey()).dist, true);
 		for (int i = 0; i < path.size() - 1; i++) {
 			newEdge.pushSubsumed(
-					new double[] { path.get(i).getKey(), path.get(i).getKey(), path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get() });
+					new int[] { path.get(i).getKey(), path.get(i).getKey(), path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get() });
 		}
 
 		return newEdge;
@@ -176,7 +176,7 @@ public class PathFinding {
 			path.add(current);
 			Edge newEdge = new Edge(start, v, datamap.get(v.getKey()).dist, true);
 			for (int i = 0; i < path.size() - 1; i++) {
-				newEdge.pushSubsumed(new double[] { path.get(i).getKey(), path.get(i + 1).getKey(),
+				newEdge.pushSubsumed(new int[] { path.get(i).getKey(), path.get(i + 1).getKey(),
 						G.getVertices().get(path.get(i).getKey()).getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
 			}
 			result.add(newEdge);

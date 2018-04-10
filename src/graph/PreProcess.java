@@ -64,14 +64,14 @@ public class PreProcess {
 		Set keys = this.graph.getVertices().keySet();
 		Iterator it = keys.iterator();
 		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-		Stack<double[]> subsumed;
+		Stack<int[]> subsumed;
 		HashSet<Integer> toBeRemovedVertices = new HashSet<>();
 		HashSet<Edge> toBeRemovedEdges = new HashSet<>();
-		ArrayList<double[]> newEdges = new ArrayList<>();
-		ArrayList<Stack<double[]>> containedWithinEdge = new ArrayList<>();
+		ArrayList<int[]> newEdges = new ArrayList<>();
+		ArrayList<Stack<int[]>> containedWithinEdge = new ArrayList<>();
 		Vertex current, firstVertex, secondVertex, tempVertex;
 		Edge firstEdge, secondEdge, tempEdge, temp;
-		double cost;
+		int cost;
 		while (it.hasNext()) {
 			// Gets the current Vertex in the Iterator
 			current = vertices.get((int) it.next());
@@ -89,8 +89,8 @@ public class PreProcess {
 				secondEdge = current.getConnectingEdge(secondVertex);
 				// Pushes the original two removable Edges in the form of their two keys and
 				// their respective costs
-				subsumed.push(new double[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
-				subsumed.push(new double[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
+				subsumed.push(new int[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
+				subsumed.push(new int[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
 				// The total cost of the new Edge is the sum of the removed Edges
 				cost += firstEdge.getCost().get() + secondEdge.getCost().get();
 				// Keeps a list of the Vertices to be removed, Removal method will also remove
@@ -102,7 +102,7 @@ public class PreProcess {
 					// doesn't hold to the criteria of this method
 					tempEdge = firstVertex.getOtherEdge(firstEdge);
 					tempVertex = tempEdge.getOtherSide(firstVertex);
-					subsumed.push(new double[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+					subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
 					toBeRemovedVertices.add(firstVertex.getKey());
 					cost += tempEdge.getCost().get();
 					firstVertex = tempVertex;
@@ -113,7 +113,7 @@ public class PreProcess {
 					// doesn't hold to the criteria of this method
 					tempEdge = secondVertex.getOtherEdge(secondEdge);
 					tempVertex = tempEdge.getOtherSide(secondVertex);
-					subsumed.push(new double[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+					subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
 					toBeRemovedVertices.add(secondVertex.getKey());
 					cost += tempEdge.getCost().get();
 					secondVertex = tempVertex;
@@ -152,7 +152,7 @@ public class PreProcess {
 					}
 				}
 				if (!edgeExists) {
-					newEdges.add(new double[] { firstVertex.getKey(), secondVertex.getKey(), cost });
+					newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost });
 					containedWithinEdge.add(subsumed);
 				}
 			}
@@ -208,7 +208,7 @@ public class PreProcess {
 						}
 					}
 					newCurrent.pushSubsumed(
-							new double[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
 					this.graph.setTerminal(newCurrent.getKey());
 					current = newCurrent;
 					toBeRemoved.add(current);
