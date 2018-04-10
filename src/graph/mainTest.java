@@ -4,23 +4,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import mainAlgorithms.MobiusDynamics;
-import mainAlgorithms.SteinerTreeSolver;
-
 public class mainTest {
 
 	public static void main(String[] args) {
 
-		File[] files = readFiles(new File("data\\exact\\instance139.gr"));
+		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
 		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
-		// PreProcess processed = new PreProcess(graph);
+		PreProcess processed = new PreProcess(graph);
 		long starts = System.currentTimeMillis();
-		SteinerTreeSolver solver = new MobiusDynamics();
-		solver.solve(graph);
-		// processed.removeBridgesAndSections(graph.getVertices().size());
+		// SteinerTreeSolver solver = new MobiusDynamics();
+		// solver.solve(graph);
+		ArrayList<Vertex[]> articulationBridges = processed.articulationBridgeFinding(graph.getVertices().get(1), graph.getVertices().size());
 
 		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-
+		for (Vertex[] v : articulationBridges) {
+			if (v.length == 2) {
+				System.out.println(v[0].getKey() + " " + v[1].getKey());
+			} else
+				System.out.println(v[0].getKey());
+		}
 		// doAnalysis(files);
 	}
 

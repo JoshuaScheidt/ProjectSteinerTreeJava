@@ -1,11 +1,12 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
+j * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -372,6 +373,110 @@ public class PreProcess {
 			}
 		}
 		return bridges;
+	}
+
+	/**
+	 * Finds and returns all articulation points and bridges in the graph.
+	 *
+	 * @param v0
+	 *            The starting vertex
+	 * @param totalVertices
+	 *            The total amount of vertices in the graph
+	 * @return A list of Vertex arrays, where array of size 1 means an articulation
+	 *         point, and an array of size 2 means a bridge.
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public ArrayList<Vertex[]> articulationBridgeFinding(Vertex v0, int totalVertices) {
+		int count = 1;
+		int[] iteratedValues = new int[totalVertices];
+		int[] lowestFoundLabels = new int[totalVertices];
+		ArrayList<Vertex[]> articulationBridge = new ArrayList<>();
+		ArrayList<Integer> articulationPoints = new ArrayList<>();
+		Stack<Vertex> stack = new Stack<>();
+		Vertex fake = new Vertex(0);
+		stack.push(fake);
+		stack.push(v0);
+		iteratedValues[v0.getKey() - 1] = count;
+		lowestFoundLabels[v0.getKey() - 1] = count;
+		count++;
+		Vertex current, parent, next;
+		Iterator<Vertex> it;
+		boolean backtracking = false;
+
+		while (stack.size() > 1) {
+			current = stack.pop();
+			parent = stack.peek();
+			stack.push(current);
+			it = current.getNeighbors().iterator();
+			backtracking = true;
+			for (Vertex neighbor : current.getNeighbors()) {
+				if (iteratedValues[neighbor.getKey() - 1] == 0) { // If any neighbor is unexplored, don't backtrack.
+					backtracking = backtracking && false;
+				}
+			}
+			if (!backtracking) { // We still have unexplored neighbors
+				while ((next = it.next()) != null) {
+					if (iteratedValues[next.getKey() - 1] == 0) { // Find the unexplored neighbor
+						iteratedValues[next.getKey() - 1] = count;
+						lowestFoundLabels[next.getKey() - 1] = count;
+						count++;
+						stack.push(next);
+						break;
+					}
+					if (!it.hasNext()) { // Should never get it here, would mean there is something wrong with unexplored
+						// neighbors check
+						System.out.println("Still got in here");
+						break;
+					}
+				}
+			} else { // All neighbors explored
+				while ((next = it.next()) != null) {
+					if (next != parent) {
+						lowestFoundLabels[current.getKey() - 1] = Math.min(lowestFoundLabels[current.getKey() - 1],
+								lowestFoundLabels[next.getKey() - 1]); // Set current lowest to go to lowest neighbor
+					}
+					if (!it.hasNext()) {
+						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
+							articulationBridge.add(new Vertex[] { current, parent });
+							if (articulationPoints.contains(current.getKey()) || articulationPoints.contains(parent.getKey()))
+								articulationPoints.removeAll(Arrays.asList(current.getKey(), parent.getKey()));
+						} else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]) {
+							boolean add = true;
+							for (Vertex[] e : articulationBridge) {
+								if (e[0] == parent || e[1] == parent)
+									add = false;
+							}
+							if (articulationPoints.contains(parent.getKey()))
+								add = false;
+							if (add)
+								articulationPoints.add(parent.getKey());
+						}
+						stack.pop();
+						break;
+					}
+				}
+			}
+		}
+		if (v0.getNeighbors().size() > 1) {
+			int val = iteratedValues[v0.getKey() - 1];
+			boolean remove = true;
+			for (Vertex v : v0.getNeighbors()) {
+				if (lowestFoundLabels[v.getKey() - 1] != val) {
+					System.out.println(articulationPoints.toString());
+					System.out.println(v0.getKey());
+					remove = false;
+					break;
+				}
+			}
+			if (remove)
+				articulationPoints.remove(new Integer(v0.getKey()));
+		}
+
+		for (Integer i : articulationPoints)
+			articulationBridge.add(new Vertex[] { this.graph.getVertices().get(i) });
+
+		return articulationBridge;
 	}
 
 	/**
