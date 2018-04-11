@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -17,86 +18,154 @@ import java.util.HashMap;
  */
 public class DreyfusWagner implements SteinerTreeSolver {
 	
+//	class BookKeeping {
+//		
+//		Map.Entry<Integer,Vertex> v1;
+//		Map.Entry<Integer,Vertex> v2;
+//		Set<Map.Entry<Integer,Vertex>> set1;
+//		Set<Map.Entry<Integer,Vertex>> set2;
+//		boolean onePair = false;
+//		
+//		public BookKeeping(Map.Entry<Integer,Vertex> v1, Set<Map.Entry<Integer,Vertex>> set1, Map.Entry<Integer,Vertex> v2, Set<Map.Entry<Integer,Vertex>> set2) {
+//			
+//			this.v1 = v1;
+//			this.set1 = set1;
+//			if (v2 == null && set2 == null) {
+//				onePair = true;
+//			} else {
+//				this.v2 = v2;
+//				this.set2 = set2;
+//			}
+//		}
+//	}
+	
 	private UndirectedGraph g;
-	private graph.PathFinding pathFinding;
-	private Set<Map.Entry<Integer,Vertex>> vertices;
-	private Set<Map.Entry<Integer,Vertex>> terminals;
 	private int numberOfTerminals;
-	private HashMap<String, Double> fMap = new HashMap<>();
-	private HashMap<String, Double> gMap = new HashMap<>();
+	private int numberOfVertices;
+	private int counter;
+	private HashMap<String, Integer> fMap = new HashMap<>();
+	private HashMap<String, Integer> gMap = new HashMap<>();
+	private HashMap<String, String> bMap = new HashMap<>();
+//	List<Edge> edges = new ArrayList<>();
+//	List<Integer> vertices = new ArrayList<>();
 	
 	// for the moment only prints out the weight of the steiner tree, does not yet return used edges
 	@Override
 	public List<Edge> solve(UndirectedGraph g) {
 		
 		this.g = g;
-		this.pathFinding = new graph.PathFinding();
-		this.vertices = g.getVertices().entrySet();
-		this.terminals = g.getTerminals().entrySet();
-		this.numberOfTerminals = this.terminals.size();
+		this.counter = 0;
+		this.numberOfTerminals = g.getNumberOfTerminals();
+		this.numberOfVertices = g.getVertices().entrySet().size();
 
-		for (Map.Entry<Integer,Vertex> v : this.vertices) {
-			for (Map.Entry<Integer,Vertex> u : this.terminals) {
-				this.fMap.put(v.getKey() + " {"+u.getKey()+"}", sPath(u, v));
-				// still need to store used edges here
+		System.out.println("1 of " + (this.numberOfTerminals-1));				
+		for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
+			System.out.println("\t" + ++counter + " of " + this.numberOfVertices);
+			for (Map.Entry<Integer,Vertex> u : g.getTerminals().entrySet()) {
+				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u, v));
+//				bMap.put(v.getKey()+"{"+u.getKey()+"}", "{("+u.getKey()+",{"+u.getKey()+"})}");
+//				bMap.put(v.getKey()+"{"+u.getKey()+"}", new BookKeeping(u, vertexAsSet(u), null, null));
 			}	
 		}
-		System.out.println("1 of " + (this.numberOfTerminals-1));				
 		for (int m=2; m<=this.numberOfTerminals-1; m++) {	
 			System.out.println(m + " of " + (this.numberOfTerminals-1));
-			Set<Set<Map.Entry<Integer,Vertex>>> subsets = getSubsets(this.terminals, m);
-			int counter = 0;
+			Set<Set<Map.Entry<Integer,Vertex>>> subsets = getSubsets(g.getTerminals().entrySet(), m);
+			counter = 0;
 			for (Set<Map.Entry<Integer,Vertex>> X : subsets) {
 				System.out.println("\t" + ++counter + " of " + subsets.size());
-				for (Map.Entry<Integer,Vertex> v : this.vertices) {
+				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
 					for (Set<Map.Entry<Integer,Vertex>> XPrime : powerSet(X)) {
 						if (XPrime.size() != X.size() && !XPrime.toString().equals("[]")) {
-							if (getValue(fMap, v, XPrime) + getValue(fMap, v, setDifference(X, XPrime)) < getValue(gMap, v, X)) {
-								gMap.put(v.getKey() + " " + getStringForSet(X), getValue(fMap, v, XPrime) + getValue(fMap, v, setDifference(X, XPrime)));
-								// still need to store used edges here
+							int gMapVX = getValue(gMap, v, X);
+							if (gMapVX == Integer.MAX_VALUE) {
+								gMap.put(v.getKey()+getStringForSet(X), getValue(fMap, v, XPrime) + getValue(fMap, v, setDifference(X, XPrime)));
+//								bMap.put(v.getKey()+getStringForSet(X), "{("+v.getKey()+","+getStringForSet(XPrime)+"),("+v.getKey()+","+getStringForSet(setDifference(X, XPrime))+")}");
+//								bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
+							} else {
+								int fMapVXPrime = getValue(fMap, v, XPrime);
+								int fMapVXDiff = getValue(fMap, v, setDifference(X, XPrime));
+								if (fMapVXPrime + fMapVXDiff < gMapVX) {
+									gMap.put(v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
+//									bMap.put(v.getKey()+getStringForSet(X), "{("+v.getKey()+","+getStringForSet(XPrime)+"),("+v.getKey()+","+getStringForSet(setDifference(X, XPrime))+")}");
+//									bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
+
+								}
 							}
 						}
 					}
 				}
-				for (Map.Entry<Integer,Vertex> v : this.vertices) {
+				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
 					for (Map.Entry<Integer,Vertex> u : X) {
-						Set<Map.Entry<Integer,Vertex>> uSet = new HashSet<>();
-						uSet.add(u);
-						if (sPath(v, u) + getValue(fMap, u, setDifference(X, uSet)) < getValue(fMap, v, X)) {
-							fMap.put(v.getKey() + " " + getStringForSet(X), sPath(v, u) + getValue(fMap, u, setDifference(X, uSet)));
-							// still need to store used edges here
+						int fMapVX = getValue(fMap, v, X);
+						if (fMapVX == Integer.MAX_VALUE) {
+							fMap.put(v.getKey() + getStringForSet(X), sPath(v, u) + getValue(fMap, u, setDifference(X, vertexAsSet(u))));
+//							bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(setDifference(X, vertexAsSet(u)))+")}");
+//							bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, setDifference(X, uSet), null, null));
+
+						} else {
+							int pathUV = sPath(v, u);
+							int fMapUXDiff = getValue(fMap, u, setDifference(X, vertexAsSet(u)));
+							if (pathUV + fMapUXDiff < fMapVX) {
+								fMap.put(v.getKey() + getStringForSet(X), pathUV + fMapUXDiff);
+//								bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(setDifference(X, vertexAsSet(u)))+")}");
+//								bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, setDifference(X, uSet), null, null));
+
+							}
 						}
 					}
-					for (Map.Entry<Integer,Vertex> u : setDifference(this.vertices, X)) {
-						if (sPath(u, v) + getValue(gMap, u, X) < getValue(fMap, v, X)) {
-							fMap.put(v.getKey() + " " + getStringForSet(X), sPath(v, u) + getValue(gMap, u, X));
-							// still need to store used edges here
+					for (Map.Entry<Integer,Vertex> u : setDifference(g.getVertices().entrySet(), X)) {
+						
+						int fMapVX = getValue(fMap, v, X);
+						int pathUV = sPath(u, v);
+						int gMapUX = getValue(gMap, u, X);
+						if (pathUV + gMapUX < fMapVX) {
+							fMap.put(v.getKey() + getStringForSet(X), pathUV + gMapUX);
+//							bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(X)+")}");
+//							bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, X, null, null));
 						}
-					}	
+					}
+
 				}
 			}
 			
 		}
-		
-		Set<Map.Entry<Integer,Vertex>> oneTerminalSet = new HashSet<>();
-		Map.Entry<Integer,Vertex> v = this.terminals.iterator().next();
-		oneTerminalSet.add(v);
-		System.out.println("Weight: " + getValue(fMap, v, setDifference(this.terminals, oneTerminalSet)));
+		Map.Entry<Integer,Vertex> v = g.getTerminals().entrySet().iterator().next();
+		System.out.println("Weight: " + getValue(fMap, v, setDifference(g.getTerminals().entrySet(), vertexAsSet(v))));
+//		traceback(v, setDifference(g.getTerminals().entrySet(), vertexAsSet(v)));
 		return null;
 	}
 	
-//	private List<Edge> traceback(Vertex v, Set<Map.Entry<Integer,Vertex>> X) {
+//	private void traceback(Map.Entry<Integer,Vertex> v, Set<Map.Entry<Integer,Vertex>> set) {
 //		
+//		Object obj = bMap.get(v.getKey()+getStringForSet(set));
+//		System.out.println(obj);
+//		
+//		if (obj != null) {
+//			BookKeeping newB = (BookKeeping)(obj);
+//			if (newB.onePair) {
+//				System.out.println(newB.v1.getKey());
+//
+//				Edge newEdge = newB.v1.getValue().getConnectingEdge(v.getValue());
+////				this.edges.add(newEdge);
+//				this.vertices.add(newB.v1.getKey());
+//				this.vertices.add(v.getKey());
+////				System.out.println("cost:" + newEdge.getCost().orElse(-1));
+//				traceback(newB.v1, set);
+//			} else {
+//				traceback(newB.v1, newB.set1);
+//				traceback(newB.v2, newB.set2);
+//			}
+//		}
 //	}
 	
-	private Double getValue(HashMap<String, Double> func, Map.Entry<Integer,Vertex> vertex, Set<Map.Entry<Integer,Vertex>> set) {
+	private int getValue(HashMap<String, Integer> func, Map.Entry<Integer,Vertex> vertex, Set<Map.Entry<Integer,Vertex>> set) {
 		
-		String keyString = vertex.getKey() + " " + getStringForSet(set);
-		Double value = func.get(keyString);
+		String keyString = vertex.getKey() + getStringForSet(set);
+		Object value = func.get(keyString);
 		if (value != null) {
-			return value;
+			return (int)(value);
 		}
-		return Double.MAX_VALUE;
+		return Integer.MAX_VALUE;
 	}
 	
 	private String getStringForSet(Set<Map.Entry<Integer,Vertex>> set) {
@@ -105,25 +174,24 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		}
 		String s = "{";
 		for (Map.Entry<Integer,Vertex> v : set) {
-			s += v.getKey() + ", ";
+			s += v.getKey() + ",";
 		}
-		s = s.substring(0, s.length()-2);
+		s = s.substring(0, s.length()-1);
 		s += "}";
 		return s;
 	}
 	
 	private Set<Map.Entry<Integer,Vertex>> setDifference(Set<Map.Entry<Integer,Vertex>> set1, Set<Map.Entry<Integer,Vertex>> set2) {
-		Set<Map.Entry<Integer,Vertex>> copy = new HashSet<>();
-		for (Map.Entry<Integer,Vertex> vertice : set1) {
-			copy.add(vertice);
-		}
+		
+		Set<Map.Entry<Integer,Vertex>> copy = set1.stream().collect(Collectors.toSet());
 		copy.removeAll(set2);
 		return copy;
 	}
 	
-	private double sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
-		
-		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(-1);			
+	private int sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
+				
+		graph.PathFinding pathFinding = new graph.PathFinding();
+		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(0);			
 	}
 	
 	/**
@@ -176,5 +244,12 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		getSubsets(originalSet, size, idx+1, current, solution);
 		current.remove(x);
 		getSubsets(originalSet, size, idx+1, current, solution);
+	}
+	
+	private Set<Map.Entry<Integer,Vertex>> vertexAsSet(Map.Entry<Integer,Vertex> v) {
+		
+		Set<Map.Entry<Integer,Vertex>> oneTerminalSet = new HashSet<>();
+		oneTerminalSet.add(v);
+		return oneTerminalSet;
 	}
 }
