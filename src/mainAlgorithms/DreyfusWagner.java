@@ -123,7 +123,7 @@ public class DreyfusWagner implements SteinerTreeSolver {
 	
 	private double sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
 		
-		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(-1.0);			
+		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(-1);			
 	}
 	
 	/**
