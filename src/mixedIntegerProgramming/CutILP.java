@@ -10,6 +10,7 @@ import graph.UndirectedGraph;
 import graph.Vertex;
 import ilog.concert.*;
 import ilog.cplex.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -41,27 +42,20 @@ public class CutILP {
     public CutILP(UndirectedGraph g, String fileName){
         this.g = g;
         this.fileName = fileName;
+        this.LPFile = "data\\ILP\\" + this.fileName + ".lp";
     }
     
     public void initiateCutSearch(){
-        this.createIdentifiableEdges();
-        this.recursiveInit();
-        this.writeFile();
+        File f = new File(this.LPFile);
+//        if(f.exists()){
+//            System.out.println("This already exists so we can just run it through ILP");
+//            System.out.println(this.LPFile);
+//        } else {
+            this.createIdentifiableEdges();
+            this.recursiveInit();
+            this.writeFile();
+//        }
         double[] result = this.activateCPLEX(this.LPFile);
-        String temp = "";
-        Edge current;
-        int totalCost = 0;
-        for(int i = 0; i < result.length; i++){
-            if(result[i] == 1){
-                current = this.edges.get(i+1);
-                temp = temp.concat(current.getVertices()[0].getKey() + " " + current.getVertices()[1].getKey() + " "  + current.getCost().get() + "\n");
-                totalCost += current.getCost().get();
-            }
-        }
-        System.out.println("Total cost of the tree: " + totalCost);
-        System.out.println("Edge connections and costs: ");
-        System.out.println(temp);
-                
     }
     
     public void writeFile(){
@@ -115,7 +109,7 @@ public class CutILP {
         }
         lines.add("End");
         
-        this.LPFile = "data\\ILP\\" + this.fileName + ".lp";
+        
         Path file = Paths.get(this.LPFile);
         try {
             Files.write(file, lines, Charset.forName("UTF-8"));

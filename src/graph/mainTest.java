@@ -4,14 +4,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import mainAlgorithms.InvertedKruskal;
 import mainAlgorithms.SteinerTreeSolver;
+import mixedIntegerProgramming.CutILP;
 
 public class mainTest {
 
 	public static void main(String[] args) {
-		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
-		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
+//                Scanner in = new Scanner(System.in);
+//                String file = in.nextLine();
+                String file = "data\\test\\testILP.gr";
+//		File[] files = readFiles(file);
+		UndirectedGraph graph = new UndirectedGraphReader().read(new File(file));
                 PreProcess pp = new PreProcess(graph);
                 boolean[] preProcessable;
                 do{
@@ -24,20 +29,20 @@ public class mainTest {
                     }
                 } while (preProcessable[0] || preProcessable[1]);
 		// PreProcess processed = new PreProcess(graph);
-		long starts = System.currentTimeMillis();
+		//long starts = System.currentTimeMillis();
                 
-                SteinerTreeSolver solver = new InvertedKruskal();
-                printSolution(solver.solve(pp.graph));
+//                SteinerTreeSolver solver = new InvertedKruskal();
+//                printSolution(solver.solve(pp.graph));
 //		SteinerTreeSolver solver = new MobiusDynamics();
 //		solver.solve(graph);
 		// processed.removeBridgesAndSections(graph.getVertices().size());
                 
 //              Below is used to create a file with same name in lp format
-//                fileName = fileName.substring(fileName.indexOf("\\") + 1);
-//                fileName = fileName.substring(fileName.indexOf("\\") + 1);
-//                fileName = fileName.substring(0, fileName.indexOf("."));
-//                CutILP fp = new CutILP(graph, fileName);
-//                fp.initiateCutSearch();
+                file = file.substring(file.indexOf("\\") + 1);
+                file = file.substring(file.indexOf("\\") + 1);
+                file = file.substring(0, file.indexOf("."));
+                CutILP fp = new CutILP(graph, file);
+                fp.initiateCutSearch();
 
 		//System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
 		
@@ -68,21 +73,21 @@ public class mainTest {
             if(!(solution.get(i).getVertices()[0].getSubsumed() == null)){
                 while(!solution.get(i).getVertices()[0].getSubsumed().isEmpty()){
                     subsumed = solution.get(i).getVertices()[0].getSubsumed().pop();
-                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum+= subsumed[2];
                 }
             }
             if(!(solution.get(i).getVertices()[1].getSubsumed() == null)){
                 while(!solution.get(i).getVertices()[1].getSubsumed().isEmpty()){
                     subsumed = solution.get(i).getVertices()[1].getSubsumed().pop();
-                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum+= subsumed[2];
                 }
             }
             if(!(solution.get(i).getStack() == null)){
                 while(!solution.get(i).getStack().isEmpty()){
                     subsumed = solution.get(i).getStack().pop();
-                    temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+                    temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum+= subsumed[2];
                 }
             }
