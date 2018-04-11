@@ -18,38 +18,30 @@ import mainAlgorithms.SteinerTreeSolver;
 import mixedIntegerProgramming.CutILP;
 
 public class mainTest {
-    
+
     public static String fileName;
 
     public static void main(String[] args) {
-        String file;
-        if(args.length > 0){
-            file = args[0];
-            fileName = file;
-        } else {
-            Scanner in = new Scanner(System.in);
-            file = in.nextLine();
-            fileName = file;
-        }
-//                String file = "data\\test\\testILP.gr";
-//		File[] files = readFiles(file);
-        UndirectedGraph graph = new UndirectedGraphReader().read(new File(file));
-        PreProcess pp = new PreProcess(graph);
-        boolean[] preProcessable;
-        do {
-            preProcessable = pp.graph.preProcessable();
-            if (preProcessable[0]) {
-                pp.removeLeafNodes();
-            }
-            if (preProcessable[1]) {
-                pp.removeNonTerminalDegreeTwo();
-            }
-        } while (preProcessable[0] || preProcessable[1]);
-        // PreProcess processed = new PreProcess(graph);
-        //long starts = System.currentTimeMillis();
+        File[] files = readFiles(new File("data\\heuristics"));
+        for (int i = 0; i < files.length; i++) {
+            UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+            PreProcess pp = new PreProcess(graph);
+            boolean[] preProcessable;
+            do {
+                preProcessable = pp.graph.preProcessable();
+                if (preProcessable[0]) {
+                    pp.removeLeafNodes();
+                }
+                if (preProcessable[1]) {
+                    pp.removeNonTerminalDegreeTwo();
+                }
+            } while (preProcessable[0] || preProcessable[1]);
+            // PreProcess processed = new PreProcess(graph);
+            //long starts = System.currentTimeMillis();
 
-        SteinerTreeSolver solver = new InvertedKruskal();
-        printSolution(solver.solve(pp.graph), false);
+            SteinerTreeSolver solver = new InvertedKruskal();
+            printSolution(solver.solve(pp.graph), false);
+        }
 //		SteinerTreeSolver solver = new MobiusDynamics();
 //		solver.solve(graph);
         // processed.removeBridgesAndSections(graph.getVertices().size());
@@ -110,8 +102,8 @@ public class mainTest {
             temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
             sum += solution.get(i).getCost().get();
         }
-        if(toFile){
-            Path file = Paths.get(fileName.substring(0, fileName.length()-3) + ".txt");
+        if (toFile) {
+            Path file = Paths.get(fileName.substring(0, fileName.length() - 3) + ".txt");
             ArrayList<String> output = new ArrayList<>();
             output.add("VALUE" + sum);
             output.add(temp);
@@ -124,7 +116,7 @@ public class mainTest {
             System.out.println("VALUE " + sum);
             System.out.println(temp);
         }
-        
+
     }
 
     /**
