@@ -38,6 +38,12 @@ public class PreProcess {
             allFalse.flip(0, allFalse.length() - 1);
             this.checked.put((int) it.next(), allFalse);
         }
+//        for (Vertex v : this.graph.getVertices().values()) {
+//            System.out.println(this.checked.get(v.getKey()).cardinality() + " "  + this.checked.get(v.getKey()).length());
+//            System.out.println(this.checked.get(v.getKey()).get(0));
+//            System.out.println(this.checked.get(v.getKey()).get(1));
+//            System.out.println(this.checked.get(v.getKey()).get(2));
+//        }
     }
 
     public void rangeCheck() {
@@ -52,12 +58,56 @@ public class PreProcess {
     }
 
     /**
-     * The following method checks each clicque of size three and sees if any
-     * sum of two edges is smaller than the third. If that is the case the third
+     * The following method checks each clique of size three and sees if any sum
+     * of two edges is smaller than the third. If that is the case the third
      * edge can be removed.
      */
-    public void clicqueEdgeRemoval() {
-
+    public void cliqueEdgeRemoval() {
+        HashSet<HashSet<Integer>> cliques = new HashSet<>();
+        HashSet<Integer> clique;
+        HashSet<Edge> toBeRemoved = new HashSet<>();
+        Edge vn, vc, nc;
+        //Finding all unique cliques
+        for (Vertex v : this.graph.getVertices().values()) {
+            if (!(this.checked.get(v.getKey()).cardinality() == this.checked.get(v.getKey()).length())) {
+                for (Vertex n : v.getNeighbors()) {
+                    if (!(this.checked.get(n.getKey()).cardinality() == this.checked.get(n.getKey()).length())) {
+                        for (Vertex c : n.getNeighbors()) {
+                            if (!(this.checked.get(c.getKey()).cardinality() == this.checked.get(c.getKey()).length())) {
+                                if (c.isNeighbor(v)) {
+                                    clique = new HashSet<>();
+                                    clique.add(v.getKey());
+                                    clique.add(n.getKey());
+                                    clique.add(c.getKey());
+                                    if (!cliques.contains(clique)) {
+                                        cliques.add(clique);
+                                        vn = this.graph.getVertices().get(v.getKey()).getConnectingEdge(this.graph.getVertices().get(n.getKey()));
+                                        vc = this.graph.getVertices().get(v.getKey()).getConnectingEdge(this.graph.getVertices().get(c.getKey()));
+                                        nc = this.graph.getVertices().get(n.getKey()).getConnectingEdge(this.graph.getVertices().get(c.getKey()));
+                                        if ((vn.getCost().get() + vc.getCost().get()) <= nc.getCost().get()) {
+                                            toBeRemoved.add(nc);
+                                            System.out.println("Removes Edge from clique: [" + nc.getVertices()[0].getKey() + ", " + nc.getVertices()[1].getKey() + "]");
+                                        } else if ((vn.getCost().get() + nc.getCost().get()) <= vc.getCost().get()) {
+                                            toBeRemoved.add(vc);
+                                            System.out.println("Removes Edge from clique: [" + vc.getVertices()[0].getKey() + ", " + vc.getVertices()[1].getKey() + "]");
+                                        } else if ((vc.getCost().get() + nc.getCost().get()) <= vn.getCost().get()) {
+                                            toBeRemoved.add(vn);
+                                            System.out.println("Removes Edge from clique: [" + vn.getVertices()[0].getKey() + ", " + vn.getVertices()[1].getKey() + "]");
+                                        } else {
+                                            System.out.println("Clique doesn't support Edge Removal");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                this.checked.get(v.getKey()).set(2);
+            }
+        }
+        for(Edge e : toBeRemoved){
+            this.graph.removeEdge(e);
+        }
     }
 
     /**
@@ -81,6 +131,7 @@ public class PreProcess {
         Vertex current, firstVertex, secondVertex, tempVertex;
         Edge firstEdge, secondEdge, tempEdge, temp;
         int cost, currentKey;
+
         while (it.hasNext()) {
             // Gets the current Vertex in the Iterator
             currentKey = (int) it.next();
@@ -196,6 +247,7 @@ public class PreProcess {
         HashSet<Vertex> toBeRemoved = new HashSet<>();
         Vertex current, newCurrent, temp;
         int currentKey;
+
         while (it.hasNext()) {
             currentKey = (int) it.next();
             if (!(this.checked.get(currentKey).cardinality() == this.checked.get(currentKey).length())) {
