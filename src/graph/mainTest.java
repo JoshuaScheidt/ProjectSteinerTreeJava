@@ -22,13 +22,15 @@ public class mainTest {
     public static String fileName;
 
     public static void main(String[] args) {
-        File[] files = readFiles(new File("data\\heuristics"));
+        File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
         for (int i = 0; i < files.length; i++) {
+            System.out.println(files[i].toString());
             UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
             PreProcess pp = new PreProcess(graph);
             boolean[] preProcessable;
             do {
                 preProcessable = pp.graph.preProcessable();
+                pp.rangeCheck();
                 if (preProcessable[0]) {
                     pp.removeLeafNodes();
                 }
@@ -38,7 +40,7 @@ public class mainTest {
             } while (preProcessable[0] || preProcessable[1]);
             // PreProcess processed = new PreProcess(graph);
             //long starts = System.currentTimeMillis();
-
+            
             SteinerTreeSolver solver = new InvertedKruskal();
             printSolution(solver.solve(pp.graph), false);
         }
@@ -114,7 +116,7 @@ public class mainTest {
             }
         } else {
             System.out.println("VALUE " + sum);
-            System.out.println(temp);
+            //System.out.println(temp);
         }
 
     }

@@ -22,35 +22,37 @@ import java.util.Stack;
 public class PreProcess {
 
 	UndirectedGraph graph;
+        int[] range;
+        private HashMap<Integer, Boolean> checked;
 
 	public PreProcess(UndirectedGraph g) {
 		this.graph = g.clone();
+                this.range = new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE};
+                this.checked = new HashMap<>();
+                Iterator it = this.graph.getVertices().keySet().iterator();
+                while(it.hasNext()){
+                    this.checked.put((int) it.next(), false);
+                }
 	}
 
-	public void removeTerminals() {
-		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-		Set keys = vertices.keySet();
-		Iterator it = keys.iterator();
-		Vertex current;
-		while (it.hasNext()) {
-			current = vertices.get((int) it.next());
-			int counter = 0;
-			Iterator neighbours = current.getNeighbors().iterator();
-			while (neighbours.hasNext()) {
-				if (((Vertex) neighbours.next()).isTerminal() && current.isTerminal()) {
-					counter++;
-				}
-			}
-			if (counter > 0) {
-				System.out.println("This Terminal has " + counter + " Terminal neighbours");
-			}
-			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
-					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
-				System.out.println("This actually happens?");
-			}
-		}
-
-	}
+        public void rangeCheck(){
+            this.graph.getEdges().forEach((e) -> {
+                if(e.getCost().get() < this.range[0]){
+                    this.range[0] = e.getCost().get();
+                } else if(e.getCost().get() > range[1]){
+                    this.range[1] = e.getCost().get();
+                }
+            });
+            System.out.println("Range: [" + this.range[0] + ", " + this.range[1] + "]");
+        }
+        
+        /**
+         * The following method checks each clicque of size three and sees if any sum of two edges 
+         * is smaller than the third. If that is the case the third edge can be removed.
+         */
+        public void clicqueEdgeRemoval(){
+            
+        }
 
 	/**
 	 * This method looks more complicated than what it actually does. It removes all
@@ -715,5 +717,34 @@ public class PreProcess {
 		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
 				totalVertices);
 		this.analyseSections(bridges, totalVertices);
+	}
+        
+        /**
+         * Below method was made to 'hide' terminals which had 2 neighbours which were also terminals
+         * However currently this doesn't happen in any graph
+         */
+	public void removeTerminals() {
+		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
+		Set keys = vertices.keySet();
+		Iterator it = keys.iterator();
+		Vertex current;
+		while (it.hasNext()) {
+			current = vertices.get((int) it.next());
+			int counter = 0;
+			Iterator neighbours = current.getNeighbors().iterator();
+			while (neighbours.hasNext()) {
+				if (((Vertex) neighbours.next()).isTerminal() && current.isTerminal()) {
+					counter++;
+				}
+			}
+			if (counter > 0) {
+				System.out.println("This Terminal has " + counter + " Terminal neighbours");
+			}
+			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
+					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
+				System.out.println("This actually happens?");
+			}
+		}
+
 	}
 }
