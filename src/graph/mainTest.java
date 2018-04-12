@@ -1,52 +1,62 @@
 package graph;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import mainAlgorithms.InvertedKruskal;
+import mainAlgorithms.SteinerTreeSolver;
+import mixedIntegerProgramming.CutILP;
 
 public class mainTest {
 
-	public static void main(String[] args) {
-		File[] files = readFiles(new File("data\\heuristics\\instance043.gr"));
-		UndirectedGraph graph = new UndirectedGraphReader().read(files[0]);
-		// PreProcess pp = new PreProcess(graph);
-		// boolean[] preProcessable;
-		// do{
-		// preProcessable = pp.graph.preProcessable();
-		// if(preProcessable[0]){
-		// pp.removeLeafNodes();
-		// }
-		// if(preProcessable[1]){
-		// pp.removeNonTerminalDegreeTwo();
-		// }
-		// } while (preProcessable[0] || preProcessable[1]);
-		PreProcess processed = new PreProcess(graph);
-		long starts = System.currentTimeMillis();
+	public static String fileName;
 
-		// SteinerTreeSolver solver = new InvertedKruskal();
-		// printSolution(solver.solve(pp.graph));
+	public static void main(String[] args) {
+		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+		for (int i = 0; i < files.length; i++) {
+			System.out.println(files[i].toString());
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+			PreProcess pp = new PreProcess(graph);
+			pp.removeBridgesAndSections(graph.getVertices().size());
+			// boolean[] preProcessable;
+			// do {
+			// preProcessable = pp.graph.preProcessable();
+			// pp.rangeCheck();
+			// if (preProcessable[0]) {
+			// pp.removeLeafNodes();
+			// }
+			// if (preProcessable[1]) {
+			// pp.removeNonTerminalDegreeTwo();
+			// }
+			// } while (preProcessable[0] || preProcessable[1]);
+			// PreProcess processed = new PreProcess(graph);
+			// long starts = System.currentTimeMillis();
+			System.out.println(pp.graph.getVertices().size());
+			System.out.println(pp.graph.getEdges().size());
+
+			SteinerTreeSolver solver = new InvertedKruskal();
+			printSolution(solver.solve(pp.graph), false);
+		}
 		// SteinerTreeSolver solver = new MobiusDynamics();
 		// solver.solve(graph);
-		processed.removeBridgesAndSections(graph.getVertices().size());
+		// processed.removeBridgesAndSections(graph.getVertices().size());
 
 		// Below is used to create a file with same name in lp format
-		// fileName = fileName.substring(fileName.indexOf("\\") + 1);
-		// fileName = fileName.substring(fileName.indexOf("\\") + 1);
-		// fileName = fileName.substring(0, fileName.indexOf("."));
-		// CutILP fp = new CutILP(graph, fileName);
+		// file = file.substring(file.indexOf("\\") + 1);
+		// file = file.substring(file.indexOf("\\") + 1);
+		// file = file.substring(0, file.indexOf("."));
+		// CutILP fp = new CutILP(graph, file);
 		// fp.initiateCutSearch();
-
-		System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-		// for (Vertex v : processed.graph.getVertices().values()) {
-		// System.out.println("Vertex: " + v.getKey());
-		// }
-		// for (Edge v : processed.graph.getEdges()) {
-		// System.out.println("Edge: " + v.getVertices()[0].getKey() + " " +
-		// v.getVertices()[1].getKey() + " cost: " + v.getCost().get());
-		// }
-		System.out.println("Vertices from " + graph.getVertices().size() + " to " + processed.graph.getVertices().size());
-		System.out.println("Edges from " + graph.getEdges().size() + " to " + processed.graph.getEdges().size());
+		// System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
 		// SteinerTreeSolver solver = new MobiusDynamics();
 		// solver.solve(graph);
 		// ArrayList<Vertex[]> articulationBridges =
@@ -66,11 +76,11 @@ public class mainTest {
 	/**
 	 * Prints solution to standard out. Checks each edge and vertex to see if it
 	 * contains other hidden edges and or vertices that need to be included
-	 * 
+	 *
 	 * @param solution
 	 *            Solution including all the edges in the solution
 	 */
-	private static void printSolution(List<Edge> solution) {
+	private static void printSolution(List<Edge> solution, boolean toFile) {
 		String temp = "";
 		int sum = 0;
 		int[] subsumed;
@@ -78,29 +88,41 @@ public class mainTest {
 			if (!(solution.get(i).getVertices()[0].getSubsumed() == null)) {
 				while (!solution.get(i).getVertices()[0].getSubsumed().isEmpty()) {
 					subsumed = solution.get(i).getVertices()[0].getSubsumed().pop();
-					temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
 					sum += subsumed[2];
 				}
 			}
 			if (!(solution.get(i).getVertices()[1].getSubsumed() == null)) {
 				while (!solution.get(i).getVertices()[1].getSubsumed().isEmpty()) {
 					subsumed = solution.get(i).getVertices()[1].getSubsumed().pop();
-					temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
 					sum += subsumed[2];
 				}
 			}
 			if (!(solution.get(i).getStack() == null)) {
 				while (!solution.get(i).getStack().isEmpty()) {
 					subsumed = solution.get(i).getStack().pop();
-					temp = temp.concat(subsumed[0] + " " + subsumed[1]);
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
 					sum += subsumed[2];
 				}
 			}
 			temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
 			sum += solution.get(i).getCost().get();
 		}
-		System.out.println("VALUE " + sum);
-		System.out.println(temp);
+		if (toFile) {
+			Path file = Paths.get(fileName.substring(0, fileName.length() - 3) + ".txt");
+			ArrayList<String> output = new ArrayList<>();
+			output.add("VALUE" + sum);
+			output.add(temp);
+			try {
+				Files.write(file, output, Charset.forName("UTF-8"));
+			} catch (IOException ex) {
+				Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		} else {
+			System.out.println("VALUE " + sum);
+			// System.out.println(temp);
+		}
 	}
 
 	/**
@@ -114,8 +136,8 @@ public class mainTest {
 	private static void doAnalysis(File[] files) {
 
 		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
-																	// index has to be changed depending on which comparisons we want. The first
-																	// index will always be the base graph without preprocess changes.
+		// index has to be changed depending on which comparisons we want. The first
+		// index will always be the base graph without preprocess changes.
 
 		for (int fileIndex = 0; fileIndex < files.length; fileIndex++) {
 			// Read the standard graph and set its values to the first index of the results.

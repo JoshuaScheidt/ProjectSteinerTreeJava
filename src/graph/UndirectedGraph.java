@@ -73,7 +73,7 @@ public class UndirectedGraph {
 	 * Method for constructing edges using only keys. It checks if these keys have
 	 * been used and else will use the initialised Vertex If neither has been
 	 * initialised this will be done
-	 * 
+	 *
 	 * @param key1
 	 *            Key of the first Vertex
 	 * @param key2
@@ -151,10 +151,12 @@ public class UndirectedGraph {
 	 * @author Joshua Scheidt
 	 */
 	public Edge addEdge(Edge edge) {
-		if (!this.vertices.containsValue(edge.getVertices()[0]))
+		if (!this.vertices.containsValue(edge.getVertices()[0])) {
 			this.vertices.put(edge.getVertices()[0].getKey(), edge.getVertices()[0]);
-		if (!this.vertices.containsValue(edge.getVertices()[1]))
+		}
+		if (!this.vertices.containsValue(edge.getVertices()[1])) {
 			this.vertices.put(edge.getVertices()[1].getKey(), edge.getVertices()[1]);
+		}
 		this.edges.add(edge);
 		return edge;
 	}
@@ -178,7 +180,7 @@ public class UndirectedGraph {
 
 	/**
 	 * This method sets an individual Vertex to be a terminal
-	 * 
+	 *
 	 * @param key
 	 *            Key of Vertex to be made terminal
 	 */
@@ -226,7 +228,7 @@ public class UndirectedGraph {
 
 	/**
 	 * Returns HashMap of the Terminals in the graph
-	 * 
+	 *
 	 * @return The HashMap in question
 	 */
 	public HashMap<Integer, Vertex> getTerminals() {
@@ -235,7 +237,9 @@ public class UndirectedGraph {
 
 	/**
 	 * Removes a vertex from the graph this included removing all its edge
-	 * connection and removing all of these edges from its neighbours
+	 * connection and removing all of these edges from its neighbours If the removal
+	 * of an edge creates a disconnected component that neighbour will also be
+	 * removed
 	 *
 	 * @param v
 	 *            The key the to be removed vertex has
@@ -246,8 +250,14 @@ public class UndirectedGraph {
 			toBeRemoved.add(e);
 			this.edges.remove(e);
 		}
+		Vertex neighbour;
 		for (Edge e : toBeRemoved) {
-			e.getOtherSide(v).removeEdge(e);
+			neighbour = e.getOtherSide(v);
+			if (neighbour.getNeighbors().size() == 1) {
+				neighbour = null;
+			} else {
+				neighbour.removeEdge(e);
+			}
 			e = null;
 		}
 		if (v.isTerminal()) {
@@ -317,7 +327,6 @@ public class UndirectedGraph {
 			if (number >= degrees.length + 1) {
 				continue;
 			}
-			// System.out.println("Key number: " + key);
 			degrees[number - 1]++;
 		}
 		return degrees;
@@ -325,8 +334,9 @@ public class UndirectedGraph {
 
 	public Edge edgeBetweenVertices(Vertex v, Vertex u) throws GraphException {
 		for (Edge e : v.getEdges()) {
-			if (e.getOtherSide(v) == u)
+			if (e.getOtherSide(v) == u) {
 				return e;
+			}
 		}
 		throw new GraphException("No edges from v contain vertex u.");
 	}

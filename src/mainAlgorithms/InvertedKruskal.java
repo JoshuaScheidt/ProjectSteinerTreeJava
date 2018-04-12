@@ -45,8 +45,8 @@ public class InvertedKruskal implements SteinerTreeSolver{
             if(this.canBeRemoved(this.sorted.get(i))){
                 this.g.removeEdge(this.sorted.get(i));
             }
-            this.connected.removeAll(this.connected);
-            this.connectedTerminals.removeAll(this.connectedTerminals);
+            this.connected.clear();
+            this.connectedTerminals.clear();
         }
     }
     
@@ -85,7 +85,9 @@ public class InvertedKruskal implements SteinerTreeSolver{
                 }
             }
         }
-        return this.connectedTerminals.containsAll(this.g.getTerminals().keySet());
+        boolean yes = this.connectedTerminals.containsAll(this.g.getTerminals().keySet());
+        //System.out.println("Fully connected: " + yes);
+        return yes;
     }
     
     public void createSortedEdgeList(){

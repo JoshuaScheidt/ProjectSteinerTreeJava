@@ -6,6 +6,7 @@ j * To change this license header, choose License Headers in Project Properties.
 package graph;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,34 +23,95 @@ import java.util.Stack;
 public class PreProcess {
 
 	UndirectedGraph graph;
+	int[] range;
+	private HashMap<Integer, BitSet> checked;
 
 	public PreProcess(UndirectedGraph g) {
 		this.graph = g.clone();
+		this.range = new int[] { Integer.MAX_VALUE, Integer.MIN_VALUE };
+		this.checked = new HashMap<>();
+		Iterator it = this.graph.getVertices().keySet().iterator();
+		BitSet allFalse;
+		while (it.hasNext()) {
+			allFalse = new BitSet(4);
+			allFalse.set(0, 4);
+			allFalse.flip(0, allFalse.length() - 1);
+			this.checked.put((int) it.next(), allFalse);
+		}
+		// for (Vertex v : this.graph.getVertices().values()) {
+		// System.out.println(this.checked.get(v.getKey()).cardinality() + " " +
+		// this.checked.get(v.getKey()).length());
+		// System.out.println(this.checked.get(v.getKey()).get(0));
+		// System.out.println(this.checked.get(v.getKey()).get(1));
+		// System.out.println(this.checked.get(v.getKey()).get(2));
+		// }
 	}
 
-	public void removeTerminals() {
-		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
-		Set keys = vertices.keySet();
-		Iterator it = keys.iterator();
-		Vertex current;
-		while (it.hasNext()) {
-			current = vertices.get((int) it.next());
-			int counter = 0;
-			Iterator neighbours = current.getNeighbors().iterator();
-			while (neighbours.hasNext()) {
-				if (((Vertex) neighbours.next()).isTerminal() && current.isTerminal()) {
-					counter++;
+	public void rangeCheck() {
+		this.graph.getEdges().forEach((e) -> {
+			if (e.getCost().get() < this.range[0]) {
+				this.range[0] = e.getCost().get();
+			} else if (e.getCost().get() > this.range[1]) {
+				this.range[1] = e.getCost().get();
+			}
+		});
+		System.out.println("Range: [" + this.range[0] + ", " + this.range[1] + "]");
+	}
+
+	/**
+	 * The following method checks each clique of size three and sees if any sum of
+	 * two edges is smaller than the third. If that is the case the third edge can
+	 * be removed.
+	 */
+	public void cliqueEdgeRemoval() {
+		HashSet<HashSet<Integer>> cliques = new HashSet<>();
+		HashSet<Integer> clique;
+		HashSet<Edge> toBeRemoved = new HashSet<>();
+		Edge vn, vc, nc;
+		// Finding all unique cliques
+		for (Vertex v : this.graph.getVertices().values()) {
+			if (!(this.checked.get(v.getKey()).cardinality() == this.checked.get(v.getKey()).length())) {
+				for (Vertex n : v.getNeighbors()) {
+					if (!(this.checked.get(n.getKey()).cardinality() == this.checked.get(n.getKey()).length())) {
+						for (Vertex c : n.getNeighbors()) {
+							if (!(this.checked.get(c.getKey()).cardinality() == this.checked.get(c.getKey()).length())) {
+								if (c.isNeighbor(v)) {
+									clique = new HashSet<>();
+									clique.add(v.getKey());
+									clique.add(n.getKey());
+									clique.add(c.getKey());
+									if (!cliques.contains(clique)) {
+										cliques.add(clique);
+										vn = this.graph.getVertices().get(v.getKey()).getConnectingEdge(this.graph.getVertices().get(n.getKey()));
+										vc = this.graph.getVertices().get(v.getKey()).getConnectingEdge(this.graph.getVertices().get(c.getKey()));
+										nc = this.graph.getVertices().get(n.getKey()).getConnectingEdge(this.graph.getVertices().get(c.getKey()));
+										if ((vn.getCost().get() + vc.getCost().get()) <= nc.getCost().get()) {
+											toBeRemoved.add(nc);
+											System.out.println("Removes Edge from clique: [" + nc.getVertices()[0].getKey() + ", "
+													+ nc.getVertices()[1].getKey() + "]");
+										} else if ((vn.getCost().get() + nc.getCost().get()) <= vc.getCost().get()) {
+											toBeRemoved.add(vc);
+											System.out.println("Removes Edge from clique: [" + vc.getVertices()[0].getKey() + ", "
+													+ vc.getVertices()[1].getKey() + "]");
+										} else if ((vc.getCost().get() + nc.getCost().get()) <= vn.getCost().get()) {
+											toBeRemoved.add(vn);
+											System.out.println("Removes Edge from clique: [" + vn.getVertices()[0].getKey() + ", "
+													+ vn.getVertices()[1].getKey() + "]");
+										} else {
+											System.out.println("Clique doesn't support Edge Removal");
+										}
+									}
+								}
+							}
+						}
+					}
 				}
-			}
-			if (counter > 0) {
-				System.out.println("This Terminal has " + counter + " Terminal neighbours");
-			}
-			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
-					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
-				System.out.println("This actually happens?");
+				this.checked.get(v.getKey()).set(2);
 			}
 		}
-
+		for (Edge e : toBeRemoved) {
+			this.graph.removeEdge(e);
+		}
 	}
 
 	/**
@@ -72,100 +134,105 @@ public class PreProcess {
 		ArrayList<Stack<int[]>> containedWithinEdge = new ArrayList<>();
 		Vertex current, firstVertex, secondVertex, tempVertex;
 		Edge firstEdge, secondEdge, tempEdge, temp;
-		int cost;
+		int cost, currentKey;
+
 		while (it.hasNext()) {
 			// Gets the current Vertex in the Iterator
-			current = vertices.get((int) it.next());
+			currentKey = (int) it.next();
+			current = vertices.get(currentKey);
 			// Checks if Vertex is Non-Terminal and degree 2
-			if (!current.isTerminal() && current.getNeighbors().size() == 2 && !toBeRemovedVertices.contains(current.getKey())) {
-				// Creates a stack to be used for all vertices that will be subsumed by the to
-				// be created Edge
-				subsumed = new Stack<>();
-				cost = 0;
-				// Creating first steps left and right of current to iteratively find a terminal
-				// or degree greater than 2
-				firstVertex = (Vertex) current.getNeighbors().toArray()[0];
-				secondVertex = current.getOtherNeighborVertex(firstVertex);
-				firstEdge = current.getConnectingEdge(firstVertex);
-				secondEdge = current.getConnectingEdge(secondVertex);
-				// Pushes the original two removable Edges in the form of their two keys and
-				// their respective costs
-				subsumed.push(new int[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
-				subsumed.push(new int[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
-				// The total cost of the new Edge is the sum of the removed Edges
-				cost += firstEdge.getCost().get() + secondEdge.getCost().get();
-				// Keeps a list of the Vertices to be removed, Removal method will also remove
-				// all connected
-				// Edges so no need to store the Edge objects
-				toBeRemovedVertices.add(current.getKey());
-				while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
-					// Tries the first side of the original Vertex until it finds a Vertex that
-					// doesn't hold to the criteria of this method
-					tempEdge = firstVertex.getOtherEdge(firstEdge);
-					tempVertex = tempEdge.getOtherSide(firstVertex);
-					subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
-					toBeRemovedVertices.add(firstVertex.getKey());
-					cost += tempEdge.getCost().get();
-					firstVertex = tempVertex;
-					firstEdge = tempEdge;
-				}
-				while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
-					// Tries the second side of the original Vertex until it finds a Vertex that
-					// doesn't hold to the criteria of this method
-					tempEdge = secondVertex.getOtherEdge(secondEdge);
-					tempVertex = tempEdge.getOtherSide(secondVertex);
-					subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
-					toBeRemovedVertices.add(secondVertex.getKey());
-					cost += tempEdge.getCost().get();
-					secondVertex = tempVertex;
-					secondEdge = tempEdge;
-				}
-				// YOU NEED TO THINK ABOUT THIS MORE THERE COULD BE MULTIPLE NEW EDGES ADDED
-				// THAT CREATE THE SAME PATH
-				// COST SHOULD BE COMPARED TO SEE IF WE NEED TO REMOVE AN ORIGINAL EDGE OR NOT
-				// ADD ANOTHER EDGE AT ALL
-				boolean edgeExists = false;
-				if (firstVertex.isNeighbor(secondVertex)) {
-					if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
-						// Do Nothing the vertices can all be removed because there exists a shorter
-						// path between the two endpoints
-					} else {
-						temp = firstVertex.getConnectingEdge(secondVertex);
-						temp.setCost(cost);
-						temp.pushStack(subsumed);
+			if (!(this.checked.get(currentKey).cardinality() == this.checked.get(currentKey).length())) {
+				if (!current.isTerminal() && current.getNeighbors().size() == 2 && !toBeRemovedVertices.contains(current.getKey())) {
+					// Creates a stack to be used for all vertices that will be subsumed by the to
+					// be created Edge
+					subsumed = new Stack<>();
+					cost = 0;
+					// Creating first steps left and right of current to iteratively find a terminal
+					// or degree greater than 2
+					firstVertex = (Vertex) current.getNeighbors().toArray()[0];
+					secondVertex = current.getOtherNeighborVertex(firstVertex);
+					firstEdge = current.getConnectingEdge(firstVertex);
+					secondEdge = current.getConnectingEdge(secondVertex);
+					// Pushes the original two removable Edges in the form of their two keys and
+					// their respective costs
+					subsumed.push(new int[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
+					subsumed.push(new int[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
+					// The total cost of the new Edge is the sum of the removed Edges
+					cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+					// Keeps a list of the Vertices to be removed, Removal method will also remove
+					// all connected
+					// Edges so no need to store the Edge objects
+					toBeRemovedVertices.add(current.getKey());
+					while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
+						// Tries the first side of the original Vertex until it finds a Vertex that
+						// doesn't hold to the criteria of this method
+						tempEdge = firstVertex.getOtherEdge(firstEdge);
+						tempVertex = tempEdge.getOtherSide(firstVertex);
+						subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+						toBeRemovedVertices.add(firstVertex.getKey());
+						cost += tempEdge.getCost().get();
+						firstVertex = tempVertex;
+						firstEdge = tempEdge;
 					}
-					edgeExists = true;
-				} else {
-					for (int i = 0; i < newEdges.size(); i++) {
-						if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
-							if (newEdges.get(i)[2] > cost) {
-								newEdges.get(i)[2] = cost;
+					while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
+						// Tries the second side of the original Vertex until it finds a Vertex that
+						// doesn't hold to the criteria of this method
+						tempEdge = secondVertex.getOtherEdge(secondEdge);
+						tempVertex = tempEdge.getOtherSide(secondVertex);
+						subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+						toBeRemovedVertices.add(secondVertex.getKey());
+						cost += tempEdge.getCost().get();
+						secondVertex = tempVertex;
+						secondEdge = tempEdge;
+					}
+					boolean edgeExists = false;
+					if (firstVertex.isNeighbor(secondVertex)) {
+						if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
+							// Do Nothing the vertices can all be removed because there exists a shorter
+							// path between the two endpoints
+						} else {
+							temp = firstVertex.getConnectingEdge(secondVertex);
+							temp.setCost(cost);
+							temp.pushStack(subsumed);
+						}
+						edgeExists = true;
+					} else {
+						for (int i = 0; i < newEdges.size(); i++) {
+							if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
+								if (newEdges.get(i)[2] > cost) {
+									newEdges.get(i)[2] = cost;
+								}
+								edgeExists = true;
+								break;
+							} else if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
+								if (newEdges.get(i)[2] > cost) {
+									newEdges.get(i)[2] = cost;
+								}
+								edgeExists = true;
+								break;
 							}
-							edgeExists = true;
-							break;
-						} else if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
-							if (newEdges.get(i)[2] > cost) {
-								newEdges.get(i)[2] = cost;
-							}
-							edgeExists = true;
-							break;
 						}
 					}
-				}
-				if (!edgeExists) {
-					newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost });
-					containedWithinEdge.add(subsumed);
+					if (!edgeExists) {
+						newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost });
+						containedWithinEdge.add(subsumed);
+					}
+				} else {
+					this.checked.get(currentKey).set(1);
 				}
 			}
 		}
 		for (int i = 0; i < newEdges.size(); i++) {
+			this.checked.get(newEdges.get(i)[0]).set(1, false);
+			this.checked.get(newEdges.get(i)[1]).set(1, false);
 			temp = this.graph.addEdge(newEdges.get(i)[0], newEdges.get(i)[1], newEdges.get(i)[2]);
 			temp.pushStack(containedWithinEdge.get(i));
 		}
 		it = toBeRemovedVertices.iterator();
 		while (it.hasNext()) {
-			this.graph.removeVertex(this.graph.getVertices().get((int) it.next()));
-			it.remove();
+			currentKey = (int) it.next();
+			this.checked.remove(currentKey);
+			this.graph.removeVertex(this.graph.getVertices().get(currentKey));
 		}
 		it = toBeRemovedEdges.iterator();
 		while (it.hasNext()) {
@@ -179,49 +246,56 @@ public class PreProcess {
 	 * sets its neighbour to be a terminal to ensure connection
 	 */
 	public void removeLeafNodes() {
-		Set keys = this.graph.getVertices().keySet();
-		Iterator it = keys.iterator();
+		Iterator it = this.graph.getVertices().keySet().iterator();
 		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
 		HashSet<Vertex> toBeRemoved = new HashSet<>();
 		Vertex current, newCurrent, temp;
+		int currentKey;
+
 		while (it.hasNext()) {
-			current = vertices.get((int) it.next());
-			if (!current.isTerminal() && current.getNeighbors().size() == 1) {
-				toBeRemoved.add(current);
-				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-				while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
-					temp = newCurrent.getOtherNeighborVertex(current);
-					current = newCurrent;
-					newCurrent = temp;
+			currentKey = (int) it.next();
+			if (!(this.checked.get(currentKey).cardinality() == this.checked.get(currentKey).length())) {
+				current = vertices.get(currentKey);
+				if (!current.isTerminal() && current.getNeighbors().size() == 1) {
 					toBeRemoved.add(current);
-				}
-			}
-			if (current.isTerminal() && current.getNeighbors().size() == 1) {
-				toBeRemoved.add(current);
-				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-				while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
-					temp = newCurrent.getOtherNeighborVertex(current);
-					current = newCurrent;
-					newCurrent = temp;
-					if (current.getSubsumed() != null) {
-						if (current.getSubsumed().size() > 0) {
-							newCurrent.pushStack(current.getSubsumed());
-						}
+					newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+					while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+						temp = newCurrent.getOtherNeighborVertex(current);
+						current = newCurrent;
+						newCurrent = temp;
+						toBeRemoved.add(current);
 					}
-					newCurrent.pushSubsumed(
-							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
-					this.graph.setTerminal(newCurrent.getKey());
-					current = newCurrent;
+					this.checked.get(newCurrent.getKey()).set(0, false);
+				} else if (current.isTerminal() && current.getNeighbors().size() == 1) {
 					toBeRemoved.add(current);
+					newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+					while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+						temp = newCurrent.getOtherNeighborVertex(current);
+						current = newCurrent;
+						newCurrent = temp;
+						if (current.getSubsumed() != null) {
+							if (current.getSubsumed().size() > 0) {
+								newCurrent.pushStack(current.getSubsumed());
+							}
+						}
+						newCurrent.pushSubsumed(
+								new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+						this.graph.setTerminal(newCurrent.getKey());
+						current = newCurrent;
+						toBeRemoved.add(current);
+					}
+					this.checked.get(newCurrent.getKey()).set(0, false);
+				} else {
+					this.checked.get(currentKey).set(0);
 				}
 			}
 		}
 		it = toBeRemoved.iterator();
 		while (it.hasNext()) {
-			this.graph.removeVertex((Vertex) it.next());
-			// it.remove();
+			current = (Vertex) it.next();
+			this.checked.remove(current.getKey());
+			this.graph.removeVertex(current);
 		}
-		it = null;
 	}
 
 	/**
@@ -537,5 +611,34 @@ public class PreProcess {
 		// this.analyseSectionsPoints(sectionPoints, totalVertices);
 		System.out.println("Step 1:" + (middle - start) + " ms");
 		System.out.println("Step 2:" + (System.currentTimeMillis() - middle) + " ms");
+	}
+
+	/**
+	 * Below method was made to 'hide' terminals which had 2 neighbours which were
+	 * also terminals However currently this doesn't happen in any graph
+	 */
+	public void removeTerminals() {
+		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
+		Set keys = vertices.keySet();
+		Iterator it = keys.iterator();
+		Vertex current;
+		while (it.hasNext()) {
+			current = vertices.get((int) it.next());
+			int counter = 0;
+			Iterator neighbours = current.getNeighbors().iterator();
+			while (neighbours.hasNext()) {
+				if (((Vertex) neighbours.next()).isTerminal() && current.isTerminal()) {
+					counter++;
+				}
+			}
+			if (counter > 0) {
+				System.out.println("This Terminal has " + counter + " Terminal neighbours");
+			}
+			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
+					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
+				System.out.println("This actually happens?");
+			}
+		}
+
 	}
 }
