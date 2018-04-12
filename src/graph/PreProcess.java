@@ -6,10 +6,10 @@ j * To change this license header, choose License Headers in Project Properties.
 package graph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -159,7 +159,7 @@ public class PreProcess {
 			}
 		}
 		for (int i = 0; i < newEdges.size(); i++) {
-			temp = this.graph.addEdge((int) newEdges.get(i)[0], (int) newEdges.get(i)[1], newEdges.get(i)[2]);
+			temp = this.graph.addEdge(newEdges.get(i)[0], newEdges.get(i)[1], newEdges.get(i)[2]);
 			temp.pushStack(containedWithinEdge.get(i));
 		}
 		it = toBeRemovedVertices.iterator();
@@ -224,175 +224,22 @@ public class PreProcess {
 		it = null;
 	}
 
-	// /**
-	// * Completes the preprocess step for Tarjan's bridge finding algorithm.
-	// *
-	// * @param v
-	// * The current Vertex
-	// * @param parent
-	// * The parent from the current Vertex (current from previous
-	// * iteration)
-	// *
-	// * @author Joshua Scheidt
-	// * @deprecated
-	// */
-	// @Deprecated
-	// private void preorderTraversal(Vertex v, Vertex parent) {
-	// this.iteratedValues[v.getKey() - 1] = this.count;
-	// this.count++;
-	// this.lowestFoundLabels[v.getKey() - 1] = this.iteratedValues[v.getKey() - 1];
-	//
-	// for (Vertex next : v.getNeighbors()) {
-	// if (this.iteratedValues[next.getKey() - 1] == 0) {
-	// this.preorderTraversal(next, v);
-	//
-	// this.lowestFoundLabels[v.getKey() - 1] =
-	// Math.min(this.lowestFoundLabels[v.getKey() - 1],
-	// this.lowestFoundLabels[next.getKey() - 1]);
-	// if (this.lowestFoundLabels[next.getKey() - 1] ==
-	// this.iteratedValues[next.getKey() - 1])
-	// try {
-	// this.bridges.add(this.graph.edgeBetweenVertices(v, next));
-	// } catch (GraphException e) {
-	// e.printStackTrace();
-	// }
-	// } else if (next != parent) {
-	// this.lowestFoundLabels[v.getKey() - 1] =
-	// Math.min(this.lowestFoundLabels[v.getKey() - 1],
-	// this.lowestFoundLabels[next.getKey() - 1]);
-	// }
-	// }
-	// }
 	/**
-	 * Depth-first search through the graph starting from the inputted vertex.
-	 *
-	 * @param v
-	 *            The starting vertex
-	 *
-	 * @author Joshua Scheidt
-	 */
-	private void dfs(Vertex v) {
-		int count = 1;
-		int[] iteratedValues = new int[this.graph.getVertices().size()];
-		int[] lowestFoundLabels = new int[this.graph.getVertices().size()];
-		ArrayList<Edge> bridges = new ArrayList<>();
-		Stack<Vertex> stack = new Stack<>();
-		Vertex next;
-		Iterator<Vertex> it;
-		stack.push(v);
-		iteratedValues[v.getKey() - 1] = count;
-		count++;
-
-		while (!stack.isEmpty()) {
-			it = stack.peek().getNeighbors().iterator();
-			while ((next = it.next()) != null) {
-				if (iteratedValues[next.getKey() - 1] == 0) {
-					iteratedValues[next.getKey() - 1] = count;
-					count++;
-					stack.push(next);
-					break;
-				} else if (!it.hasNext()) {
-					stack.pop();
-					break;
-				}
-			}
-		}
-		// System.out.println(Arrays.toString(iteratedValues));
-	}
-
-	/**
-	 * Performs Tarjan's bridge finding algorithm. This method does NOT use
-	 * recursions to decrease heap size.
-	 *
-	 * @param v
-	 *            The starting vertex
-	 *
-	 * @author Joshua Scheidt
-	 */
-	private ArrayList<Edge> TarjansBridgeFinding(Vertex v0, int totalVertices) {
-		int count = 1;
-		int[] iteratedValues = new int[totalVertices];
-		int[] lowestFoundLabels = new int[totalVertices];
-		ArrayList<Edge> bridges = new ArrayList<>();
-		Stack<Vertex> stack = new Stack<>();
-		Vertex fake = new Vertex(0);
-		stack.push(fake);
-		stack.push(v0);
-		iteratedValues[v0.getKey() - 1] = count;
-		lowestFoundLabels[v0.getKey() - 1] = count;
-		count++;
-		Vertex current, parent, next;
-		Iterator<Vertex> it;
-		boolean backtracking = false;
-
-		while (stack.size() > 1) {
-			current = stack.pop();
-			parent = stack.peek();
-			stack.push(current);
-			it = current.getNeighbors().iterator();
-			backtracking = true;
-			for (Vertex neighbor : current.getNeighbors()) {
-				if (iteratedValues[neighbor.getKey() - 1] == 0) { // If any neighbor is unexplored, don't backtrack.
-					backtracking = backtracking && false;
-				}
-			}
-			if (!backtracking) { // We still have unexplored neighbors
-				while ((next = it.next()) != null) {
-					if (iteratedValues[next.getKey() - 1] == 0) { // Find the unexplored neighbor
-						iteratedValues[next.getKey() - 1] = count;
-						lowestFoundLabels[next.getKey() - 1] = count;
-						count++;
-						stack.push(next);
-						break;
-					}
-					if (!it.hasNext()) { // Should never get it here, would mean there is something wrong with unexplored
-						// neighbors check
-						System.out.println("Still got in here");
-						break;
-					}
-				}
-			} else { // All neighbors explored
-				while ((next = it.next()) != null) {
-					if (next != parent) {
-						lowestFoundLabels[current.getKey() - 1] = Math.min(lowestFoundLabels[current.getKey() - 1],
-								lowestFoundLabels[next.getKey() - 1]); // Set current lowest to go to lowest neighbor
-					}
-					if (!it.hasNext()) {
-						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
-							try {
-								// System.out.println("New edge:" + current.getKey() + " " + parent.getKey());
-								bridges.add(this.graph.edgeBetweenVertices(current, parent));
-							} catch (GraphException e) {
-								e.printStackTrace();
-							}
-						}
-						stack.pop();
-						break;
-					}
-				}
-			}
-		}
-		return bridges;
-	}
-
-	/**
-	 * Finds and returns all articulation points and bridges in the graph.
+	 * Finds and returns all articulation points in the graph.
 	 *
 	 * @param v0
 	 *            The starting vertex
 	 * @param totalVertices
 	 *            The total amount of vertices in the graph
-	 * @return A list of Vertex arrays, where array of size 1 means an articulation
-	 *         point, and an array of size 2 means a bridge.
+	 * @return A list of Vertices
 	 *
 	 * @author Joshua Scheidt
 	 */
-	public ArrayList<Vertex[]> articulationBridgeFinding(Vertex v0, int totalVertices) {
+	public HashSet<Vertex> articulationPointFinding(Vertex v0, int totalVertices) {
 		int count = 1;
 		int[] iteratedValues = new int[totalVertices];
 		int[] lowestFoundLabels = new int[totalVertices];
-		ArrayList<Vertex[]> articulationBridge = new ArrayList<>();
-		ArrayList<Integer> articulationPoints = new ArrayList<>();
+		HashSet<Vertex> articulationBridge = new HashSet<>();
 		Stack<Vertex> stack = new Stack<>();
 		Vertex fake = new Vertex(0);
 		stack.push(fake);
@@ -438,19 +285,10 @@ public class PreProcess {
 					}
 					if (!it.hasNext()) {
 						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
-							articulationBridge.add(new Vertex[] { current, parent });
-							if (articulationPoints.contains(current.getKey()) || articulationPoints.contains(parent.getKey()))
-								articulationPoints.removeAll(Arrays.asList(current.getKey(), parent.getKey()));
+							articulationBridge.add(current);
+							articulationBridge.add(parent);
 						} else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]) {
-							boolean add = true;
-							for (Vertex[] e : articulationBridge) {
-								if (e[0] == parent || e[1] == parent)
-									add = false;
-							}
-							if (articulationPoints.contains(parent.getKey()))
-								add = false;
-							if (add)
-								articulationPoints.add(parent.getKey());
+							articulationBridge.add(parent);
 						}
 						stack.pop();
 						break;
@@ -463,176 +301,147 @@ public class PreProcess {
 			boolean remove = true;
 			for (Vertex v : v0.getNeighbors()) {
 				if (lowestFoundLabels[v.getKey() - 1] != val) {
-					System.out.println(articulationPoints.toString());
-					System.out.println(v0.getKey());
 					remove = false;
 					break;
 				}
 			}
 			if (remove)
-				articulationPoints.remove(new Integer(v0.getKey()));
+				articulationBridge.remove(v0);
 		}
-
-		for (Integer i : articulationPoints)
-			articulationBridge.add(new Vertex[] { this.graph.getVertices().get(i) });
 
 		return articulationBridge;
 	}
 
 	/**
-	 * Analyses the two neighboring sections of a bridge to check for the
-	 * possibility of removal of the sections. For now, it will only do something to
-	 * the graph if one of the following cases holds:
-	 * <ul>
-	 * <li>The section is a leaf-section without terminals, then remove the
-	 * section+bridge</li>
-	 * <li>The section is a leaf-section with 1 terminal, then make a shortest path
-	 * from the bridge to the terminal, remove everything else</li>
-	 * <li>The section is connected to multiple bridges without terminals, then make
-	 * shortest paths between bridges if the number of edges would be lower than the
-	 * new number of edges</li>
-	 * <li>The section is connected to multiple bridges with terminals, then make
-	 * shortest paths between bridges and terminals if the number of edges would be
-	 * lower than the new number of edges</li>
-	 * </ul>
+	 * Performs an analysis on the section to check which vertices, terminals,
+	 * articulation points and edges lie within a section, and will afterwards call
+	 * shortest path if it reduces the number of edges.
 	 *
-	 * @param bridges
-	 *            All the found bridges in the graph.
-	 * @return The number of terminals
+	 * @param artiPoints
+	 *            The articulation points in the graph
 	 *
 	 * @author Joshua Scheidt
 	 */
-	private void analyseSections(ArrayList<Edge> bridges, int totalVertices) {
-		UndirectedGraph bridgeCutted = this.graph.clone();
-		for (Edge bridge : bridges) {
-			bridgeCutted.removeEdge(bridgeCutted.getVertices().get(bridge.getVertices()[0].getKey())
-					.getConnectingEdge(bridgeCutted.getVertices().get(bridge.getVertices()[1].getKey())));
-		}
-
-		int nrBridges = 0;
-		boolean[] hasVisited;
-		HashSet<Integer> bridgesOrTerms; // Save all the found bridges and terminals from current section
+	public void analyseSections(HashSet<Vertex> artiPoints) {
+		// Map to keep track of all the already visited vertices in the set.
+		// These will hold only the vertices which are not articulation points.
+		Map<Vertex, Boolean> hasVisited;
+		// The stack used for replacement of recursion
 		Stack<Vertex> stack = new Stack<>();
-		Vertex next;
+		// The next and parent vertices in the stack
+		Vertex next, parent;
+		// Temporary vertex used for moving other vertices around
+		Vertex tmp;
+		// The iterator of the neighbours of the stack's last element
 		Iterator<Vertex> it;
-		ArrayList<Integer> checkedVertices = new ArrayList<>(); // If multiple bridges are in same section, don't check section multiple times
-
-		ArrayList<Integer> allBridgeEndpoints = new ArrayList<>();
-		for (Edge bridge : bridges) {
-			for (Vertex endPoint : bridge.getVertices()) {
-				allBridgeEndpoints.add(endPoint.getKey());
+		// Map in a Map which shows for every articulation point which neighbours have
+		// been checked (true=checked)
+		Map<Vertex, Map<Vertex, Boolean>> artiNbCheck = new HashMap<>();
+		for (Vertex v : artiPoints) {
+			Map<Vertex, Boolean> map = new HashMap<>();
+			for (Vertex nb : v.getNeighbors()) {
+				map.put(nb, false);
 			}
+			artiNbCheck.put(v, map);
 		}
 
-		Set<Vertex> verticesInSection = new HashSet<>();
-		Set<Vertex> terminalsInSection = new HashSet<>();
-		Set<Vertex> bridgeEndpointsInSection = new HashSet<>();
-		Set<Edge> edgesInSection = new HashSet<>();
+		// VerticesInSection, TerminalsInSection, ArticulationInSection and
+		// EdgesInSection
+		// If a terminals is an articulation as well, it will not be added to tis.
+		Set<Vertex> vis, tis, ais;
+		Set<Edge> eis;
 
-		for (Edge bridge : bridges) {
-			for (Vertex endPoint : bridge.getVertices()) { // run 2 times
-				if (!checkedVertices.contains(endPoint.getKey())) {
-					checkedVertices.add(endPoint.getKey());
-					nrBridges = 1;
-					verticesInSection = new HashSet<>();
-					terminalsInSection = new HashSet<>();
-					bridgeEndpointsInSection = new HashSet<>();
-					edgesInSection = new HashSet<>();
-					bridgeEndpointsInSection.add(endPoint);
+		for (Vertex arti : artiPoints) {
+			stack.push(arti);
+			parent = arti;
+			checkArti: while (artiNbCheck.get(arti).values().contains(false)) {
+				hasVisited = new HashMap<>();
+				vis = new HashSet<>();
+				tis = new HashSet<>();
+				ais = new HashSet<>();
+				eis = new HashSet<>();
+				ais.add(arti);
 
-					for (Vertex other : endPoint.getNeighbors())
-						if (!allBridgeEndpoints.contains(other.getKey())) {
-							edgesInSection.add(endPoint.getConnectingEdge(other));
-							if (!other.isTerminal())
-								verticesInSection.add(other);
+				nbCheck: for (Vertex nb : arti.getNeighbors()) {
+					if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb)) {
+
+						// The neighbour of the articulationPoint is an articulation as well.
+						// Do nothing
+						if (artiPoints.contains(nb)) {
+							artiNbCheck.get(arti).put(nb, true);
+							artiNbCheck.get(nb).put(arti, true);
+						} else { // Found new unvisited neighbour
+							stack.push(nb);
+							artiNbCheck.get(arti).put(nb, true);
+							if (nb.isTerminal())
+								tis.add(nb);
 							else
-								terminalsInSection.add(other);
-						}
-					hasVisited = new boolean[totalVertices];
-					bridgesOrTerms = new HashSet<>();
-					bridgesOrTerms.add(endPoint.getKey());
-
-					stack.push(endPoint);
-					hasVisited[endPoint.getKey() - 1] = true;
-					while (!stack.isEmpty()) {
-						it = stack.peek().getNeighbors().iterator();
-						if (!it.hasNext()) {
-							stack.pop();
-							continue;
-						}
-						while ((next = it.next()) != null) {
-							if (allBridgeEndpoints.contains(stack.peek().getKey()) && allBridgeEndpoints.contains(next.getKey())
-									&& bridges.contains(stack.peek().getConnectingEdge(next))) {
-								if (it.hasNext())
-									continue;
-								else {
-									stack.pop();
-									break;
-								}
-							} else if (!hasVisited[next.getKey() - 1]) {
-								hasVisited[next.getKey() - 1] = true;
-								if (!allBridgeEndpoints.contains(next.getKey()) && !next.isTerminal())
-									verticesInSection.add(next);
-								for (Vertex nb : next.getNeighbors()) {
-									if (!allBridgeEndpoints.contains(next.getKey()) || !allBridgeEndpoints.contains(nb.getKey())
-											|| !bridges.contains(next.getConnectingEdge(nb)))
-										edgesInSection.add(next.getConnectingEdge(nb));
-								}
-
-								if (next.isTerminal() || allBridgeEndpoints.contains(next.getKey())) {
-									if (next.isTerminal())
-										terminalsInSection.add(next);
-									if (allBridgeEndpoints.contains(next.getKey())) {
-										nrBridges++;
-										bridgeEndpointsInSection.add(next);
-										checkedVertices.add(next.getKey());
-									}
-									bridgesOrTerms.add(next.getKey());
-								}
-								stack.push(next);
-								break;
-							} else if (!it.hasNext()) {
-								stack.pop();
-								break;
-							}
-							// System.out.println(it.hasNext());
+								vis.add(nb);
+							hasVisited.put(nb, true);
+							eis.add(arti.getConnectingEdge(nb));
+							break nbCheck;
 						}
 					}
-					// System.out.println("Done");
-
-					// System.out.println("EndPoint " + endPoint.getKey());
-					// System.out.println("bridges " + nrBridges);
-					// System.out.println("terminals " + terminalsInSection.size());
-					// System.out.println("Found vertices:");
-					// for (Vertex i : verticesInSection)
-					// System.out.print(i.getKey() + " ");
-					// System.out.println("\nFound terminals:");
-					// for (Vertex i : terminalsInSection)
-					// System.out.print(i.getKey() + " ");
-					// System.out.println("\nFound bridge endpoints:");
-					// for (Vertex i : bridgeEndpointsInSection)
-					// System.out.print(i.getKey() + " ");
-					// System.out.println("\nFound edges:");
-					// for (Edge i : edgesInSection)
-					// System.out.print(i.getVertices()[0].getKey() + "-" +
-					// i.getVertices()[1].getKey() + " ");
-					// System.out.println();
-
-					if (((terminalsInSection.size() * (terminalsInSection.size() - 1)) / 2 + (nrBridges) * (bridgesOrTerms.size() - nrBridges)
-							+ (nrBridges * (nrBridges - 1) / 2)) <= edgesInSection.size()) {
-						ArrayList<Vertex> v = new ArrayList<>();
-						v.addAll(verticesInSection);
-						ArrayList<Vertex> t = new ArrayList<>();
-						t.addAll(terminalsInSection);
-						ArrayList<Vertex> b = new ArrayList<>();
-						b.addAll(bridgeEndpointsInSection);
-						ArrayList<Edge> e = new ArrayList<>();
-						e.addAll(edgesInSection);
-						this.reduceSection(bridgeCutted, v, t, b, e);
-					}
-					// Else leave as is, probably shorter to perform normal algorithm than to change
 				}
+				if (stack.size() > 2) {
+					System.out.println("Something went wrong in the neighbour checking");
+					System.exit(1);
+				} else if (stack.size() == 1) {
+					break checkArti;
+				} else { // Stack now contains arti and 1 neighbour
+					while (stack.size() > 1) { // If size is 1, then only arti available
+						it = stack.peek().getNeighbors().iterator();
+						if (!it.hasNext()) { // Current item on the stack has no neighbours
+							System.out.println("The current stack item does not have any neighbours");
+							System.exit(1);
+						}
+						nbLoop: while (it.hasNext()) {
+							next = it.next();
+							if (parent == next) { // Found parent again, do nothing
+								// System.out.println("Parent found");
+							} else if (artiPoints.contains(next) && !artiNbCheck.get(next).get(stack.peek())) { // My next vertex is an arti point
+								artiNbCheck.get(next).put(stack.peek(), true);
+								ais.add(next);
+								eis.add(next.getConnectingEdge(stack.peek()));
+							} else if (!eis.contains(stack.peek().getConnectingEdge(next))) { // Current edge not in set yet
+								eis.add(stack.peek().getConnectingEdge(next));
+								if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is unvisited
+									hasVisited.put(next, true);
+									if (next.isTerminal())
+										tis.add(next);
+									else {
+										vis.add(next);
+									}
+									parent = stack.peek();
+									stack.push(next);
+									break nbLoop;
+								}
+							}
+							if (!it.hasNext()) {
+								stack.pop(); // Iterator went through all neighbours, thus backtrack.
+								tmp = stack.pop();
+								parent = (stack.size() == 0 ? arti : stack.peek());
+								stack.push(tmp);
+								break nbLoop;
+							}
+						}
+					}
+					// We are back to articulation point, thus end of section
+					if (((tis.size() * (tis.size() - 1) / 2) + (ais.size() * (ais.size() - 1) / 2) + (tis.size() * ais.size())) < eis.size()) {
+						ArrayList<Vertex> v = new ArrayList<>();
+						v.addAll(vis);
+						ArrayList<Vertex> t = new ArrayList<>();
+						t.addAll(tis);
+						ArrayList<Vertex> b = new ArrayList<>();
+						b.addAll(ais);
+						ArrayList<Edge> e = new ArrayList<>();
+						e.addAll(eis);
+						this.reduceSection(v, t, b, e);
+					}
+				}
+
 			}
+			stack.removeAllElements();
 		}
 	}
 
@@ -652,17 +461,16 @@ public class PreProcess {
 	 *
 	 * @author Joshua Scheidt
 	 */
-	public void reduceSection(UndirectedGraph cutted, ArrayList<Vertex> vertices, ArrayList<Vertex> terminals, ArrayList<Vertex> bridgeEndpoints,
-			ArrayList<Edge> edges) {
-		// Create new edges between bridges
+	public void reduceSection(ArrayList<Vertex> vertices, ArrayList<Vertex> terminals, ArrayList<Vertex> articulations, ArrayList<Edge> edges) {
 		ArrayList<Edge> toBeAddedEdges = new ArrayList<>();
 		ArrayList<Vertex> ends;
-		for (int i = 0; i < bridgeEndpoints.size(); i++) {
+		for (int i = 0; i < articulations.size(); i++) {
 			ends = new ArrayList<>();
-			for (int j = i + 1; j < bridgeEndpoints.size(); j++) {
-				ends.add(bridgeEndpoints.get(j));
+			for (int j = i + 1; j < articulations.size(); j++) {
+				ends.add(articulations.get(j));
 			}
-			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(cutted, bridgeEndpoints.get(i), ends) : new ArrayList<>());
+			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(this.graph, articulations.get(i), ends, edges)
+					: new ArrayList<>());
 			toBeAddedEdges.addAll(tmp);
 		}
 		// Create new edges between terminals
@@ -671,28 +479,33 @@ public class PreProcess {
 			for (int j = i + 1; j < terminals.size(); j++) {
 				ends.add(terminals.get(j));
 			}
-			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(cutted, terminals.get(i), ends) : new ArrayList<>());
+			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(this.graph, terminals.get(i), ends, edges) : new ArrayList<>());
 			toBeAddedEdges.addAll(tmp);
 		}
 
 		// Create new edges between the terminals and bridges
-		for (int i = 0; i < bridgeEndpoints.size(); i++) {
+		for (int i = 0; i < articulations.size(); i++) {
 			ends = new ArrayList<>();
 			for (int j = 0; j < terminals.size(); j++) {
-				if (bridgeEndpoints.get(i) == terminals.get(j))
+				if (articulations.get(i) == terminals.get(j))
 					continue;
 				ends.add(terminals.get(j));
 			}
-			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(cutted, bridgeEndpoints.get(i), ends) : new ArrayList<>());
+			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(this.graph, articulations.get(i), ends, edges)
+					: new ArrayList<>());
 			toBeAddedEdges.addAll(tmp);
 		}
 
 		// Remove all vertices and edges which are now not needed anymore
-		for (Edge e : edges)
-			this.graph.removeEdge(e);
+		for (Edge e : edges) {
+			if (!e.getVertices()[0].isTerminal() && !e.getVertices()[1].isTerminal() && !articulations.contains(e.getVertices()[0])
+					&& !articulations.contains(e.getVertices()[1]))
+				this.graph.removeEdge(e);
+		}
 
-		for (Vertex v : vertices)
+		for (Vertex v : vertices) {
 			this.graph.removeVertex(v);
+		}
 
 		for (Edge e : toBeAddedEdges)
 			this.graph.addEdge(e);
@@ -712,8 +525,17 @@ public class PreProcess {
 	 * @author Joshua Scheidt
 	 */
 	public void removeBridgesAndSections(int totalVertices) {
-		ArrayList<Edge> bridges = this.TarjansBridgeFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
+		long start = System.currentTimeMillis();
+		// ArrayList<Edge> bridges =
+		// this.TarjansBridgeFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
+		// totalVertices);
+		HashSet<Vertex> sectionPoints = this.articulationPointFinding(this.graph.getVertices().get(this.graph.getVertices().keySet().toArray()[0]),
 				totalVertices);
-		this.analyseSections(bridges, totalVertices);
+		long middle = System.currentTimeMillis();
+		this.analyseSections(sectionPoints);
+		// this.analyseSections(bridges, totalVertices);
+		// this.analyseSectionsPoints(sectionPoints, totalVertices);
+		System.out.println("Step 1:" + (middle - start) + " ms");
+		System.out.println("Step 2:" + (System.currentTimeMillis() - middle) + " ms");
 	}
 }

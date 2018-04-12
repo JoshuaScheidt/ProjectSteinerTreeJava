@@ -317,7 +317,7 @@ public class UndirectedGraph {
 			if (number >= degrees.length + 1) {
 				continue;
 			}
-			System.out.println("Key number: " + key);
+			// System.out.println("Key number: " + key);
 			degrees[number - 1]++;
 		}
 		return degrees;
