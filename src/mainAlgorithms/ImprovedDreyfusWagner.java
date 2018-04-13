@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 
 /**
  *
  * @author Pit Schneider
  */
-public class DreyfusWagner implements SteinerTreeSolver {
+public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 	
 //	class BookKeeping {
 //		
@@ -46,10 +48,11 @@ public class DreyfusWagner implements SteinerTreeSolver {
 	private HashMap<String, Integer> fMap = new HashMap<>();
 	private HashMap<String, Integer> gMap = new HashMap<>();
 	private HashMap<String, String> bMap = new HashMap<>();
+	private HashMap<Edge, Integer> wPrimeMap = new HashMap<>();
 //	List<Edge> edges = new ArrayList<>();
 //	List<Integer> vertices = new ArrayList<>();
 	
-	// for the moment only prints out the weight of the steiner tree, does not yet return used edges
+	// unfortunately does not work yet
 	@Override
 	public List<Edge> solve(UndirectedGraph g) {
 		
@@ -59,10 +62,10 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		this.numberOfVertices = g.getVertices().entrySet().size();
 
 		System.out.println("1 of " + (this.numberOfTerminals-1));				
-		for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
-			System.out.println("\t" + ++counter + " of " + this.numberOfVertices);
-			for (Map.Entry<Integer,Vertex> u : g.getTerminals().entrySet()) {
-				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u, v));
+		for (Map.Entry<Integer,Vertex> u : g.getTerminals().entrySet()) {
+			System.out.println("\t" + ++counter + " of " + this.numberOfTerminals);
+			for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
+				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u.getValue(), v.getValue()));
 //				bMap.put(v.getKey()+"{"+u.getKey()+"}", "{("+u.getKey()+",{"+u.getKey()+"})}");
 //				bMap.put(v.getKey()+"{"+u.getKey()+"}", new BookKeeping(u, vertexAsSet(u), null, null));
 			}	
@@ -88,31 +91,33 @@ public class DreyfusWagner implements SteinerTreeSolver {
 						}
 					}
 				}
-				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
-					for (Map.Entry<Integer,Vertex> u : X) {
-						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(v, u);
-						int fMapUXDiff = getValue(fMap, u, setDifference(X, vertexAsSet(u)));
-						if (fMapVX == Integer.MAX_VALUE || pathUV + fMapUXDiff < fMapVX) {
-							fMap.put(v.getKey() + getStringForSet(X), pathUV + fMapUXDiff);
-//								bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(setDifference(X, vertexAsSet(u)))+")}");
-//								bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, setDifference(X, uSet), null, null));
-
-						}
+				
+				Vertex s = new Vertex(-1);
+				this.g.addVertex(s);
+				
+				Set<Edge> newEdges = new HashSet<>();
+				for (Map.Entry<Integer,Vertex> v : this.g.getVertices().entrySet()) {
+					Edge newEdge = new Edge(s, v.getValue(), 0);
+					this.g.addEdge(newEdge);
+					newEdges.add(newEdge);
+					if (X.contains(v)) {
+						newEdge.setCost(getValue(fMap, v, setDifference(X, vertexAsSet(v))));
+					} else {
+						newEdge.setCost(getValue(fMap, v, setDifference(X, vertexAsSet(v))));
 					}
-					for (Map.Entry<Integer,Vertex> u : setDifference(g.getVertices().entrySet(), X)) {
-						
-						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(u, v);
-						int gMapUX = getValue(gMap, u, X);
-						if (fMapVX == Integer.MAX_VALUE || pathUV + gMapUX < fMapVX) {
-							fMap.put(v.getKey() + getStringForSet(X), pathUV + gMapUX);
-//							bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(X)+")}");
-//							bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, X, null, null));
-						}
-					}
-
 				}
+				
+				int counter = 0;
+				
+				for (Map.Entry<Integer,Vertex> v : setDifference(this.g.getVertices().entrySet(), X)) {
+					fMap.put(v.getKey()+getStringForSet(X), sPath(s, v.getValue()));
+					if (v.getKey() != s.getKey()) {
+						// bookkeeping
+					}
+				}
+
+				this.g.removeVertex(s);
+				this.g.getEdges().removeAll(newEdges);
 			}
 			
 		}
@@ -175,10 +180,10 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		return copy;
 	}
 	
-	private int sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
+	private int sPath(Vertex start, Vertex end) {
 				
 		graph.PathFinding pathFinding = new graph.PathFinding();
-		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(0);			
+		return pathFinding.DijkstraSingleEdge(this.g, start, end).getCost().orElse(0);			
 	}
 	
 	/**
@@ -191,7 +196,6 @@ public class DreyfusWagner implements SteinerTreeSolver {
 	 * @author Joshua Scheidt
 	 */
 	private <T> Set<Set<T>> powerSet(Set<T> originalSet) {
-		long millis = System.currentTimeMillis();
 		Set<Set<T>> sets = new HashSet<Set<T>>();
 		if (originalSet.isEmpty()) {
 			sets.add(new HashSet<T>());
@@ -207,7 +211,6 @@ public class DreyfusWagner implements SteinerTreeSolver {
 			sets.add(newSet);
 			sets.add(set);
 		}
-		System.out.println(sets+"\n");
 		return sets;
 	}
 	
