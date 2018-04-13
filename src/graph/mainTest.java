@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import mainAlgorithms.InvertedKruskal;
+import mainAlgorithms.ShortestPathHeuristic;
 import mainAlgorithms.SteinerTreeSolver;
 import mixedIntegerProgramming.CutILP;
 
@@ -21,12 +21,13 @@ public class mainTest {
 	public static String fileName;
 
 	public static void main(String[] args) {
-		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+		// File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
+		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].toString());
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
-			PreProcess pp = new PreProcess(graph);
-			pp.removeBridgesAndSections(graph.getVertices().size());
+			// PreProcess pp = new PreProcess(graph);
+			// pp.removeBridgesAndSections(graph.getVertices().size());
 			// boolean[] preProcessable;
 			// do {
 			// preProcessable = pp.graph.preProcessable();
@@ -39,12 +40,15 @@ public class mainTest {
 			// }
 			// } while (preProcessable[0] || preProcessable[1]);
 			// PreProcess processed = new PreProcess(graph);
-			// long starts = System.currentTimeMillis();
-			System.out.println(pp.graph.getVertices().size());
-			System.out.println(pp.graph.getEdges().size());
+			long starts = System.currentTimeMillis();
+			// System.out.println(pp.graph.getVertices().size());
+			// System.out.println(pp.graph.getEdges().size());
 
-			SteinerTreeSolver solver = new InvertedKruskal();
-			printSolution(solver.solve(pp.graph), false);
+			SteinerTreeSolver solver = new ShortestPathHeuristic();
+			solver.solve(graph);
+			System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
+			System.exit(1);
+			// printSolution(solver.solve(pp.graph), false);
 		}
 		// SteinerTreeSolver solver = new MobiusDynamics();
 		// solver.solve(graph);

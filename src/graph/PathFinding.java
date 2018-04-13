@@ -107,7 +107,7 @@ public class PathFinding {
 	}
 
 	/**
-	 * Performs Dijkstra's path finding algorithm and returns the new edge between
+	 * Performs Dijkstra's path finding algorithm and returns the new edges between
 	 * the vertices.
 	 *
 	 * @param G
@@ -118,7 +118,7 @@ public class PathFinding {
 	 *            The endpoint vertices as an array
 	 * @param edges
 	 *            The allowed edges to traverse over
-	 * @return The new edge with the lowest weight
+	 * @return The new edges with the lowest weights
 	 *
 	 * @author Joshua Scheidt
 	 */
@@ -203,4 +203,99 @@ public class PathFinding {
 		return result;
 	}
 
+	/**
+	 * Performs Dijkstra's path finding algorithm and returns the new edges between
+	 * the vertices.
+	 *
+	 * @param G
+	 *            The graph in which Dijkstra has to be performed
+	 * @param start
+	 *            The starting vertex
+	 * @param end
+	 *            The endpoint vertices as an array
+	 * @param edges
+	 *            The allowed edges to traverse over
+	 * @return The new edges with the lowest weights
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public static ArrayList<EdgeFake> DijkstraMultiPathFakeEdges(UndirectedGraph G, Vertex start, ArrayList<Vertex> end, ArrayList<Edge> edges) {
+		ArrayList<Vertex> Q = new ArrayList<>();
+		HashMap<Vertex, DijkstraInfo> datamap = new HashMap<>();
+		if (edges == null) {
+			edges = new ArrayList<>();
+			for (Edge e : G.getEdges())
+				edges.add(e);
+		}
+		for (Edge e : edges) {
+			if (!datamap.containsKey(e.getVertices()[0])) {
+				datamap.put(e.getVertices()[0], new DijkstraInfo(Integer.MAX_VALUE));
+				Q.add(e.getVertices()[0]);
+			}
+			if (!datamap.containsKey(e.getVertices()[1])) {
+				datamap.put(e.getVertices()[1], new DijkstraInfo(Integer.MAX_VALUE));
+				Q.add(e.getVertices()[1]);
+			}
+		}
+		datamap.get(start).dist = 0;
+
+		int numReachedEnd = 0;
+		// System.out.println(G.getVertices().get(5).getNeighbors().size());
+		while (!Q.isEmpty()) {
+			int smallestDist = Integer.MAX_VALUE;
+			Vertex current = null;
+			for (Vertex i : Q) {
+				if (datamap.get(i).dist < smallestDist) {
+					current = i;
+					smallestDist = datamap.get(i).dist;
+				}
+			}
+			if (numReachedEnd == end.size())
+				break;
+			if (current == null)
+				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
+			for (Vertex i : end)
+				if (i.getKey() == current.getKey())
+					numReachedEnd++;
+			Q.remove(current);
+			int distToCur = datamap.get(current).dist;
+			int totDistToNb = 0;
+			for (Vertex nb : current.getNeighbors()) {
+				if (edges.contains(current.getConnectingEdge(nb))) {
+					totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
+					DijkstraInfo nbInfo = datamap.get(nb);
+					if (nbInfo == null)
+						System.out.println(nb.getKey() + " ???");
+					if (totDistToNb < nbInfo.dist) {
+						nbInfo.dist = totDistToNb;
+						nbInfo.parent = current;
+					}
+				}
+			}
+
+		}
+
+		ArrayList<EdgeFake> result = new ArrayList<>();
+		for (Vertex v : end) {
+			ArrayList<Vertex> path = new ArrayList<>();
+			Vertex current = v;
+			while (datamap.get(current).parent != null) {
+				path.add(current);
+				current = datamap.get(current).parent;
+			}
+			path.add(current);
+			if (start.isNeighbor(v) && start.getConnectingEdge(v).getCost().get() <= datamap.get(v).dist)
+				result.add(new EdgeFake(start, v, start.getConnectingEdge(v).getCost().get(), start.getConnectingEdge(v).getStack()));
+			else {
+				Stack<int[]> pathStack = new Stack<>();
+				for (int i = 0; i < path.size() - 1; i++) {
+					pathStack.push(new int[] { path.get(i).getKey(), path.get(i + 1).getKey(), G.getVertices().get(path.get(i).getKey())
+							.getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
+				}
+				EdgeFake newEdge = new EdgeFake(start, v, datamap.get(v).dist, pathStack);
+				result.add(newEdge);
+			}
+		}
+		return result;
+	}
 }
