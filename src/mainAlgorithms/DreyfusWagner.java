@@ -62,7 +62,7 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
 			System.out.println("\t" + ++counter + " of " + this.numberOfVertices);
 			for (Map.Entry<Integer,Vertex> u : g.getTerminals().entrySet()) {
-				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u, v));
+				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u, v, Integer.MAX_VALUE));
 //				bMap.put(v.getKey()+"{"+u.getKey()+"}", "{("+u.getKey()+",{"+u.getKey()+"})}");
 //				bMap.put(v.getKey()+"{"+u.getKey()+"}", new BookKeeping(u, vertexAsSet(u), null, null));
 			}	
@@ -91,9 +91,9 @@ public class DreyfusWagner implements SteinerTreeSolver {
 				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
 					for (Map.Entry<Integer,Vertex> u : X) {
 						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(v, u);
 						int fMapUXDiff = getValue(fMap, u, setDifference(X, vertexAsSet(u)));
-						if (fMapVX == Integer.MAX_VALUE || pathUV + fMapUXDiff < fMapVX) {
+						int pathUV = sPath(v, u, fMapVX-fMapUXDiff);
+						if (fMapVX == Integer.MAX_VALUE || (pathUV != -1 && pathUV + fMapUXDiff < fMapVX)) {
 							fMap.put(v.getKey() + getStringForSet(X), pathUV + fMapUXDiff);
 //								bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(setDifference(X, vertexAsSet(u)))+")}");
 //								bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, setDifference(X, uSet), null, null));
@@ -103,9 +103,9 @@ public class DreyfusWagner implements SteinerTreeSolver {
 					for (Map.Entry<Integer,Vertex> u : setDifference(g.getVertices().entrySet(), X)) {
 						
 						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(u, v);
 						int gMapUX = getValue(gMap, u, X);
-						if (fMapVX == Integer.MAX_VALUE || pathUV + gMapUX < fMapVX) {
+						int pathUV = sPath(u, v, fMapVX-gMapUX);
+						if (fMapVX == Integer.MAX_VALUE || (pathUV != -1 && pathUV + gMapUX < fMapVX)) {
 							fMap.put(v.getKey() + getStringForSet(X), pathUV + gMapUX);
 //							bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(X)+")}");
 //							bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, X, null, null));
@@ -175,10 +175,15 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		return copy;
 	}
 	
-	private int sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
+	private int sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end, int t) {
 				
 		graph.PathFinding pathFinding = new graph.PathFinding();
-		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(0);			
+		Edge e = pathFinding.DijkstraCutoff(this.g, start.getValue(), end.getValue(), t);
+		if (e == null) {
+			return -1;
+		} else {
+			return e.getCost().orElse(0);
+		}
 	}
 	
 	/**
@@ -207,7 +212,6 @@ public class DreyfusWagner implements SteinerTreeSolver {
 			sets.add(newSet);
 			sets.add(set);
 		}
-		System.out.println(sets+"\n");
 		return sets;
 	}
 	

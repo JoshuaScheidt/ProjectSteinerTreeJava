@@ -298,4 +298,79 @@ public class PathFinding {
 		}
 		return result;
 	}
+	
+	/**
+	 * Performs Dijkstra's path finding algorithm and returns the new edge between
+	 * the vertices or null in case the weight of the edge is above the threshold value
+	 *
+	 * @param G
+	 *            The graph in which Dijkstra has to be performed
+	 * @param start
+	 *            The starting vertex
+	 * @param end
+	 *            The endpoint vertex
+     * @param threshold
+	 * 			  Threshold value representing the maximum weight of the path
+	 * @return The new edge with the lowest weight or null in case the weight is above the threshold value
+	 *
+	 * @author Pit Schneider
+     * @author Joshua Scheidt
+	 */
+	public static Edge DijkstraCutoff(UndirectedGraph G, Vertex start, Vertex end, int threshold) {
+		ArrayList<Vertex> Q = new ArrayList<>();
+		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
+		for (Vertex i : G.getVertices().values()) {
+			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
+			Q.add(i);
+		}
+		datamap.get(start.getKey()).dist = 0;
+
+		boolean reachedEnd = false;
+
+		while (!Q.isEmpty()) {
+			int smallestDist = Integer.MAX_VALUE;
+			Vertex current = null;
+			for (Vertex i : Q) {
+				if (datamap.get(i.getKey()).dist < smallestDist) {
+					current = i;
+					smallestDist = datamap.get(i.getKey()).dist;
+				}
+			}
+			if (datamap.get(current.getKey()).dist > threshold) {
+				return null;
+			}
+			if (reachedEnd && smallestDist > datamap.get(end.getKey()).dist)
+				break;
+			if (current == null)
+				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
+			if (current == end)
+				reachedEnd = true;
+			Q.remove(current);
+			int distToCur = datamap.get(current.getKey()).dist;
+			int totDistToNb = 0;
+			for (Vertex nb : current.getNeighbors()) {
+				totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
+				DijkstraInfo nbInfo = datamap.get(nb.getKey());
+				if (nbInfo == null)
+					System.out.println(nb.getKey() + " ???");
+				if (totDistToNb < nbInfo.dist) {
+					nbInfo.dist = totDistToNb;
+					nbInfo.parent = current;
+				}
+			}
+		}
+
+		ArrayList<Vertex> path = new ArrayList<>();
+		Vertex current = end;
+		while (datamap.get(current.getKey()).parent != null) {
+			path.add(current);
+			current = datamap.get(current.getKey()).parent;
+		}
+		path.add(current);
+		Edge newEdge = new Edge(start, end, datamap.get(end.getKey()).dist, true);
+		for (int i = 0; i < path.size() - 1; i++) {
+			newEdge.pushSubsumed(new int[] { path.get(i).getKey(), path.get(i).getKey(), path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get()});
+		}
+		return newEdge;
+	}
 }
