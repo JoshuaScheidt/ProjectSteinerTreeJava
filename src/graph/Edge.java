@@ -101,6 +101,18 @@ public class Edge extends Object {
 	}
 
 	/**
+	 * Replaces the current stack with the new stack.
+	 *
+	 * @param stack
+	 *            The new stack
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public void replaceStack(Stack<int[]> stack) {
+		this.subsumed = stack;
+	}
+
+	/**
 	 * Returns the complete current stack
 	 *
 	 * @return The stack of subsumed edges
