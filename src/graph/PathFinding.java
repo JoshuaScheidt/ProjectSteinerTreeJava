@@ -300,77 +300,67 @@ public class PathFinding {
 	}
 	
 	/**
-	 * Performs Dijkstra's path finding algorithm and returns the new edge between
-	 * the vertices or null in case the weight of the edge is above the threshold value
+	 * Performs Dijkstra's path finding algorithm and returns costs for all the paths between the
+     * start vertex and every end vertex in the list (very similar to DijkstraMultiPath)
 	 *
-	 * @param G
+	 * @param g
 	 *            The graph in which Dijkstra has to be performed
 	 * @param start
 	 *            The starting vertex
 	 * @param end
-	 *            The endpoint vertex
-     * @param threshold
-	 * 			  Threshold value representing the maximum weight of the path
-	 * @return The new edge with the lowest weight or null in case the weight is above the threshold value
+	 *            List containing all the destination vertices
+	 * @return An ArrayList with the corresponding path lengths
 	 *
-	 * @author Pit Schneider
      * @author Joshua Scheidt
+     * @author Pit Schneider
 	 */
-	public static Edge DijkstraCutoff(UndirectedGraph G, Vertex start, Vertex end, int threshold) {
-		ArrayList<Vertex> Q = new ArrayList<>();
-		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
-		for (Vertex i : G.getVertices().values()) {
-			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
-			Q.add(i);
+	public static ArrayList<Integer> DijkstraForDW(UndirectedGraph g, Vertex start, ArrayList<Vertex> end) {
+
+		ArrayList<Vertex> unvisited = new ArrayList<>();
+		HashMap<Vertex, DijkstraInfo> datamap = new HashMap<>();
+		for (Edge e : g.getEdges()) {
+			if (!datamap.containsKey(e.getVertices()[0])) {
+				datamap.put(e.getVertices()[0], new DijkstraInfo(Integer.MAX_VALUE));
+				unvisited.add(e.getVertices()[0]);
+			}
+			if (!datamap.containsKey(e.getVertices()[1])) {
+				datamap.put(e.getVertices()[1], new DijkstraInfo(Integer.MAX_VALUE));
+				unvisited.add(e.getVertices()[1]);
+			}
 		}
-		datamap.get(start.getKey()).dist = 0;
-
-		boolean reachedEnd = false;
-
-		while (!Q.isEmpty()) {
+		datamap.get(start).dist = 0;
+		int numReachedEnd = 0;
+		while (!unvisited.isEmpty()) {
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
-			for (Vertex i : Q) {
-				if (datamap.get(i.getKey()).dist < smallestDist) {
-					current = i;
-					smallestDist = datamap.get(i.getKey()).dist;
+			for (Vertex v : unvisited) {
+				if (datamap.get(v).dist < smallestDist) {
+					current = v;
+					smallestDist = datamap.get(v).dist;
 				}
 			}
-			if (datamap.get(current.getKey()).dist > threshold) {
-				return null;
-			}
-			if (reachedEnd && smallestDist > datamap.get(end.getKey()).dist)
+			if (numReachedEnd == end.size())
 				break;
-			if (current == null)
-				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
-			if (current == end)
-				reachedEnd = true;
-			Q.remove(current);
-			int distToCur = datamap.get(current.getKey()).dist;
+			for (Vertex v : end)
+				if (v.getKey() == current.getKey())
+					numReachedEnd++;
+			unvisited.remove(current);
+			int distToCur = datamap.get(current).dist;
 			int totDistToNb = 0;
 			for (Vertex nb : current.getNeighbors()) {
 				totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
-				DijkstraInfo nbInfo = datamap.get(nb.getKey());
-				if (nbInfo == null)
-					System.out.println(nb.getKey() + " ???");
+				DijkstraInfo nbInfo = datamap.get(nb);
 				if (totDistToNb < nbInfo.dist) {
 					nbInfo.dist = totDistToNb;
 					nbInfo.parent = current;
 				}
 			}
 		}
-
-		ArrayList<Vertex> path = new ArrayList<>();
-		Vertex current = end;
-		while (datamap.get(current.getKey()).parent != null) {
-			path.add(current);
-			current = datamap.get(current.getKey()).parent;
+		ArrayList<Integer> result = new ArrayList<>();
+		for (Vertex v : end) {
+			result.add(datamap.get(v).dist);
 		}
-		path.add(current);
-		Edge newEdge = new Edge(start, end, datamap.get(end.getKey()).dist, true);
-		for (int i = 0; i < path.size() - 1; i++) {
-			newEdge.pushSubsumed(new int[] { path.get(i).getKey(), path.get(i).getKey(), path.get(i).getConnectingEdge(path.get(i + 1)).getCost().get()});
-		}
-		return newEdge;
+		return result;
 	}
+
 }
