@@ -47,7 +47,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 		}
 		// terminal for shortest path heuristic
 		this.shortestPathConnected(startingTerminal);
-		System.out.println("done with shortest path");
+		// System.out.println("done with shortest path");
 		// System.out.println(this.G.getVertices().size());
 		// System.out.println(this.G.getEdges().size());
 
@@ -58,7 +58,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 		// v.getVertices()[1].getKey() + " " + v.getCost().get());
 
 		this.primAlgorithm(this.G.getVertices().get(this.G.getVertices().keySet().iterator().next()));
-		System.out.println("Created MST");
+		// System.out.println("Created MST");
 		// System.out.println(this.G.getVertices().size());
 		// System.out.println(this.G.getEdges().size());
 		// for (Vertex v : this.G.getVertices().values())
@@ -68,7 +68,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 		// v.getVertices()[1].getKey() + " " + v.getCost().get());
 
 		this.removeNonTerminalDegree1();
-		System.out.println("Removed non-terminal degree 1");
+		// System.out.println("Removed non-terminal degree 1");
 		ArrayList<Edge> result = new ArrayList<>();
 		for (Edge e : this.G.getEdges())
 			result.add(e);
@@ -141,18 +141,26 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 		HashMap<Vertex, HashMap<Vertex, DijkstraInfo>> dijkstraInfo = new HashMap<>();
 		dijkstraInfo.put(startingTerminal, new HashMap<>());
 		dijkstraInfo.get(startingTerminal).put(startingTerminal, new DijkstraInfo(0));
+
+		HashMap<Vertex, Integer> lowestCosts = new HashMap<>();
+		lowestCosts.put(startingTerminal, 0);
+
+		HashMap<Vertex, ArrayList<Integer>> alreadyVisited = new HashMap<>();
+
 		ArrayList<Vertex> currentSet = new ArrayList<>();
 		currentSet.add(startingTerminal);
 		ArrayList<EdgeFake> path;
 		HashMap<Vertex, ArrayList<Vertex>> availableSearches = new HashMap<>();
 		availableSearches.put(startingTerminal, new ArrayList<>());
 		availableSearches.get(startingTerminal).add(startingTerminal);
+		alreadyVisited.put(startingTerminal, new ArrayList<>());
+		alreadyVisited.get(startingTerminal).add(startingTerminal.getKey());
 		for (Vertex other : this.G.getVertices().values())
 			if (other != startingTerminal)
 				dijkstraInfo.get(startingTerminal).put(other, new DijkstraInfo(Integer.MAX_VALUE));
 		while (currentSet.size() != this.G.getTerminals().size()) {
 			// System.out.println("currentSet: " + currentSet.size());
-			path = PathFinding.DijkstraShortestPathHeuristic(this.G, currentSet, dijkstraInfo, availableSearches);
+			path = PathFinding.DijkstraShortestPathHeuristic(this.G, currentSet, dijkstraInfo, availableSearches, lowestCosts, alreadyVisited);
 			edges.addAll(path);
 			for (EdgeFake e : path) {
 				if (e.getVertices()[0].isTerminal() && !currentSet.contains(e.getVertices()[0])) {
@@ -160,8 +168,11 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 					currentSet.add(v);
 					availableSearches.put(v, new ArrayList<>());
 					availableSearches.get(v).add(v);
+					alreadyVisited.put(v, new ArrayList<>());
+					alreadyVisited.get(v).add(v.getKey());
 					dijkstraInfo.put(v, new HashMap<>());
 					dijkstraInfo.get(v).put(v, new DijkstraInfo(0));
+					lowestCosts.put(v, 0);
 					for (Vertex other : this.G.getVertices().values())
 						dijkstraInfo.get(v).put(other, new DijkstraInfo(Integer.MAX_VALUE));
 					break;
@@ -171,8 +182,11 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 					currentSet.add(v);
 					availableSearches.put(v, new ArrayList<>());
 					availableSearches.get(v).add(v);
+					alreadyVisited.put(v, new ArrayList<>());
+					alreadyVisited.get(v).add(v.getKey());
 					dijkstraInfo.put(v, new HashMap<>());
 					dijkstraInfo.get(v).put(v, new DijkstraInfo(0));
+					lowestCosts.put(v, 0);
 					for (Vertex other : this.G.getVertices().values())
 						if (other != v)
 							dijkstraInfo.get(v).put(other, new DijkstraInfo(Integer.MAX_VALUE));
@@ -185,7 +199,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 		for (Vertex v : this.G.getVertices().values()) {
 			tbrVerts.add(v);
 		}
-		for (EdgeFake e : edges)
+		for (EdgeFake e : edges) {
 			if (e.getStack() != null) {
 				for (int[] stack : e.getStack()) {
 					tbrVerts.remove(this.G.getVertices().get(stack[0]));
@@ -195,7 +209,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 			} else
 				for (Vertex v : e.getVertices())
 					tbrVerts.remove(v);
-
+		}
 		for (int i = 0; i < tbrVerts.size(); i++) {
 			this.G.removeVertex(tbrVerts.get(i));
 		}

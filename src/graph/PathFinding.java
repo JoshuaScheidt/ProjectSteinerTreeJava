@@ -5,7 +5,10 @@
 package graph;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Stack;
 
 /**
@@ -316,24 +319,27 @@ public class PathFinding {
 	 * @author Joshua Scheidt
 	 */
 	public static ArrayList<EdgeFake> DijkstraShortestPathHeuristic(UndirectedGraph G, ArrayList<Vertex> start,
-			HashMap<Vertex, HashMap<Vertex, DijkstraInfo>> fullInfo, HashMap<Vertex, ArrayList<Vertex>> availableSearches) {
-		System.out.println(start.size());
+			HashMap<Vertex, HashMap<Vertex, DijkstraInfo>> fullInfo, HashMap<Vertex, ArrayList<Vertex>> availableSearches,
+			HashMap<Vertex, Integer> lowestCosts, HashMap<Vertex, ArrayList<Integer>> alreadyVisited) {
+		// System.out.println(start.size());
 		Vertex foundFrom = null, foundTerminal = null;
 		while (true) {
 			// System.out.println(Q.size());
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex begin = null;
 			Vertex chosen = null;
-			for (Vertex v : start)
-				for (Vertex i : availableSearches.get(v)) {
-					// System.out.println(fullInfo.get(v).get(i).dist);
-					if (fullInfo.get(v).get(i).dist < smallestDist) {
-						begin = v;
-						chosen = i;
-						smallestDist = fullInfo.get(v).get(i).dist;
-						// System.out.println("in here");
-					}
+			Entry<Vertex, Integer> min = Collections.min(lowestCosts.entrySet(), Comparator.comparing(Entry::getValue));
+
+			// for (Vertex v : start)
+			for (Vertex i : availableSearches.get(min.getKey())) {
+				// System.out.println(fullInfo.get(v).get(i).dist);
+				if (fullInfo.get(min.getKey()).get(i).dist < smallestDist) {
+					begin = min.getKey();
+					chosen = i;
+					smallestDist = fullInfo.get(min.getKey()).get(i).dist;
+					// System.out.println("in here");
 				}
+			}
 			// System.out.println(chosen.getKey());
 
 			if (chosen == null)
@@ -345,11 +351,12 @@ public class PathFinding {
 			}
 
 			availableSearches.get(begin).remove(chosen);
+			alreadyVisited.get(begin).add(chosen.getKey());
 
 			int distToCur = fullInfo.get(begin).get(chosen).dist;
 			int totDistToNb = 0;
 			for (Vertex nb : chosen.getNeighbors()) {
-				if (G.getEdges().contains(chosen.getConnectingEdge(nb))) {
+				if (G.getEdges().contains(chosen.getConnectingEdge(nb)) && !alreadyVisited.get(begin).contains(nb.getKey())) {
 					totDistToNb = distToCur + chosen.getConnectingEdge(nb).getCost().get();
 					DijkstraInfo nbInfo = fullInfo.get(begin).get(nb);
 					// System.out.println("before:" + nbInfo.dist);
@@ -358,13 +365,19 @@ public class PathFinding {
 					if (totDistToNb < nbInfo.dist) {
 						nbInfo.dist = totDistToNb;
 						nbInfo.parent = chosen;
-						if (!availableSearches.get(begin).contains(nb))
+						if (!availableSearches.get(begin).contains(nb)) {
 							availableSearches.get(begin).add(nb);
+						}
 					}
 					// System.out.println("after: " + nbInfo.dist);
 				}
 			}
-
+			int lowest = Integer.MAX_VALUE;
+			for (Vertex v : availableSearches.get(begin)) {
+				if (lowest > fullInfo.get(begin).get(v).dist)
+					lowest = fullInfo.get(begin).get(v).dist;
+			}
+			lowestCosts.put(begin, lowest);
 		}
 
 		ArrayList<EdgeFake> result = new ArrayList<>();
