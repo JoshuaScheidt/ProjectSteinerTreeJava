@@ -17,7 +17,7 @@ import java.util.Stack;
  */
 public class PathFinding {
 
-	private static class DijkstraInfo {
+	public static class DijkstraInfo {
 		public int dist;
 		public Vertex parent = null;
 
@@ -296,6 +296,98 @@ public class PathFinding {
 				result.add(newEdge);
 			}
 		}
+		return result;
+	}
+
+	/**
+	 * Performs Dijkstra's path finding algorithm and returns the new edges between
+	 * the vertices.
+	 *
+	 * @param G
+	 *            The graph in which Dijkstra has to be performed
+	 * @param start
+	 *            The starting vertex
+	 * @param end
+	 *            The endpoint vertices as an array
+	 * @param edges
+	 *            The allowed edges to traverse over
+	 * @return The new edges with the lowest weights
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public static ArrayList<EdgeFake> DijkstraShortestPathHeuristic(UndirectedGraph G, ArrayList<Vertex> start,
+			HashMap<Vertex, HashMap<Vertex, DijkstraInfo>> fullInfo, HashMap<Vertex, ArrayList<Vertex>> availableSearches) {
+		System.out.println(start.size());
+		Vertex foundFrom = null, foundTerminal = null;
+		while (true) {
+			// System.out.println(Q.size());
+			int smallestDist = Integer.MAX_VALUE;
+			Vertex begin = null;
+			Vertex chosen = null;
+			for (Vertex v : start)
+				for (Vertex i : availableSearches.get(v)) {
+					// System.out.println(fullInfo.get(v).get(i).dist);
+					if (fullInfo.get(v).get(i).dist < smallestDist) {
+						begin = v;
+						chosen = i;
+						smallestDist = fullInfo.get(v).get(i).dist;
+						// System.out.println("in here");
+					}
+				}
+			// System.out.println(chosen.getKey());
+
+			if (chosen == null)
+				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
+			if (chosen.isTerminal() && !start.contains(chosen)) {
+				foundFrom = begin;
+				foundTerminal = chosen;
+				break;
+			}
+
+			availableSearches.get(begin).remove(chosen);
+
+			int distToCur = fullInfo.get(begin).get(chosen).dist;
+			int totDistToNb = 0;
+			for (Vertex nb : chosen.getNeighbors()) {
+				if (G.getEdges().contains(chosen.getConnectingEdge(nb))) {
+					totDistToNb = distToCur + chosen.getConnectingEdge(nb).getCost().get();
+					DijkstraInfo nbInfo = fullInfo.get(begin).get(nb);
+					// System.out.println("before:" + nbInfo.dist);
+					if (nbInfo == null)
+						System.out.println(nb.getKey() + " ???");
+					if (totDistToNb < nbInfo.dist) {
+						nbInfo.dist = totDistToNb;
+						nbInfo.parent = chosen;
+						if (!availableSearches.get(begin).contains(nb))
+							availableSearches.get(begin).add(nb);
+					}
+					// System.out.println("after: " + nbInfo.dist);
+				}
+			}
+
+		}
+
+		ArrayList<EdgeFake> result = new ArrayList<>();
+		ArrayList<Vertex> path = new ArrayList<>();
+		Vertex current = foundTerminal;
+		while (fullInfo.get(foundFrom).get(current).parent != null) {
+			path.add(current);
+			current = fullInfo.get(foundFrom).get(current).parent;
+		}
+		path.add(current);
+		if (foundFrom.isNeighbor(foundTerminal))
+			result.add(new EdgeFake(foundFrom, foundTerminal, foundFrom.getConnectingEdge(foundTerminal).getCost().get(),
+					foundFrom.getConnectingEdge(foundTerminal).getStack()));
+		else {
+			Stack<int[]> pathStack = new Stack<>();
+			for (int i = 0; i < path.size() - 1; i++) {
+				pathStack.push(new int[] { path.get(i).getKey(), path.get(i + 1).getKey(),
+						G.getVertices().get(path.get(i).getKey()).getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
+			}
+			EdgeFake newEdge = new EdgeFake(foundFrom, foundTerminal, fullInfo.get(foundFrom).get(foundTerminal).dist, pathStack);
+			result.add(newEdge);
+		}
+
 		return result;
 	}
 }

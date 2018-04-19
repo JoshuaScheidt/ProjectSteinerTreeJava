@@ -9,10 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import graph.Edge;
 import graph.EdgeFake;
 import graph.PathFinding;
+import graph.PathFinding.DijkstraInfo;
 import graph.UndirectedGraph;
 import graph.Vertex;
 
@@ -36,18 +38,49 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 	@Override
 	public List<Edge> solve(UndirectedGraph Graph) {
 		this.G = Graph.clone();
-		Vertex startingTerminal = this.G.getTerminals().get(this.G.getTerminals().keySet().iterator().next());// Take first terminal to find as
-																												// starting
+		Vertex startingTerminal = (this.G.getTerminals().size() > 0 ? this.G.getTerminals().get(this.G.getTerminals().keySet().iterator().next())
+				: null);// Take first terminal to find as
+		// starting
+		if (startingTerminal == null) {
+			System.out.println("No terminals, STOP");
+			System.exit(1);
+		}
 		// terminal for shortest path heuristic
 		this.shortestPathConnected(startingTerminal);
 		System.out.println("done with shortest path");
-		System.out.println(this.G.getVertices().size());
-		System.out.println(this.G.getEdges().size());
+		// System.out.println(this.G.getVertices().size());
+		// System.out.println(this.G.getEdges().size());
+
+		// for (Vertex v : this.G.getVertices().values())
+		// System.out.println("Vertex: " + v.getKey());
+		// for (Edge v : this.G.getEdges())
+		// System.out.println("Edge: " + v.getVertices()[0].getKey() + " " +
+		// v.getVertices()[1].getKey() + " " + v.getCost().get());
+
 		this.primAlgorithm(this.G.getVertices().get(this.G.getVertices().keySet().iterator().next()));
 		System.out.println("Created MST");
-		System.out.println(this.G.getVertices().size());
-		System.out.println(this.G.getEdges().size());
-		return null;
+		// System.out.println(this.G.getVertices().size());
+		// System.out.println(this.G.getEdges().size());
+		// for (Vertex v : this.G.getVertices().values())
+		// System.out.println("Vertex: " + v.getKey());
+		// for (Edge v : this.G.getEdges())
+		// System.out.println("Edge: " + v.getVertices()[0].getKey() + " " +
+		// v.getVertices()[1].getKey() + " " + v.getCost().get());
+
+		this.removeNonTerminalDegree1();
+		System.out.println("Removed non-terminal degree 1");
+		ArrayList<Edge> result = new ArrayList<>();
+		for (Edge e : this.G.getEdges())
+			result.add(e);
+		return result;
+	}
+
+	private void removeNonTerminalDegree1() {
+		for (Iterator<Map.Entry<Integer, Vertex>> it = this.G.getVertices().entrySet().iterator(); it.hasNext();) {
+			Map.Entry<Integer, Vertex> entry = it.next();
+			if (entry.getValue().getNeighbors().size() <= 1)
+				it.remove();
+		}
 	}
 
 	/**
@@ -85,6 +118,7 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 			currentSet.add(bestEdge.getVertices()[0]);
 			currentSet.add(bestEdge.getVertices()[1]);
 		}
+		this.G.getEdges().retainAll(chosenEdges);
 	}
 
 	/**
@@ -97,82 +131,73 @@ public class ShortestPathHeuristic implements SteinerTreeSolver {
 	 * @author Joshua Scheidt
 	 */
 	private void shortestPathConnected(Vertex startingTerminal) {
-		HashMap<Vertex, HashMap<Vertex, EdgeFake>> shortestPaths = new HashMap<>();
+		HashSet<EdgeFake> edges = new HashSet<>();
 		ArrayList<Integer> keys = new ArrayList<>();
 		Iterator<Integer> it = this.G.getTerminals().keySet().iterator();
 		while (it.hasNext()) {
 			keys.add(it.next());
 		}
 
-		ArrayList<Vertex> endpoints;
-		ArrayList<EdgeFake> paths;
-		// System.out.println("Total terminals: " + keys.size());
-		for (int i = 0; i < keys.size(); i++) {
-			// System.out.println("starting terminal: " + i);
-			endpoints = new ArrayList<>();
-			for (int j = i + 1; j < keys.size(); j++) {
-				endpoints.add(this.G.getTerminals().get(keys.get(j)));
-			}
-
-			paths = PathFinding.DijkstraMultiPathFakeEdges(this.G, this.G.getTerminals().get(keys.get(i)), endpoints, null);
-			HashMap<Vertex, EdgeFake> tmp = new HashMap<>();
-			for (EdgeFake e : paths) {
-				tmp.put(e.getVertices()[1], e);
-			}
-			shortestPaths.put(this.G.getTerminals().get(keys.get(i)), tmp);
-		}
-
+		HashMap<Vertex, HashMap<Vertex, DijkstraInfo>> dijkstraInfo = new HashMap<>();
+		dijkstraInfo.put(startingTerminal, new HashMap<>());
+		dijkstraInfo.get(startingTerminal).put(startingTerminal, new DijkstraInfo(0));
 		ArrayList<Vertex> currentSet = new ArrayList<>();
 		currentSet.add(startingTerminal);
-		ArrayList<EdgeFake> currentEdges = new ArrayList<>();
-		Vertex currentClosest = null, connectedWith = null;
-		int closestWeight = Integer.MAX_VALUE;
+		ArrayList<EdgeFake> path;
+		HashMap<Vertex, ArrayList<Vertex>> availableSearches = new HashMap<>();
+		availableSearches.put(startingTerminal, new ArrayList<>());
+		availableSearches.get(startingTerminal).add(startingTerminal);
+		for (Vertex other : this.G.getVertices().values())
+			if (other != startingTerminal)
+				dijkstraInfo.get(startingTerminal).put(other, new DijkstraInfo(Integer.MAX_VALUE));
 		while (currentSet.size() != this.G.getTerminals().size()) {
-			for (Vertex t : this.G.getTerminals().values()) {
-				if (!currentSet.contains(t)) {
-					for (Vertex u : this.G.getTerminals().values()) {
-						if (currentSet.contains(u)) {
-							if ((shortestPaths.containsKey(t) && shortestPaths.get(t).containsKey(u))
-									&& shortestPaths.get(t).get(u).getCost() < closestWeight) {
-								currentClosest = t;
-								connectedWith = u;
-								closestWeight = shortestPaths.get(t).get(u).getCost();
-							} else if ((shortestPaths.containsKey(u) && shortestPaths.get(u).containsKey(t)
-									&& shortestPaths.get(u).get(t).getCost() < closestWeight)) {
-								currentClosest = t;
-								connectedWith = u;
-								closestWeight = shortestPaths.get(u).get(t).getCost();
-							}
-						}
-					}
+			// System.out.println("currentSet: " + currentSet.size());
+			path = PathFinding.DijkstraShortestPathHeuristic(this.G, currentSet, dijkstraInfo, availableSearches);
+			edges.addAll(path);
+			for (EdgeFake e : path) {
+				if (e.getVertices()[0].isTerminal() && !currentSet.contains(e.getVertices()[0])) {
+					Vertex v = e.getVertices()[0];
+					currentSet.add(v);
+					availableSearches.put(v, new ArrayList<>());
+					availableSearches.get(v).add(v);
+					dijkstraInfo.put(v, new HashMap<>());
+					dijkstraInfo.get(v).put(v, new DijkstraInfo(0));
+					for (Vertex other : this.G.getVertices().values())
+						dijkstraInfo.get(v).put(other, new DijkstraInfo(Integer.MAX_VALUE));
+					break;
+				}
+				if (e.getVertices()[1].isTerminal() && !currentSet.contains(e.getVertices()[1])) {
+					Vertex v = e.getVertices()[1];
+					currentSet.add(v);
+					availableSearches.put(v, new ArrayList<>());
+					availableSearches.get(v).add(v);
+					dijkstraInfo.put(v, new HashMap<>());
+					dijkstraInfo.get(v).put(v, new DijkstraInfo(0));
+					for (Vertex other : this.G.getVertices().values())
+						if (other != v)
+							dijkstraInfo.get(v).put(other, new DijkstraInfo(Integer.MAX_VALUE));
+					break;
 				}
 			}
-			currentSet.add(currentClosest);
-			currentEdges.add((shortestPaths.containsKey(currentClosest) && shortestPaths.get(currentClosest).containsKey(connectedWith))
-					? shortestPaths.get(currentClosest).get(connectedWith)
-					: shortestPaths.get(connectedWith).get(currentClosest));
-			closestWeight = Integer.MAX_VALUE;
 		}
+		// System.out.println("done here");
+		ArrayList<Vertex> tbrVerts = new ArrayList<>();
+		for (Vertex v : this.G.getVertices().values()) {
+			tbrVerts.add(v);
+		}
+		for (EdgeFake e : edges)
+			if (e.getStack() != null) {
+				for (int[] stack : e.getStack()) {
+					tbrVerts.remove(this.G.getVertices().get(stack[0]));
+					tbrVerts.remove(this.G.getVertices().get(stack[1]));
+				}
 
-		HashSet<int[]> result = new HashSet<>();
-		for (EdgeFake e : currentEdges) {
-			if (e.getStack() != null)
-				for (int[] i : e.getStack())
-					result.add(i);
-			else
-				result.add(new int[] { e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost() });
-		}
-		// return result;
+			} else
+				for (Vertex v : e.getVertices())
+					tbrVerts.remove(v);
 
-		ArrayList<Vertex> tbrVertices = new ArrayList<>();
-		for (Vertex v : this.G.getVertices().values())
-			tbrVertices.add(v);
-		for (int[] i : result) {
-			tbrVertices.remove(this.G.getVertices().get(i[0]));
-			tbrVertices.remove(this.G.getVertices().get(i[1]));
-		}
-		for (int i = 0; i < tbrVertices.size(); i++) {
-			this.G.removeVertex(tbrVertices.get(i));
+		for (int i = 0; i < tbrVerts.size(); i++) {
+			this.G.removeVertex(tbrVerts.get(i));
 		}
 	}
 

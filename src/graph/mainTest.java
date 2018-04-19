@@ -22,7 +22,7 @@ public class mainTest {
 
 	public static void main(String[] args) {
 		// File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-		File[] files = readFiles(new File("data\\heuristics\\instance197.gr"));
+		File[] files = readFiles(new File("data\\heuristics\\instance101.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].toString());
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
@@ -47,7 +47,6 @@ public class mainTest {
 			SteinerTreeSolver solver = new ShortestPathHeuristic();
 			solver.solve(graph);
 			System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-			System.exit(1);
 			// printSolution(solver.solve(pp.graph), false);
 		}
 		// SteinerTreeSolver solver = new MobiusDynamics();
