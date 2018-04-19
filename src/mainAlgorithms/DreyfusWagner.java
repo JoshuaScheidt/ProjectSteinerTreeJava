@@ -40,45 +40,44 @@ public class DreyfusWagner implements SteinerTreeSolver {
 //	}
 	
 	private UndirectedGraph g;
-	private int numberOfTerminals;
-	private int numberOfVertices;
-	private int counter;
 	private HashMap<String, Integer> fMap = new HashMap<>();
 	private HashMap<String, Integer> gMap = new HashMap<>();
 	private HashMap<String, String> bMap = new HashMap<>();
-//	List<Edge> edges = new ArrayList<>();
-//	List<Integer> vertices = new ArrayList<>();
+	private ArrayList<Edge> edges;
+	private ArrayList<Vertex> vertices;
+	private ArrayList<Vertex> terminals;
 	
 	// for the moment only prints out the weight of the steiner tree, does not yet return used edges
 	@Override
 	public List<Edge> solve(UndirectedGraph g) {
 		
 		this.g = g;
-		this.counter = 0;
-		this.numberOfTerminals = g.getNumberOfTerminals();
-		this.numberOfVertices = g.getVertices().entrySet().size();
-
-		System.out.println("1 of " + (this.numberOfTerminals-1));				
-		for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
-			System.out.println("\t" + ++counter + " of " + this.numberOfVertices);
-			for (Map.Entry<Integer,Vertex> u : g.getTerminals().entrySet()) {
-				fMap.put(v.getKey()+"{"+u.getKey()+"}", sPath(u, v));
-//				bMap.put(v.getKey()+"{"+u.getKey()+"}", "{("+u.getKey()+",{"+u.getKey()+"})}");
-//				bMap.put(v.getKey()+"{"+u.getKey()+"}", new BookKeeping(u, vertexAsSet(u), null, null));
-			}	
+		this.edges = new ArrayList<>(this.g.getEdges());
+		this.vertices = new ArrayList<>(this.g.getVertices().values());
+		this.terminals = new ArrayList<>(this.g.getTerminals().values());
+		
+		System.out.println("1 of " + (this.terminals.size()-1));				
+		for (Vertex u : this.terminals) {
+			ArrayList<Integer> paths = new graph.PathFinding().DijkstraForDW(this.g, u, this.vertices);
+			int index = 0;
+			for (Vertex v : this.vertices) {
+				fMap.put(v.getKey()+"{"+u.getKey()+"}", paths.get(index));
+				index++;
+			}
 		}
-		for (int m=2; m<=this.numberOfTerminals-1; m++) {	
-			System.out.println(m + " of " + (this.numberOfTerminals-1));
-			Set<Set<Map.Entry<Integer,Vertex>>> subsets = getSubsets(g.getTerminals().entrySet(), m);
-			counter = 0;
-			for (Set<Map.Entry<Integer,Vertex>> X : subsets) {
+		
+		for (int m=2; m<=this.terminals.size()-1; m++) {	
+			System.out.println(m + " of " + (this.terminals.size()-1));
+			ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
+			int counter = 0;
+			for (ArrayList<Vertex> X : subsets) {
 				System.out.println("\t" + ++counter + " of " + subsets.size());
-				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
-					for (Set<Map.Entry<Integer,Vertex>> XPrime : powerSet(X)) {
+				for (Vertex v : this.vertices) {
+					for (ArrayList<Vertex> XPrime : powerSet(X)) {
 						if (XPrime.size() != X.size() && !XPrime.toString().equals("[]")) {
-							int gMapVX = getValue(gMap, v, X);
-							int fMapVXPrime = getValue(fMap, v, XPrime);
-							int fMapVXDiff = getValue(fMap, v, setDifference(X, XPrime));
+							int gMapVX = getValue(gMap, v.getKey(), X);
+							int fMapVXPrime = getValue(fMap, v.getKey(), XPrime);
+							int fMapVXDiff = getValue(fMap, v.getKey(), setDifference(X, XPrime));
 							if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
 								gMap.put(v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
 //									bMap.put(v.getKey()+getStringForSet(X), "{("+v.getKey()+","+getStringForSet(XPrime)+"),("+v.getKey()+","+getStringForSet(setDifference(X, XPrime))+")}");
@@ -88,36 +87,42 @@ public class DreyfusWagner implements SteinerTreeSolver {
 						}
 					}
 				}
-				for (Map.Entry<Integer,Vertex> v : g.getVertices().entrySet()) {
-					for (Map.Entry<Integer,Vertex> u : X) {
-						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(v, u);
-						int fMapUXDiff = getValue(fMap, u, setDifference(X, vertexAsSet(u)));
-						if (fMapVX == Integer.MAX_VALUE || pathUV + fMapUXDiff < fMapVX) {
-							fMap.put(v.getKey() + getStringForSet(X), pathUV + fMapUXDiff);
+				int counter2 = 0;
+				int percent = 0;
+				for (Vertex u : X) {
+					percent = checkProgress(++counter2, percent);
+					ArrayList<Integer> paths = new graph.PathFinding().DijkstraForDW(this.g, u, this.vertices);
+					int index = 0;
+					for (Vertex v : this.vertices) {
+						int fMapVX = getValue(fMap, v.getKey(), X);
+						int fMapUXDiff = getValue(fMap, u.getKey(), setDifference(X, vertexAsSet(u)));
+						if (fMapVX == Integer.MAX_VALUE || (paths.get(index) + fMapUXDiff < fMapVX)) {
+							fMap.put(v.getKey() + getStringForSet(X), paths.get(index) + fMapUXDiff);
 //								bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(setDifference(X, vertexAsSet(u)))+")}");
 //								bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, setDifference(X, uSet), null, null));
-
 						}
-					}
-					for (Map.Entry<Integer,Vertex> u : setDifference(g.getVertices().entrySet(), X)) {
-						
-						int fMapVX = getValue(fMap, v, X);
-						int pathUV = sPath(u, v);
-						int gMapUX = getValue(gMap, u, X);
-						if (fMapVX == Integer.MAX_VALUE || pathUV + gMapUX < fMapVX) {
-							fMap.put(v.getKey() + getStringForSet(X), pathUV + gMapUX);
+						index++;
+					}	
+				}
+				for (Vertex u : setDifference(this.vertices, X)) {
+					percent = checkProgress(++counter2, percent);
+					ArrayList<Integer> paths = new graph.PathFinding().DijkstraForDW(this.g, u, this.vertices);
+					int index = 0;
+					for (Vertex v : this.vertices) {
+						int fMapVX = getValue(fMap, v.getKey(), X);
+						int gMapUX = getValue(gMap, u.getKey(), X);
+						if (fMapVX == Integer.MAX_VALUE || (paths.get(index) + gMapUX < fMapVX)) {
+							fMap.put(v.getKey() + getStringForSet(X), paths.get(index) + gMapUX);
 //							bMap.put(v.getKey()+getStringForSet(X), "{("+u.getKey()+","+getStringForSet(X)+")}");
 //							bMap.put(v.getKey()+getStringForSet(X), new BookKeeping(u, X, null, null));
 						}
+						index++;
 					}
-
 				}
 			}
 			
 		}
-		Map.Entry<Integer,Vertex> v = g.getTerminals().entrySet().iterator().next();
-		System.out.println("Weight: " + getValue(fMap, v, setDifference(g.getTerminals().entrySet(), vertexAsSet(v))));
+		System.out.println("Weight: " + getValue(fMap, this.terminals.get(0).getKey(), setDifference(this.terminals, vertexAsSet(this.terminals.get(0)))));
 //		traceback(v, setDifference(g.getTerminals().entrySet(), vertexAsSet(v)));
 		return null;
 	}
@@ -145,9 +150,9 @@ public class DreyfusWagner implements SteinerTreeSolver {
 //		}
 //	}
 	
-	private int getValue(HashMap<String, Integer> func, Map.Entry<Integer,Vertex> vertex, Set<Map.Entry<Integer,Vertex>> set) {
+	private int getValue(HashMap<String, Integer> func, Integer vertex, ArrayList<Vertex> set) {
 		
-		String keyString = vertex.getKey() + getStringForSet(set);
+		String keyString = vertex + getStringForSet(set);
 		Object value = func.get(keyString);
 		if (value != null) {
 			return (int)(value);
@@ -155,12 +160,12 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		return Integer.MAX_VALUE;
 	}
 	
-	private String getStringForSet(Set<Map.Entry<Integer,Vertex>> set) {
+	private String getStringForSet(ArrayList<Vertex> set) {
 		if (set.isEmpty()) {
 			return "{}";
 		}
 		String s = "{";
-		for (Map.Entry<Integer,Vertex> v : set) {
+		for (Vertex v : set) {
 			s += v.getKey() + ",";
 		}
 		s = s.substring(0, s.length()-1);
@@ -168,78 +173,70 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		return s;
 	}
 	
-	private Set<Map.Entry<Integer,Vertex>> setDifference(Set<Map.Entry<Integer,Vertex>> set1, Set<Map.Entry<Integer,Vertex>> set2) {
+	private ArrayList<Vertex> setDifference(ArrayList<Vertex> set1, ArrayList<Vertex> set2) {
 		
-		Set<Map.Entry<Integer,Vertex>> copy = set1.stream().collect(Collectors.toSet());
+		ArrayList<Vertex> copy = new ArrayList<>(set1);
 		copy.removeAll(set2);
 		return copy;
 	}
-	
-	private int sPath(Map.Entry<Integer,Vertex> start, Map.Entry<Integer,Vertex> end) {
-				
-		graph.PathFinding pathFinding = new graph.PathFinding();
-		return pathFinding.DijkstraSingleEdge(this.g, start.getValue(), end.getValue()).getCost().orElse(0);			
-	}
-	
-	/**
-	 * Returns the powerset of the original set.
-	 *
-	 * @param originalSet
-	 *            The original set retrieving a list of vertices
-	 * @return The powerset containing all combination between the vertices
-	 *
-	 * @author Joshua Scheidt
-	 */
-	private <T> Set<Set<T>> powerSet(Set<T> originalSet) {
-		long millis = System.currentTimeMillis();
-		Set<Set<T>> sets = new HashSet<Set<T>>();
+
+	private ArrayList<ArrayList<Vertex>> powerSet(ArrayList<Vertex> originalSet) {
+		ArrayList<ArrayList<Vertex>> sets = new ArrayList<ArrayList<Vertex>>();
 		if (originalSet.isEmpty()) {
-			sets.add(new HashSet<T>());
+			sets.add(new ArrayList<Vertex>());
 			return sets;
 		}
-		List<T> list = new ArrayList<T>(originalSet);
-		T head = list.get(0);
-		Set<T> rest = new HashSet<T>(list.subList(1, list.size()));
-		for (Set<T> set : this.powerSet(rest)) {
-			Set<T> newSet = new HashSet<T>();
+		ArrayList<Vertex> list = new ArrayList<>(originalSet);
+		Vertex head = list.get(0);
+		ArrayList<Vertex> rest = new ArrayList<Vertex>(list.subList(1, list.size()));
+		for (ArrayList<Vertex> set : this.powerSet(rest)) {
+			ArrayList<Vertex> newSet = new ArrayList<Vertex>();
 			newSet.add(head);
 			newSet.addAll(set);
 			sets.add(newSet);
 			sets.add(set);
 		}
-		System.out.println(sets+"\n");
 		return sets;
 	}
 	
-	private <T> Set<Set<T>> getSubsets(Set<T> originalSet, int size) {
+	private ArrayList<ArrayList<Vertex>> getSubsets(ArrayList<Vertex> originalSet, int size) {
 		
-		
-		Set<Set<T>> sets = new HashSet<Set<T>>();
-		List<T> list = new ArrayList<T>(originalSet);
-		getSubsets(list, size, 0, new HashSet<T>(), sets);
+		ArrayList<ArrayList<Vertex>> sets = new ArrayList<ArrayList<Vertex>>();
+		ArrayList<Vertex> list = new ArrayList<Vertex>(originalSet);
+		getSubsets(list, size, 0, new ArrayList<Vertex>(), sets);
 		return sets;
 	}
 	
-	private static <T> void getSubsets(List<T> originalSet, int size, int idx, Set<T> current, Set<Set<T>> solution) {
+	private static void getSubsets(ArrayList<Vertex> originalSet, int size, int idx, ArrayList<Vertex> current, ArrayList<ArrayList<Vertex>> solution) {
 		
 		if (current.size() == size) {
-			solution.add(new HashSet<>(current));
+			solution.add(new ArrayList<Vertex>(current));
 			return;
 		}
 		if (idx == originalSet.size()) {
 			return;
 		}
-		T x = originalSet.get(idx);
+		Vertex x = originalSet.get(idx);
 		current.add(x);
 		getSubsets(originalSet, size, idx+1, current, solution);
 		current.remove(x);
 		getSubsets(originalSet, size, idx+1, current, solution);
 	}
 	
-	private Set<Map.Entry<Integer,Vertex>> vertexAsSet(Map.Entry<Integer,Vertex> v) {
+	private ArrayList<Vertex> vertexAsSet(Vertex v) {
 		
-		Set<Map.Entry<Integer,Vertex>> oneTerminalSet = new HashSet<>();
-		oneTerminalSet.add(v);
-		return oneTerminalSet;
+		ArrayList<Vertex> set = new ArrayList<>();
+		set.add(v);
+		return set;
+	}
+	
+	private int checkProgress(int counter, int currentPercent) {
+		int percent = (int)(Math.floor((double)(counter)/(double)(this.vertices.size())/0.2)*20.0);
+		if (percent > currentPercent) {
+			System.out.println("\t\t " + percent + "%");
+			return percent;
+		} else {
+			return currentPercent;
+		}
 	}
 }

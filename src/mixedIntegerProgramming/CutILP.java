@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,78 +39,100 @@ public class CutILP {
     private String fileName;
     private String LPFile;
     private final boolean DEBUG = false;
-    
-    public CutILP(UndirectedGraph g, String fileName){
+
+    public CutILP(UndirectedGraph g, String fileName) {
         this.g = g;
         this.fileName = fileName;
         this.LPFile = "data\\ILP\\" + this.fileName + ".lp";
     }
-    
-    public void initiateCutSearch(){
+
+    public void initiateCutSearch() {
         File f = new File(this.LPFile);
 //        if(f.exists()){
 //            System.out.println("This already exists so we can just run it through ILP");
 //            System.out.println(this.LPFile);
 //        } else {
-            this.createIdentifiableEdges();
-            this.recursiveInit();
-            this.writeFile();
+        this.createIdentifiableEdges();
+        this.writeStartOfFile();
+        this.recursiveInit();
+        this.writeEndOfFile();
+
 //        }
         double[] result = this.activateCPLEX(this.LPFile);
     }
-    
-    public void writeFile(){
+
+    public void writeIntermediate() {
         ArrayList<String> lines = new ArrayList<>();
-        
-        lines.add("Minimize");
-        String temp = "obj: ";
-        Iterator it = this.keys.keySet().iterator();
-        Edge current = (Edge) it.next();
-        int key = this.keys.get(current);
-        
-        temp = temp.concat(current.getCost().get() +  "x_" + key);
-        while(it.hasNext()){
-            current = (Edge) it.next();
-            key = this.keys.get(current);
-            temp = temp.concat(" + " + current.getCost().get() + "x_" + key);
-        }
-        lines.add(temp);
-        
-        temp = "Subject To";
-        lines.add(temp);
+        String temp = "";
         Iterator resultingList = this.result.iterator();
+        Iterator it, constraintIterator;
         HashSet constraint;
-        while(resultingList.hasNext()){
+        Edge current;
+        while (resultingList.hasNext()) {
             constraint = ((HashSet) resultingList.next());
-            Iterator constraintIterator = constraint.iterator();
+            constraintIterator = constraint.iterator();
             temp = "";
-            while(constraintIterator.hasNext()){
+            while (constraintIterator.hasNext()) {
                 Vertex v = this.g.getVertices().get((int) constraintIterator.next());
                 it = v.getEdges().iterator();
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     current = (Edge) it.next();
-                    if(constraint.contains(current.getOtherSide(v).getKey())){
-                        
+                    if (constraint.contains(current.getOtherSide(v).getKey())) {
+
                     } else {
                         temp = temp.concat("x_" + this.keys.get(current) + " + ");
                     }
                 }
             }
-            temp = temp.substring(0, temp.length()-2);
+            temp = temp.substring(0, temp.length() - 2);
             temp = temp.concat(" >= 1");
             lines.add(temp);
         }
-        
+        this.result.clear();
+        Path file = Paths.get(this.LPFile);
+        try {
+            Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+        } catch (IOException ex) {
+            Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void writeEndOfFile() {
+        ArrayList<String> lines = new ArrayList<>();
         lines.add("Bounds");
         lines.add("General");
         lines.add("Binaries");
-        it = this.edges.keySet().iterator();
-        while(it.hasNext()){
+        Iterator it = this.edges.keySet().iterator();
+        while (it.hasNext()) {
             lines.add("x_" + (int) it.next());
         }
         lines.add("End");
-        
-        
+        Path file = Paths.get(this.LPFile);
+        try {
+            Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+        } catch (IOException ex) {
+            Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void writeStartOfFile() {
+        ArrayList<String> lines = new ArrayList<>();
+
+        lines.add("Minimize");
+        String temp = "obj: ";
+        Iterator it = this.keys.keySet().iterator();
+        Edge current = (Edge) it.next();
+        int key = this.keys.get(current);
+
+        temp = temp.concat(current.getCost().get() + "x_" + key);
+        while (it.hasNext()) {
+            current = (Edge) it.next();
+            key = this.keys.get(current);
+            temp = temp.concat(" + " + current.getCost().get() + "x_" + key);
+        }
+        lines.add(temp);
+        temp = "Subject To";
+        lines.add(temp);
         Path file = Paths.get(this.LPFile);
         try {
             Files.write(file, lines, Charset.forName("UTF-8"));
@@ -117,8 +140,8 @@ public class CutILP {
             Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void recursiveInit(){
+
+    public void recursiveInit() {
         Set keys = this.g.getTerminals().keySet();
         Set others = this.g.getVertices().keySet();
         Set alreadyUsed = new HashSet<>();
@@ -127,46 +150,41 @@ public class CutILP {
         HashSet sub1, sub2;
         this.result = new HashSet<>();
         int counter = 1;
-        while(it.hasNext()){
-            temp = (Integer)it.next();
+        while (it.hasNext()) {
+            temp = (Integer) it.next();
             sub1 = new HashSet<>();
             sub1.add(temp);
             sub2 = new HashSet<>();
             sub2.addAll(others);
             sub2.remove(temp);
             sub2.removeAll(alreadyUsed);
-            
+            System.out.println("Starts cut finding for Terminal: " + counter);
             this.recursiveCut(sub1, sub2, counter);
-            System.out.println("All cuts found for Terminal: " + counter);
             alreadyUsed.add(temp);
             counter++;
         }
-        if(DEBUG){
+        if (DEBUG) {
             System.out.println("Number of cuts: " + this.result.size());
-            for(int i = 0; i < this.result.size(); i++){
+            for (int i = 0; i < this.result.size(); i++) {
                 System.out.println(this.result.toArray()[i].toString());
             }
         }
     }
-    
-    public void loopCut(HashSet<Integer> sub1, HashSet<Integer> sub2, int term1){
-        Integer temp;
-        HashSet<Integer> newSub1, newSub2;
-        Set alreadyUsed = new HashSet<>();
-        while(term1 < this.g.getNumberOfTerminals()){
-            
-        }
-    }
-    public void recursiveCut(HashSet<Integer> sub1, HashSet<Integer> sub2, int term1){
-        if(term1 >= this.g.getNumberOfTerminals()){
+
+    public void recursiveCut(HashSet<Integer> sub1, HashSet<Integer> sub2, int term1) {
+        if (term1 >= this.g.getNumberOfTerminals()) {
             return;
         }
+        System.out.println("Size of sub1: " + sub1.size());
         this.result.add(sub1);
+        if(this.result.size() >= 10){
+            this.writeIntermediate();
+        }
         Integer temp;
         HashSet<Integer> newSub1, newSub2;
         HashSet<Integer> alreadyUsed = new HashSet<>();
         Iterator it = sub2.iterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             temp = (Integer) it.next();
             alreadyUsed.add(temp);
             newSub1 = new HashSet<>();
@@ -175,45 +193,45 @@ public class CutILP {
             newSub2 = new HashSet<>();
             newSub2.addAll(sub2);
             newSub2.removeAll(alreadyUsed);
-            if(this.g.getTerminals().containsKey((int)temp)){
+            if (this.g.getTerminals().containsKey((int) temp)) {
                 term1++;
             }
             this.recursiveCut(newSub1, newSub2, term1);
         }
     }
-    
-    public void createIdentifiableEdges(){
+
+    public void createIdentifiableEdges() {
         this.edges = new HashMap<>();
         this.keys = new HashMap<>();
         Iterator it = this.g.getEdges().iterator();
         Edge e;
         int counter = 1;
-        while(it.hasNext()){
-            e = (Edge)it.next();
+        while (it.hasNext()) {
+            e = (Edge) it.next();
             this.keys.put(e, counter);
             this.edges.put(counter, e);
             counter++;
         }
     }
-    
-    public double[] activateCPLEX(String txt){
+
+    public double[] activateCPLEX(String txt) {
         double[] vals = null;
-        try{
+        try {
             IloCplex cplex = new IloCplex();
-        
+
             cplex.importModel(txt);
             cplex.setOut(null);
-            if ( cplex.solve() ) {
-                if(DEBUG){
+            if (cplex.solve()) {
+                if (DEBUG) {
                     cplex.output().println("Solution status = " + cplex.getStatus());
                     cplex.output().println("Solution value  = " + cplex.getObjValue());
                 }
-                IloLPMatrix lp = (IloLPMatrix)cplex.LPMatrixIterator().next();
-                
+                IloLPMatrix lp = (IloLPMatrix) cplex.LPMatrixIterator().next();
+
                 IloNumVar[] vars = lp.getNumVars();
                 vals = cplex.getValues(vars);
                 int lengthBasic = this.g.getEdges().size();
-                if(DEBUG){
+                if (DEBUG) {
                     System.out.println("Number of Basic variables: " + lengthBasic);
                     System.out.println(Arrays.toString(vars));
                     System.out.println(Arrays.toString(vals));
@@ -230,18 +248,17 @@ public class CutILP {
 //                       cnt++;
 //                    }
 //                }
-         }
-         cplex.end();
-        } 
-        catch(IloException e) {
+            }
+            cplex.end();
+        } catch (IloException e) {
             System.err.println("Concert exception '" + e + "'caught");
         }
-        if(DEBUG){
+        if (DEBUG) {
             System.out.println(Arrays.toString(vals));
         }
         return vals;
     }
-    
+
 //    public String flowFormulation(){
 //        ArrayList<String> lines = new ArrayList<>();
 //        lines.add("Minimize");

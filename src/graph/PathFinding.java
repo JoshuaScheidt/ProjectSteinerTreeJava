@@ -403,4 +403,65 @@ public class PathFinding {
 
 		return result;
 	}
+
+	/**
+	 * Performs Dijkstra's path finding algorithm and returns costs for all the
+	 * paths between the start vertex and every end vertex in the list (very similar
+	 * to DijkstraMultiPath)
+	 *
+	 * @param g
+	 *            List containing all the destination vertices
+	 * @return An ArrayList with the corresponding path lengths
+	 *
+	 * @author Joshua Scheidt
+	 * @author Pit Schneider
+	 */
+	public static ArrayList<Integer> DijkstraForDW(UndirectedGraph g, Vertex start, ArrayList<Vertex> end) {
+
+		ArrayList<Vertex> unvisited = new ArrayList<>();
+		HashMap<Vertex, DijkstraInfo> datamap = new HashMap<>();
+		for (Edge e : g.getEdges()) {
+			if (!datamap.containsKey(e.getVertices()[0])) {
+				datamap.put(e.getVertices()[0], new DijkstraInfo(Integer.MAX_VALUE));
+				unvisited.add(e.getVertices()[0]);
+			}
+			if (!datamap.containsKey(e.getVertices()[1])) {
+				datamap.put(e.getVertices()[1], new DijkstraInfo(Integer.MAX_VALUE));
+				unvisited.add(e.getVertices()[1]);
+			}
+		}
+		datamap.get(start).dist = 0;
+		int numReachedEnd = 0;
+		while (!unvisited.isEmpty()) {
+			int smallestDist = Integer.MAX_VALUE;
+			Vertex current = null;
+			for (Vertex v : unvisited) {
+				if (datamap.get(v).dist < smallestDist) {
+					current = v;
+					smallestDist = datamap.get(v).dist;
+				}
+			}
+			if (numReachedEnd == end.size())
+				break;
+			for (Vertex v : end)
+				if (v.getKey() == current.getKey())
+					numReachedEnd++;
+			unvisited.remove(current);
+			int distToCur = datamap.get(current).dist;
+			int totDistToNb = 0;
+			for (Vertex nb : current.getNeighbors()) {
+				totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
+				DijkstraInfo nbInfo = datamap.get(nb);
+				if (totDistToNb < nbInfo.dist) {
+					nbInfo.dist = totDistToNb;
+					nbInfo.parent = current;
+				}
+			}
+		}
+		ArrayList<Integer> result = new ArrayList<>();
+		for (Vertex v : end) {
+			result.add(datamap.get(v).dist);
+		}
+		return result;
+	}
 }

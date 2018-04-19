@@ -138,7 +138,7 @@ public class mainTest {
 			}
 		} else {
 			System.out.println("VALUE " + sum);
-			// System.out.println(temp);
+			System.out.println(temp);
 		}
 	}
 
