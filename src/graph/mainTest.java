@@ -23,8 +23,9 @@ public class mainTest {
 
     public static void main(String[] args) {
         // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-        String file = "data\\exact\\instance001.gr";
+        String file = "data\\exact\\instance017.gr";
         File[] files = readFiles(new File(file));
+        outerloop:
         for (int i = 0; i < files.length; i++) {
             System.out.println(files[i].toString());
             UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
@@ -47,11 +48,30 @@ public class mainTest {
             // System.out.println(pp.graph.getEdges().size());
 
             // Below is used to create a file with same name in lp format
+            file = files[i].toString();
             file = file.substring(file.indexOf("\\") + 1);
             file = file.substring(file.indexOf("\\") + 1);
             file = file.substring(0, file.indexOf("."));
+            fileName = file;
+//            for (int j = 1; j <= 15; j += 2) {
+//                if (j <= 9) {
+//                    if (file.equals("instance00" + j)) {
+//                        continue outerloop;
+//                    }
+//                } else if(j <= 99){
+//                    if (file.equals("instance0" + j)) {
+//                        continue outerloop;
+//                    }
+//                } else {
+//                    if (file.equals("instance" + j)) {
+//                        continue outerloop;
+//                    }
+//                }
+//            }
             SteinerTreeSolver fp = new FlowILP(graph, file);
-            printSolution(fp.solve(graph), false);
+            ArrayList<Edge> solution = (ArrayList) fp.solve(graph);
+            printSolution(solution, true);
+            graph.checkConnectivity(solution);
 
 //            SteinerTreeSolver solver = new ShortestPathHeuristic();
 //            solver.solve(graph);
@@ -116,9 +136,9 @@ public class mainTest {
             sum += solution.get(i).getCost().get();
         }
         if (toFile) {
-            Path file = Paths.get(fileName.substring(0, fileName.length() - 3) + ".txt");
+            Path file = Paths.get("data\\solutions\\" + fileName + ".txt");
             ArrayList<String> output = new ArrayList<>();
-            output.add("VALUE" + sum);
+            output.add("VALUE " + sum);
             output.add(temp);
             try {
                 Files.write(file, output, Charset.forName("UTF-8"));

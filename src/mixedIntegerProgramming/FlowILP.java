@@ -43,7 +43,7 @@ public class FlowILP implements SteinerTreeSolver {
     private HashSet<Integer> sinks;
     private String fileName;
     private Path LPFile;
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
 
     public FlowILP(UndirectedGraph g, String fileName) {
         this.g = g;
@@ -53,43 +53,56 @@ public class FlowILP implements SteinerTreeSolver {
     }
 
     @Override
-    public List<Edge> solve(UndirectedGraph G) {
+    public List<Edge> solve(UndirectedGraph g) {
+        double[] result;
+        ArrayList<Edge> resultingEdges;
         this.createIdentifiableEdges();
+        System.out.println("Done Creating Identifiable Edges");
         this.createSourceAndSinks();
-        this.writeStartOfFile();
-        this.writeSourceAndSinksConstraints();
-        this.writeFlowConservationConstraints();
-        this.writeEndOfFile();
-        double[] result = this.activateCPLEX(this.LPFile.toString());
-        ArrayList<Edge> resultingEdges = new ArrayList<>();
-        for(int i = 0; i < result.length - this.g.getNumberOfTerminals(); i++){
-            if(result[i] > 0){
-                resultingEdges.add(this.edgeKeys.get(i+1).getValue());
+        System.out.println("Created Source and Sink Edges");
+
+        if (this.LPFile.toFile().exists()) {
+            result = this.activateCPLEX(this.LPFile.toString());
+            resultingEdges = new ArrayList<>();
+        } else {
+            this.writeStartOfFile();
+            System.out.println("Written Start of File");
+            this.writeSourceAndSinksConstraints();
+            System.out.println("Written Source and Sink constraints");
+            this.writeBinaryEdgeConstraints();
+            System.out.println("Written Binary Edge constraints");
+            this.writeFlowConservationConstraints();
+            System.out.println("Written Flow Conservation constraints");
+            this.writeEndOfFile();
+            System.out.println("Written end of File");
+            result = this.activateCPLEX(this.LPFile.toString());
+            resultingEdges = new ArrayList<>();
+        }
+        for (int i = 0; i < this.edgeKeys.size() - this.g.getNumberOfTerminals(); i++) {
+            if (result[i] >= 0.5) {
+                resultingEdges.add(this.edgeKeys.get(i + 1).getValue());
             }
         }
         return resultingEdges;
     }
-    
-    public void adjacencyMatrix(){
+
+    public void writeBinaryEdgeConstraints() {
+        ArrayList<String> lines = new ArrayList<>();
         String temp = "";
-        temp = temp.concat("[");
-        Vertex v;
-        for(int j = 0; j < this.g.getVertices().size(); j++){
-            v = this.g.getVertices().get(j+1);
-            temp = temp.concat("[");
-            for(int i = 0; i < this.g.getVertices().size(); i++){
-                if(v.getNeighbors().contains(this.g.getVertices().get(i+1))){
-                    temp = temp.concat(v.getConnectingEdge(this.g.getVertices().get(i+1)).getCost().get() + ", ");
-                } else {
-                    temp = temp.concat("0, ");
-                }
+        Iterator it = this.edgeKeys.keySet().iterator();
+        int current;
+        while (it.hasNext()) {
+            current = (int) it.next();
+            if (this.edgeKeys.get(current).getValue() != null) {
+                temp = "x_" + current + " - " + this.g.getNumberOfTerminals() + "y_" + current + " <= 0";
+                lines.add(temp);
             }
-            temp = temp.substring(0, temp.length()-2);
-            temp = temp.concat("]");
-            System.out.println(temp);
-            temp = "";
         }
-        System.out.print("]");
+        try {
+            Files.write(this.LPFile, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+        } catch (IOException ex) {
+            Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void writeFlowConservationConstraints() {
@@ -207,12 +220,12 @@ public class FlowILP implements SteinerTreeSolver {
         int current = (int) it.next();
         Pair<Vertex, Edge> VEPair = this.edgeKeys.get(current);
 
-        temp = temp.concat(VEPair.getValue().getCost().get() + "x_" + current);
+        temp = temp.concat(VEPair.getValue().getCost().get() + "y_" + current);
         while (it.hasNext()) {
             current = (int) it.next();
             VEPair = this.edgeKeys.get(current);
             if (this.edgeKeys.get(current).getValue() != null) {
-                temp = temp.concat(" + " + VEPair.getValue().getCost().get() + "x_" + current);
+                temp = temp.concat(" + " + VEPair.getValue().getCost().get() + "y_" + current);
             }
         }
         lines.add(temp);
@@ -234,6 +247,14 @@ public class FlowILP implements SteinerTreeSolver {
         }
         lines.add("General");
         lines.add("Binaries");
+        it = this.edgeKeys.keySet().iterator();
+        int current;
+        while (it.hasNext()) {
+            current = (int) it.next();
+            if (current < (this.edgeKeys.size() - this.g.getNumberOfTerminals() + 1)) {
+                lines.add("y_" + current);
+            }
+        }
         lines.add("End");
 
         try {
@@ -286,5 +307,27 @@ public class FlowILP implements SteinerTreeSolver {
             System.out.println(Arrays.toString(vals));
         }
         return vals;
+    }
+
+    public void adjacencyMatrix() {
+        String temp = "";
+        temp = temp.concat("[");
+        Vertex v;
+        for (int j = 0; j < this.g.getVertices().size(); j++) {
+            v = this.g.getVertices().get(j + 1);
+            temp = temp.concat("[");
+            for (int i = 0; i < this.g.getVertices().size(); i++) {
+                if (v.getNeighbors().contains(this.g.getVertices().get(i + 1))) {
+                    temp = temp.concat(v.getConnectingEdge(this.g.getVertices().get(i + 1)).getCost().get() + ", ");
+                } else {
+                    temp = temp.concat("0, ");
+                }
+            }
+            temp = temp.substring(0, temp.length() - 2);
+            temp = temp.concat("]");
+            System.out.println(temp);
+            temp = "";
+        }
+        System.out.print("]");
     }
 }
