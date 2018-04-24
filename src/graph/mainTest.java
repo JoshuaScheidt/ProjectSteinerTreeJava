@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import mainAlgorithms.ShortestPathHeuristic;
+import mainAlgorithms.ShortestPathInbetweenNodes;
 import mainAlgorithms.SteinerTreeSolver;
 import mixedIntegerProgramming.CutILP;
 
@@ -23,11 +23,11 @@ public class mainTest {
 	public static void main(String[] args) {
 
 		// UndirectedGraph graph = new UndirectedGraphReader().read();
-		// SteinerTreeSolver solver = new ShortestPathHeuristic();
+		// SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
 		// List<Edge> edges = solver.solve(graph);
 		// printSolution(edges, false);
 
-		File[] files = readFiles(new File("data\\exact\\instance001.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance009.gr"));
 		// File[] files = readFiles(new File("data\\exact"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].toString());
@@ -50,7 +50,7 @@ public class mainTest {
 			// System.out.println(pp.graph.getVertices().size());
 			// System.out.println(pp.graph.getEdges().size());
 
-			SteinerTreeSolver solver = new ShortestPathHeuristic();
+			SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
 			List<Edge> edges = solver.solve(graph);
 			int result = 0;
 			for (Edge e : edges) {
@@ -61,6 +61,7 @@ public class mainTest {
 			System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms\n");
 			// printSolution(solver.solve(pp.graph), false);
 		}
+
 		// SteinerTreeSolver solver = new MobiusDynamics();
 		// solver.solve(graph);
 		// processed.removeBridgesAndSections(graph.getVertices().size());
