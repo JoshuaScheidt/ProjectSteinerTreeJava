@@ -3,6 +3,7 @@ package mainAlgorithms;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import graph.Edge;
@@ -15,17 +16,43 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 
 	@Override
 	public List<Edge> solve(UndirectedGraph G) {
-		ArrayList<Vertex> source = new ArrayList<>();
-		source.add(G.getTerminals().get(5));// G.getTerminals().keySet().iterator().next()));
-		ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(G, source);
+		ArrayList<EdgeFake> bestResult = new ArrayList<>();
+		int bestScore = Integer.MAX_VALUE;
+
+		boolean stopFinding = false; // Set to true if you want only 1 run
+		Iterator<Integer> termKeys = G.getTerminals().keySet().iterator();
+		long startTime = System.currentTimeMillis();
+		int counter = 0;
+		while (!stopFinding && termKeys.hasNext()) {
+			counter++;
+			ArrayList<Vertex> source = new ArrayList<>();
+			Integer startingTerminal = termKeys.next();
+			source.add(G.getTerminals().get(startingTerminal));
+			ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(G, source);
+
+			int currentScore = 0;
+			for (EdgeFake e : edges) {
+				currentScore += e.getCost();
+			}
+			// System.out.println("score: " + currentScore + " with terminal: " +
+			// startingTerminal);
+			if (currentScore < bestScore) {
+				bestScore = currentScore;
+				bestResult = edges;
+			}
+
+			long avgTimeToComplete = (System.currentTimeMillis() - startTime) / counter;
+			if ((30 * 60 * 1000) - (System.currentTimeMillis() - startTime) > (avgTimeToComplete * 2)) {
+				continue;
+			} else
+				stopFinding = true;
+		}
 
 		ArrayList<Edge> tbrEdges = new ArrayList<>();
 		for (Edge e : G.getEdges())
 			tbrEdges.add(e);
 
-		for (EdgeFake e : edges) {
-			// System.out.println(e.getVertices()[0].getKey() + " " +
-			// e.getVertices()[1].getKey());
+		for (EdgeFake e : bestResult) {
 			if (e.getStack() != null) {
 				for (int[] s : e.getStack()) {
 					tbrEdges.remove(G.getVertices().get(s[0]).getConnectingEdge(G.getVertices().get(s[1])));

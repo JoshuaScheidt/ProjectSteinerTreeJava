@@ -22,45 +22,47 @@ public class mainTest {
 
 	public static void main(String[] args) {
 
-		// UndirectedGraph graph = new UndirectedGraphReader().read();
+		UndirectedGraph graph = new UndirectedGraphReader().read();
+		SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
+		List<Edge> edges = solver.solve(graph);
+		printSolution(edges, false);
+
+		// File[] files = readFiles(new File("data\\exact\\instance093.gr"));
+		// // File[] files = readFiles(new File("data\\exact"));
+		// for (int i = 0; i < files.length; i++) {
+		// System.out.println(files[i].toString());
+		// UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+		// // PreProcess pp = new PreProcess(graph);
+		// // pp.removeBridgesAndSections(graph.getVertices().size());
+		// // boolean[] preProcessable;
+		// // do {
+		// // preProcessable = pp.graph.preProcessable();
+		// // pp.rangeCheck();
+		// // if (preProcessable[0]) {
+		// // pp.removeLeafNodes();
+		// // }
+		// // if (preProcessable[1]) {
+		// // pp.removeNonTerminalDegreeTwo();
+		// // }
+		// // } while (preProcessable[0] || preProcessable[1]);
+		// // PreProcess processed = new PreProcess(graph);
+		// long starts = System.currentTimeMillis();
+		// // System.out.println(pp.graph.getVertices().size());
+		// // System.out.println(pp.graph.getEdges().size());
+		//
 		// SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
 		// List<Edge> edges = solver.solve(graph);
-		// printSolution(edges, false);
-
-		File[] files = readFiles(new File("data\\exact\\instance009.gr"));
-		// File[] files = readFiles(new File("data\\exact"));
-		for (int i = 0; i < files.length; i++) {
-			System.out.println(files[i].toString());
-			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
-			// PreProcess pp = new PreProcess(graph);
-			// pp.removeBridgesAndSections(graph.getVertices().size());
-			// boolean[] preProcessable;
-			// do {
-			// preProcessable = pp.graph.preProcessable();
-			// pp.rangeCheck();
-			// if (preProcessable[0]) {
-			// pp.removeLeafNodes();
-			// }
-			// if (preProcessable[1]) {
-			// pp.removeNonTerminalDegreeTwo();
-			// }
-			// } while (preProcessable[0] || preProcessable[1]);
-			// PreProcess processed = new PreProcess(graph);
-			long starts = System.currentTimeMillis();
-			// System.out.println(pp.graph.getVertices().size());
-			// System.out.println(pp.graph.getEdges().size());
-
-			SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
-			List<Edge> edges = solver.solve(graph);
-			int result = 0;
-			for (Edge e : edges) {
-				System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost().get());
-				result += e.getCost().get();
-			}
-			System.out.println("Result " + i + " value: " + result);
-			System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms\n");
-			// printSolution(solver.solve(pp.graph), false);
-		}
+		// int result = 0;
+		// for (Edge e : edges) {
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// result += e.getCost().get();
+		// }
+		// System.out.println("Result " + i + " value: " + result);
+		// System.out.println("Took " + (System.currentTimeMillis() - starts) + "
+		// ms\n");
+		// // printSolution(solver.solve(pp.graph), false);
+		// }
 
 		// SteinerTreeSolver solver = new MobiusDynamics();
 		// solver.solve(graph);
