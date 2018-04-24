@@ -121,6 +121,22 @@ public class UndirectedGraph {
         System.out.println("It is connected");
     }
 
+    public void rangeCheck() {
+        HashMap<Integer, Integer> ranges = new HashMap<>();
+        int cost = 0;
+        for(Edge e : this.getEdges()){
+           cost =  e.getCost().get();
+            if(ranges.containsKey(e.getCost().get())){
+                ranges.replace(cost, ranges.get(cost).intValue(), ranges.get(cost) + 1);
+            } else {
+                ranges.put(cost, 1);
+            }
+        }
+        for(Integer i : ranges.keySet()){
+            System.out.println("Cost: " + i + " is found " + ranges.get(i) + " times");
+        }
+    }
+    
     /**
      * This method adds a vertex to the graph it also checks if it already
      * contains this vertex if it does it will not add it

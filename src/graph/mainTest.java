@@ -23,7 +23,7 @@ public class mainTest {
 
     public static void main(String[] args) {
         // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-        String file = "data\\exact\\instance017.gr";
+        String file = "data\\exact100kb";
         File[] files = readFiles(new File(file));
         outerloop:
         for (int i = 0; i < files.length; i++) {
