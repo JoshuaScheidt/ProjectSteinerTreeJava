@@ -311,11 +311,18 @@ public class FlowILP implements SteinerTreeSolver {
 
     public void adjacencyMatrix() {
         String temp = "";
-        temp = temp.concat("[");
         Vertex v;
+        temp = temp.concat("[0, ");
+        for (int i = 0; i < this.g.getVertices().size(); i++) {
+            temp = temp = temp.concat("0, ");
+        }
+        temp = temp.substring(0, temp.length() - 2);
+        temp = temp.concat("]");
+        System.out.println(temp);
+        temp = "";
         for (int j = 0; j < this.g.getVertices().size(); j++) {
             v = this.g.getVertices().get(j + 1);
-            temp = temp.concat("[");
+            temp = temp.concat("[0, ");
             for (int i = 0; i < this.g.getVertices().size(); i++) {
                 if (v.getNeighbors().contains(this.g.getVertices().get(i + 1))) {
                     temp = temp.concat(v.getConnectingEdge(this.g.getVertices().get(i + 1)).getCost().get() + ", ");
@@ -328,6 +335,5 @@ public class FlowILP implements SteinerTreeSolver {
             System.out.println(temp);
             temp = "";
         }
-        System.out.print("]");
     }
 }

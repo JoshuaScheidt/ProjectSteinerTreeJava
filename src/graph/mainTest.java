@@ -23,7 +23,7 @@ public class mainTest {
 
     public static void main(String[] args) {
         // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-        String file = "data\\exact100kb";
+        String file = "data\\exact\\instance009.gr";
         File[] files = readFiles(new File(file));
         outerloop:
         for (int i = 0; i < files.length; i++) {
@@ -53,6 +53,7 @@ public class mainTest {
             file = file.substring(file.indexOf("\\") + 1);
             file = file.substring(0, file.indexOf("."));
             fileName = file;
+            
 //            for (int j = 1; j <= 15; j += 2) {
 //                if (j <= 9) {
 //                    if (file.equals("instance00" + j)) {
