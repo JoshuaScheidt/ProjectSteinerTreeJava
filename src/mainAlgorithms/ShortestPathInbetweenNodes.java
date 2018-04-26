@@ -19,7 +19,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		ArrayList<EdgeFake> bestResult = new ArrayList<>();
 		int bestScore = Integer.MAX_VALUE;
 
-		boolean stopFinding = false; // Set to true if you want only 1 run
+		boolean stopFinding = false;
 		Iterator<Integer> termKeys = G.getTerminals().keySet().iterator();
 		long startTime = System.currentTimeMillis();
 		int counter = 0;
@@ -29,7 +29,35 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			Integer startingTerminal = termKeys.next();
 			source.add(G.getTerminals().get(startingTerminal));
 			ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(G, source);
-
+			// ///////////////////////////////////////
+			// UndirectedGraph tmp = G.clone();
+			// ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(tmp, source);
+			// ArrayList<Edge> remainder = new ArrayList<>();
+			// int currentScore = 0;
+			// for (EdgeFake e : edges) {
+			// currentScore += e.getCost();
+			// }
+			// System.out.println("score: " + currentScore + " with terminal: " +
+			// startingTerminal);
+			// if (currentScore < bestScore) {
+			// bestScore = currentScore;
+			// bestResult = edges;
+			// }
+			//
+			// for (EdgeFake e : bestResult) {
+			// if (e.getStack() != null) {
+			// for (int[] s : e.getStack()) {
+			// remainder.add(tmp.getVertices().get(s[0]).getConnectingEdge(tmp.getVertices().get(s[1])));
+			// }
+			// } else
+			// remainder.add(e.getVertices()[0].getConnectingEdge(e.getVertices()[1]));
+			// }
+			// System.out.println("Graph with terminal:" + startingTerminal);
+			// for (Edge e : remainder)
+			// System.out.println(e.getVertices()[0].getKey() + " " +
+			// e.getVertices()[1].getKey() + e.getCost().get());
+			// tmp.checkConnectivity(remainder);
+			// ////////////////////////////////////
 			int currentScore = 0;
 			for (EdgeFake e : edges) {
 				currentScore += e.getCost();
@@ -73,7 +101,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		ArrayList<Edge> result = new ArrayList<>();
 		for (Edge e : G.getEdges())
 			result.add(e);
-		System.out.println();
+
 		return result;
 	}
 
