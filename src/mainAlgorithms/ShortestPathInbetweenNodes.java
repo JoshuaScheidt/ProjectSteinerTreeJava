@@ -1,6 +1,7 @@
 package mainAlgorithms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,38 +27,30 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		while (!stopFinding && termKeys.hasNext()) {
 			counter++;
 			ArrayList<Vertex> source = new ArrayList<>();
+			// Initialize for using recursive behaviour
 			Integer startingTerminal = termKeys.next();
 			source.add(G.getTerminals().get(startingTerminal));
-			ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(G, source);
-			// ///////////////////////////////////////
-			// UndirectedGraph tmp = G.clone();
-			// ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(tmp, source);
-			// ArrayList<Edge> remainder = new ArrayList<>();
-			// int currentScore = 0;
-			// for (EdgeFake e : edges) {
-			// currentScore += e.getCost();
-			// }
-			// System.out.println("score: " + currentScore + " with terminal: " +
-			// startingTerminal);
-			// if (currentScore < bestScore) {
-			// bestScore = currentScore;
-			// bestResult = edges;
-			// }
-			//
-			// for (EdgeFake e : bestResult) {
-			// if (e.getStack() != null) {
-			// for (int[] s : e.getStack()) {
-			// remainder.add(tmp.getVertices().get(s[0]).getConnectingEdge(tmp.getVertices().get(s[1])));
-			// }
-			// } else
-			// remainder.add(e.getVertices()[0].getConnectingEdge(e.getVertices()[1]));
-			// }
-			// System.out.println("Graph with terminal:" + startingTerminal);
-			// for (Edge e : remainder)
-			// System.out.println(e.getVertices()[0].getKey() + " " +
-			// e.getVertices()[1].getKey() + e.getCost().get());
-			// tmp.checkConnectivity(remainder);
-			// ////////////////////////////////////
+			ArrayList<Integer[]> searches = new ArrayList<>();
+
+			for (Vertex nb : source.get(0).getNeighbors()) {
+				if (searches.size() > 0) {
+					binaryInsertion(searches,
+							new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
+				} else
+					searches.add(new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
+			}
+
+			HashMap<Integer, ArrayList<Integer>> visited = new HashMap<>();
+			visited.put(source.get(0).getKey(), new ArrayList<>());
+			visited.get(source.get(0).getKey()).add(source.get(0).getKey());
+
+			ArrayList<EdgeFake> result = new ArrayList<>();
+
+			HashSet<Integer> inSet = new HashSet<>();
+			inSet.add(source.get(0).getKey());
+
+			ArrayList<EdgeFake> edges = this.dijkstraAllInbetween(G, source, searches, visited, result, 1, inSet);
+
 			int currentScore = 0;
 			for (EdgeFake e : edges) {
 				currentScore += e.getCost();
@@ -105,122 +98,174 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		return result;
 	}
 
-	private Integer[] current;
-
-	public ArrayList<EdgeFake> dijkstraAllInbetween(UndirectedGraph graph, ArrayList<Vertex> source) {
-		ArrayList<Integer[]> searches = new ArrayList<>();
-		// ArrayList<Integer> foundShortest = new ArrayList<>();
-		HashMap<Integer, ArrayList<Integer>> visited = new HashMap<>();
-		for (Vertex nb : source.get(0).getNeighbors()) {
-			if (searches.size() > 0) {
-				binaryInsertion(searches, new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
-			} else
-				searches.add(new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
-		}
-		// for (Integer[] i : searches)
-		// System.out.println(Arrays.toString(i));
-		visited.put(source.get(0).getKey(), new ArrayList<>());
-		visited.get(source.get(0).getKey()).add(source.get(0).getKey());
-		// foundShortest.add(source.get(0).getKey());
-		ArrayList<EdgeFake> result = new ArrayList<>();
-		int numTerminals = 1;
-		HashSet<Integer> inSet = new HashSet<>();
-		inSet.add(source.get(0).getKey());
-
+	public ArrayList<EdgeFake> dijkstraAllInbetween(UndirectedGraph graph, ArrayList<Vertex> source, ArrayList<Integer[]> searches,
+			HashMap<Integer, ArrayList<Integer>> visited, ArrayList<EdgeFake> result, int numTerminals, HashSet<Integer> inSet) {
+		Integer[] current;
 		while (numTerminals < graph.getNumberOfTerminals()) {
-			// System.out.println("source size: " + source.size());
-			// System.out.println("Searches size: " + searches.size());
-			// for (Integer[] i : searches)
-			// System.out.println(Arrays.toString(i));
+			System.out.println("source size: " + source.size());
+			System.out.println("Searches size: " + searches.size());
+			System.out.println("num terminals " + numTerminals);
+			for (Integer[] i : searches)
+				System.out.println(Arrays.toString(i));
 			if (searches.size() == 0)
 				System.out.println("ERROR");
 
-			this.current = searches.remove(0);
+			current = searches.remove(0);
 			// System.out.println("inset: " + Arrays.toString(inSet.toArray()));
-			while (inSet.contains(this.current[0]) && inSet.contains(this.current[1])) {// && !foundShortest.contains(this.current[1])) {
-				this.current = searches.remove(0);
+			while (inSet.contains(current[0]) && inSet.contains(current[1])) {// && !foundShortest.contains(this.current[1])) {
+				current = searches.remove(0);
 			}
 			// foundShortest.add(this.current[1]);
 			// System.out.println("Current: " + Arrays.toString(this.current));
-			visited.get(this.current[0]).add(this.current[1]);
-			if (graph.getVertices().get(this.current[1]).isTerminal()) {
+			visited.get(current[0]).add(current[1]);
+			if (graph.getVertices().get(current[1]).isTerminal()) {
 				// System.out.println("Found terminal");
 				ArrayList<Vertex> end = new ArrayList<>();
-				end.add(graph.getVertices().get(this.current[1]));
-				ArrayList<EdgeFake> path = PathFinding.DijkstraMultiPathFakeEdges(graph, graph.getVertices().get(this.current[0]), end, null);
-				numTerminals++;
-				// System.out.println(path.size());
-				result.addAll(path);
-				ArrayList<Vertex> pathVertices = new ArrayList<>();
-				EdgeFake e = path.get(0);
-				if (e.getStack() != null)
-					for (int[] i : e.getStack()) {
-						// System.out.println("Edge: " + Arrays.toString(i));
+				end.add(graph.getVertices().get(current[1]));
+				ArrayList<EdgeFake> path = PathFinding.DijkstraMultiPathFakeEdgesMultiSolution(graph, graph.getVertices().get(current[0]), end, null);
+				System.out.println("Path size " + path.size());
+				if (path.size() == 1) {
+					numTerminals++;
+					result.addAll(path);
+					ArrayList<Vertex> pathVertices = new ArrayList<>();
+					EdgeFake e = path.get(0);
+					if (e.getStack() != null)
+						for (int[] i : e.getStack()) {
+							// System.out.println("Edge: " + Arrays.toString(i));
+							for (int j = 0; j < searches.size(); j++) {
+								if (searches.get(j)[0] == current[0] && ((searches.get(j)[1] == i[0]) || (searches.get(j)[1] == i[1]))) {
+									searches.remove(j);
+									j--;
+								}
+							}
+							if (!pathVertices.contains(graph.getVertices().get(i[0]))) {
+								pathVertices.add(graph.getVertices().get(i[0]));
+							}
+							if (!pathVertices.contains(graph.getVertices().get(i[1]))) {
+								pathVertices.add(graph.getVertices().get(i[1]));
+							}
+						}
+					else {
 						for (int j = 0; j < searches.size(); j++) {
-							if (searches.get(j)[0] == this.current[0] && ((searches.get(j)[1] == i[0]) || (searches.get(j)[1] == i[1]))) {
+							if (searches.get(j)[0] == current[0]
+									&& ((searches.get(j)[1] == e.getVertices()[0].getKey()) || (searches.get(j)[1] == e.getVertices()[1].getKey()))) {
 								searches.remove(j);
 								j--;
 							}
 						}
-						// searches.forEach((array) -> {
-						// if (array[0] == this.current[0] && ((array[1] == i[0]) || (array[1] ==
-						// i[1]))) {
-						// searches.remove(array);
-						// }
-						// });
-						if (!pathVertices.contains(graph.getVertices().get(i[0]))) {
-							pathVertices.add(graph.getVertices().get(i[0]));
-						}
-						if (!pathVertices.contains(graph.getVertices().get(i[1]))) {
-							pathVertices.add(graph.getVertices().get(i[1]));
-						}
+						pathVertices.add(e.getVertices()[0]);
+						pathVertices.add(e.getVertices()[1]);
 					}
-				else {
-					for (int j = 0; j < searches.size(); j++) {
-						if (searches.get(j)[0] == this.current[0]
-								&& ((searches.get(j)[1] == e.getVertices()[0].getKey()) || (searches.get(j)[1] == e.getVertices()[1].getKey()))) {
-							searches.remove(j);
-							j--;
-						}
-					}
-					// searches.forEach((array) -> {
-					// if (array[0] == this.current[0] && ((array[1] == e.getVertices()[0].getKey())
-					// || (array[1] == e.getVertices()[1].getKey()))) {
-					// searches.remove(array);
-					// }
-					// });
-					pathVertices.add(e.getVertices()[0]);
-					pathVertices.add(e.getVertices()[1]);
-				}
-				// System.out.print("Path: ");
-				for (Vertex v : pathVertices) {
-					if (v != graph.getVertices().get(this.current[0])) {
-						inSet.add(v.getKey());
-						for (Vertex nb : v.getNeighbors()) {
-							if (v.getKey() == 33) {
-								// System.out.println("Key 33 NB " + nb.getKey());
-								// System.out.println(!pathVertices.contains(nb));
-								// System.out.println(!inSet.contains(nb.getKey()));
+					// System.out.print("Path: ");
+					for (Vertex v : pathVertices) {
+						if (v != graph.getVertices().get(current[0])) {
+							inSet.add(v.getKey());
+							for (Vertex nb : v.getNeighbors()) {
+								if (!pathVertices.contains(nb) && !inSet.contains(nb.getKey())) {
+									binaryInsertion(searches, new Integer[] { v.getKey(), nb.getKey(), v.getConnectingEdge(nb).getCost().get() });
+								}
 							}
-							if (!pathVertices.contains(nb) && !inSet.contains(nb.getKey())) {
-								binaryInsertion(searches, new Integer[] { v.getKey(), nb.getKey(), v.getConnectingEdge(nb).getCost().get() });
+							source.add(v);
+							visited.put(v.getKey(), new ArrayList<>());
+							visited.get(v.getKey()).add(v.getKey());
+						}
+					}
+				} else {
+					ArrayList<ArrayList<EdgeFake>> allResults = new ArrayList<>();
+					for (EdgeFake e : path) {
+						for (int[] i : e.getStack())
+							System.out.println("Here e: " + i[0] + " " + i[1] + " " + i[2]);
+						System.out.println();
+						int tmpNumTerminals = numTerminals + 1;
+						ArrayList<EdgeFake> tmpResult = (ArrayList<EdgeFake>) result.clone();
+						tmpResult.addAll(path);
+						ArrayList<Integer[]> tmpSearches = (ArrayList<Integer[]>) searches.clone();
+						HashSet<Integer> tmpInSet = (HashSet<Integer>) inSet.clone();
+						ArrayList<Vertex> tmpSource = (ArrayList<Vertex>) source.clone();
+						HashMap<Integer, ArrayList<Integer>> tmpVisited = (HashMap<Integer, ArrayList<Integer>>) visited.clone();
+						ArrayList<Vertex> pathVertices = new ArrayList<>();
+						if (e.getStack() != null)
+							for (int[] i : e.getStack()) {
+								// System.out.println("Edge: " + Arrays.toString(i));
+								for (int j = 0; j < tmpSearches.size(); j++) {
+									if (tmpSearches.get(j)[0] == current[0] && ((tmpSearches.get(j)[1] == i[0]) || (tmpSearches.get(j)[1] == i[1]))) {
+										tmpSearches.remove(j);
+										j--;
+									}
+								}
+								if (!pathVertices.contains(graph.getVertices().get(i[0]))) {
+									pathVertices.add(graph.getVertices().get(i[0]));
+								}
+								if (!pathVertices.contains(graph.getVertices().get(i[1]))) {
+									pathVertices.add(graph.getVertices().get(i[1]));
+								}
+							}
+						else {
+							for (int j = 0; j < tmpSearches.size(); j++) {
+								if (tmpSearches.get(j)[0] == current[0] && ((tmpSearches.get(j)[1] == e.getVertices()[0].getKey())
+										|| (tmpSearches.get(j)[1] == e.getVertices()[1].getKey()))) {
+									tmpSearches.remove(j);
+									j--;
+								}
+							}
+							pathVertices.add(e.getVertices()[0]);
+							pathVertices.add(e.getVertices()[1]);
+						}
+						// System.out.print("Path: ");
+						for (Vertex v : pathVertices) {
+							if (v != graph.getVertices().get(current[0])) {
+								tmpInSet.add(v.getKey());
+								for (Vertex nb : v.getNeighbors()) {
+									if (!pathVertices.contains(nb) && !tmpInSet.contains(nb.getKey())) {
+										binaryInsertion(tmpSearches,
+												new Integer[] { v.getKey(), nb.getKey(), v.getConnectingEdge(nb).getCost().get() });
+									}
+								}
+								tmpSource.add(v);
+								tmpVisited.put(v.getKey(), new ArrayList<>());
+								tmpVisited.get(v.getKey()).add(v.getKey());
 							}
 						}
-						source.add(v);
-						visited.put(v.getKey(), new ArrayList<>());
-						visited.get(v.getKey()).add(v.getKey());
+						System.out.println("InfoBlock start");
+						System.out.print("Source: ");
+						for (Vertex v : tmpSource)
+							System.out.print(v.getKey() + " ");
+						System.out.println("\nSearches: ");
+						for (Integer[] i : tmpSearches)
+							System.out.println(i[0] + " " + i[1] + " " + i[2]);
+						System.out.println("numTerminals:" + tmpNumTerminals);
+						System.out.println("InfoBlock end");
+						allResults.add(this.dijkstraAllInbetween(graph, tmpSource, tmpSearches, tmpVisited, tmpResult, tmpNumTerminals, tmpInSet));
 					}
+					ArrayList<EdgeFake> bestTree = null;
+					int bestScore = Integer.MAX_VALUE;
+					System.out.println("Calculating the score:");
+					for (ArrayList<EdgeFake> res : allResults) {
+						int curScore = 0;
+						for (EdgeFake e : res) {
+							curScore += e.getCost();
+							System.out.println("\n" + e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost());
+							for (int[] i : e.getStack())
+								System.out.println(i[0] + " " + i[1] + " " + i[2]);
+						}
+						System.out.println();
+						if (curScore < bestScore) {
+							bestTree = res;
+							bestScore = curScore;
+						}
+					}
+					System.out.println("found best tree");
+					return bestTree;
 				}
 				// System.out.println();
 			} else {
 				// System.out.println("in here");
-				for (Vertex nb : graph.getVertices().get(this.current[1]).getNeighbors()) {
-					if (!visited.get(this.current[0]).contains(nb.getKey()) && !inSet.contains(nb.getKey())) {
+				for (Vertex nb : graph.getVertices().get(current[1]).getNeighbors()) {
+					if (!visited.get(current[0]).contains(nb.getKey()) && !inSet.contains(nb.getKey())) {
 						boolean add = true;
 						for (int i = 0; i < searches.size(); i++)
-							if (searches.get(i)[0] == this.current[0] && searches.get(i)[1] == nb.getKey()) {
-								if (searches.get(i)[2] <= this.current[2]
-										+ graph.getVertices().get(this.current[1]).getConnectingEdge(nb).getCost().get())
+							if (searches.get(i)[0] == current[0] && searches.get(i)[1] == nb.getKey()) {
+								if (searches.get(i)[2] <= current[2] + graph.getVertices().get(current[1]).getConnectingEdge(nb).getCost().get())
 									add = false;
 								else {
 									searches.remove(i);
@@ -228,14 +273,14 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 								}
 							}
 						if (add)
-							binaryInsertion(searches, new Integer[] { this.current[0], nb.getKey(),
-									this.current[2] + graph.getVertices().get(this.current[1]).getConnectingEdge(nb).getCost().get() });
+							binaryInsertion(searches, new Integer[] { current[0], nb.getKey(),
+									current[2] + graph.getVertices().get(current[1]).getConnectingEdge(nb).getCost().get() });
 					}
 				}
 			}
 		}
 		// System.out.println(numTerminals + " " + graph.getNumberOfTerminals());
-
+		System.out.println("returning: " + result.size());
 		return result;
 	}
 

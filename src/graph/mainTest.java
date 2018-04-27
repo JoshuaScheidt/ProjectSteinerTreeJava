@@ -27,11 +27,14 @@ public class mainTest {
 		// List<Edge> edges = solver.solve(graph);
 		// printSolution(edges, false);
 
-		File[] files = readFiles(new File("data\\exact\\instance007.gr"));
+		File[] files = readFiles(new File("data\\test\\testMultiParent.gr"));
 		// File[] files = readFiles(new File("data\\exact"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].toString());
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+			// for (Edge e : graph.getEdges())
+			// System.out.println(e.getVertices()[0].getKey() + " " +
+			// e.getVertices()[1].getKey() + " " + e.getCost().get());
 			// PreProcess pp = new PreProcess(graph);
 			// pp.removeBridgesAndSections(graph.getVertices().size());
 			// boolean[] preProcessable;
