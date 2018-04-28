@@ -27,7 +27,7 @@ public class mainTest {
 		// List<Edge> edges = solver.solve(graph);
 		// printSolution(edges, false);
 
-		File[] files = readFiles(new File("data\\test\\testMultiParent.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance007.gr"));
 		// File[] files = readFiles(new File("data\\exact"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].toString());

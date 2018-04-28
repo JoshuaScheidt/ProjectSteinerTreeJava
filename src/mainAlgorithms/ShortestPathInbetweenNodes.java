@@ -1,7 +1,6 @@
 package mainAlgorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -102,11 +101,11 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			HashMap<Integer, ArrayList<Integer>> visited, ArrayList<EdgeFake> result, int numTerminals, HashSet<Integer> inSet) {
 		Integer[] current;
 		while (numTerminals < graph.getNumberOfTerminals()) {
-			System.out.println("source size: " + source.size());
-			System.out.println("Searches size: " + searches.size());
-			System.out.println("num terminals " + numTerminals);
-			for (Integer[] i : searches)
-				System.out.println(Arrays.toString(i));
+			// System.out.println("source size: " + source.size());
+			// System.out.println("Searches size: " + searches.size());
+			// System.out.println("num terminals " + numTerminals);
+			// for (Integer[] i : searches)
+			// System.out.println(Arrays.toString(i));
 			if (searches.size() == 0)
 				System.out.println("ERROR");
 
@@ -123,7 +122,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 				ArrayList<Vertex> end = new ArrayList<>();
 				end.add(graph.getVertices().get(current[1]));
 				ArrayList<EdgeFake> path = PathFinding.DijkstraMultiPathFakeEdgesMultiSolution(graph, graph.getVertices().get(current[0]), end, null);
-				System.out.println("Path size " + path.size());
+				// System.out.println("Path size " + path.size());
 				if (path.size() == 1) {
 					numTerminals++;
 					result.addAll(path);
@@ -172,13 +171,19 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 					}
 				} else {
 					ArrayList<ArrayList<EdgeFake>> allResults = new ArrayList<>();
+					HashSet<Integer> inAPath = new HashSet<>();
+					for (EdgeFake e : path)
+						for (int[] i : e.getStack()) {
+							inAPath.add(i[0]);
+							inAPath.add(i[1]);
+						}
 					for (EdgeFake e : path) {
-						for (int[] i : e.getStack())
-							System.out.println("Here e: " + i[0] + " " + i[1] + " " + i[2]);
-						System.out.println();
+						// for (int[] i : e.getStack())
+						// System.out.println("Here e: " + i[0] + " " + i[1] + " " + i[2]);
+						// System.out.println();
 						int tmpNumTerminals = numTerminals + 1;
 						ArrayList<EdgeFake> tmpResult = (ArrayList<EdgeFake>) result.clone();
-						tmpResult.addAll(path);
+						tmpResult.add(e);
 						ArrayList<Integer[]> tmpSearches = (ArrayList<Integer[]>) searches.clone();
 						HashSet<Integer> tmpInSet = (HashSet<Integer>) inSet.clone();
 						ArrayList<Vertex> tmpSource = (ArrayList<Vertex>) source.clone();
@@ -216,7 +221,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 							if (v != graph.getVertices().get(current[0])) {
 								tmpInSet.add(v.getKey());
 								for (Vertex nb : v.getNeighbors()) {
-									if (!pathVertices.contains(nb) && !tmpInSet.contains(nb.getKey())) {
+									if (!tmpInSet.contains(nb.getKey()) && !inAPath.contains(nb.getKey())) {
 										binaryInsertion(tmpSearches,
 												new Integer[] { v.getKey(), nb.getKey(), v.getConnectingEdge(nb).getCost().get() });
 									}
@@ -226,35 +231,36 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 								tmpVisited.get(v.getKey()).add(v.getKey());
 							}
 						}
-						System.out.println("InfoBlock start");
-						System.out.print("Source: ");
-						for (Vertex v : tmpSource)
-							System.out.print(v.getKey() + " ");
-						System.out.println("\nSearches: ");
-						for (Integer[] i : tmpSearches)
-							System.out.println(i[0] + " " + i[1] + " " + i[2]);
-						System.out.println("numTerminals:" + tmpNumTerminals);
-						System.out.println("InfoBlock end");
+						// System.out.println("InfoBlock start");
+						// System.out.print("Source: ");
+						// for (Vertex v : tmpSource)
+						// System.out.print(v.getKey() + " ");
+						// System.out.println("\nSearches: ");
+						// for (Integer[] i : tmpSearches)
+						// System.out.println(i[0] + " " + i[1] + " " + i[2]);
+						// System.out.println("numTerminals:" + tmpNumTerminals);
+						// System.out.println("InfoBlock end");
 						allResults.add(this.dijkstraAllInbetween(graph, tmpSource, tmpSearches, tmpVisited, tmpResult, tmpNumTerminals, tmpInSet));
 					}
 					ArrayList<EdgeFake> bestTree = null;
 					int bestScore = Integer.MAX_VALUE;
-					System.out.println("Calculating the score:");
+					// System.out.println("Calculating the score:");
 					for (ArrayList<EdgeFake> res : allResults) {
 						int curScore = 0;
 						for (EdgeFake e : res) {
 							curScore += e.getCost();
-							System.out.println("\n" + e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost());
-							for (int[] i : e.getStack())
-								System.out.println(i[0] + " " + i[1] + " " + i[2]);
+							// System.out.println("\n" + e.getVertices()[0].getKey() + " " +
+							// e.getVertices()[1].getKey() + " " + e.getCost());
+							// for (int[] i : e.getStack())
+							// System.out.println(i[0] + " " + i[1] + " " + i[2]);
 						}
-						System.out.println();
+						// System.out.println();
 						if (curScore < bestScore) {
 							bestTree = res;
 							bestScore = curScore;
 						}
 					}
-					System.out.println("found best tree");
+					// System.out.println("found best tree");
 					return bestTree;
 				}
 				// System.out.println();
@@ -280,7 +286,10 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			}
 		}
 		// System.out.println(numTerminals + " " + graph.getNumberOfTerminals());
-		System.out.println("returning: " + result.size());
+		// System.out.println("returning: " + result.size());
+		// for (EdgeFake e : result)
+		// for (int[] i : e.getStack())
+		// System.out.println(i[0] + " " + i[1] + " " + i[2]);
 		return result;
 	}
 

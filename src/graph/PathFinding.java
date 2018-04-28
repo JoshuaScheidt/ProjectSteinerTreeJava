@@ -397,12 +397,13 @@ public class PathFinding {
 		}
 
 		ArrayList<EdgeFake> result = getResult(G, start, end.get(0), datamap, new ArrayList<Vertex>(), end.get(0), new ArrayList<EdgeFake>());
-		for (EdgeFake e : result) {
-			System.out.println("edge: " + e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost());
-			for (int[] i : e.stack) {
-				System.out.println("stack: " + i[0] + " " + i[1] + " " + i[2]);
-			}
-		}
+		// for (EdgeFake e : result) {
+		// System.out.println("edge: " + e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost());
+		// for (int[] i : e.stack) {
+		// System.out.println("stack: " + i[0] + " " + i[1] + " " + i[2]);
+		// }
+		// }
 		return result;
 	}
 
@@ -442,7 +443,8 @@ public class PathFinding {
 						G.getVertices().get(path.get(i).getKey()).getConnectingEdge(G.getVertices().get(path.get(i + 1).getKey())).getCost().get() });
 			}
 			EdgeFake newEdge = new EdgeFake(start, v, datamap.get(v).dist, pathStack);
-			System.out.println(newEdge.getVertices()[0].getKey() + " " + newEdge.getVertices()[1].getKey());
+			// System.out.println(newEdge.getVertices()[0].getKey() + " " +
+			// newEdge.getVertices()[1].getKey());
 			result.add(newEdge);
 		}
 		return result;
