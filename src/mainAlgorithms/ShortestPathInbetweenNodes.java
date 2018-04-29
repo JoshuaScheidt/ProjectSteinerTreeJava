@@ -44,8 +44,9 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 				if (searches.size() > 0) {
 					binaryInsertion(searches,
 							new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
-				} else
+				} else {
 					searches.add(new Integer[] { source.get(0).getKey(), nb.getKey(), source.get(0).getConnectingEdge(nb).getCost().get() });
+				}
 			}
 
 			HashMap<Integer, ArrayList<Integer>> visited = new HashMap<>();
@@ -84,8 +85,9 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			long avgTimeToComplete = (System.currentTimeMillis() - startTime) / counter;
 			if ((5 * 60 * 1000) - (System.currentTimeMillis() - startTime) > (avgTimeToComplete * 2)) {
 				continue;
-			} else
+			} else {
 				stopFinding = true;
+			}
 		}
 
 		return this.bestEdges;
@@ -100,9 +102,10 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			// System.out.println("num terminals " + numTerminals);
 			// for (Integer[] i : searches)
 			// System.out.println(Arrays.toString(i));
-			if (searches.size() == 0)
+			if (searches.size() == 0) {
 				System.out.println("ERROR");
-
+			}
+			System.out.println("Searches size: " + searches.size());
 			current = searches.remove(0);
 			// System.out.println("inset: " + Arrays.toString(inSet.toArray()));
 			while (inSet.contains(current[0]) && inSet.contains(current[1])) {// && !foundShortest.contains(this.current[1])) {
@@ -122,7 +125,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 					result.addAll(path);
 					ArrayList<Vertex> pathVertices = new ArrayList<>();
 					EdgeFake e = path.get(0);
-					if (e.getStack() != null)
+					if (e.getStack() != null) {
 						for (int[] i : e.getStack()) {
 							// System.out.println("Edge: " + Arrays.toString(i));
 							for (int j = 0; j < searches.size(); j++) {
@@ -138,7 +141,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 								pathVertices.add(graph.getVertices().get(i[1]));
 							}
 						}
-					else {
+					} else {
 						for (int j = 0; j < searches.size(); j++) {
 							if (searches.get(j)[0] == current[0]
 									&& ((searches.get(j)[1] == e.getVertices()[0].getKey()) || (searches.get(j)[1] == e.getVertices()[1].getKey()))) {
@@ -166,11 +169,12 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 				} else {
 					ArrayList<ArrayList<EdgeFake>> allResults = new ArrayList<>();
 					HashSet<Integer> inAPath = new HashSet<>();
-					for (EdgeFake e : path)
+					for (EdgeFake e : path) {
 						for (int[] i : e.getStack()) {
 							inAPath.add(i[0]);
 							inAPath.add(i[1]);
 						}
+					}
 					for (EdgeFake e : path) {
 						// for (int[] i : e.getStack())
 						// System.out.println("Here e: " + i[0] + " " + i[1] + " " + i[2]);
@@ -183,7 +187,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 						ArrayList<Vertex> tmpSource = (ArrayList<Vertex>) source.clone();
 						HashMap<Integer, ArrayList<Integer>> tmpVisited = (HashMap<Integer, ArrayList<Integer>>) visited.clone();
 						ArrayList<Vertex> pathVertices = new ArrayList<>();
-						if (e.getStack() != null)
+						if (e.getStack() != null) {
 							for (int[] i : e.getStack()) {
 								// System.out.println("Edge: " + Arrays.toString(i));
 								for (int j = 0; j < tmpSearches.size(); j++) {
@@ -199,7 +203,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 									pathVertices.add(graph.getVertices().get(i[1]));
 								}
 							}
-						else {
+						} else {
 							for (int j = 0; j < tmpSearches.size(); j++) {
 								if (tmpSearches.get(j)[0] == current[0] && ((tmpSearches.get(j)[1] == e.getVertices()[0].getKey())
 										|| (tmpSearches.get(j)[1] == e.getVertices()[1].getKey()))) {
@@ -263,18 +267,20 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 				for (Vertex nb : graph.getVertices().get(current[1]).getNeighbors()) {
 					if (!visited.get(current[0]).contains(nb.getKey()) && !inSet.contains(nb.getKey())) {
 						boolean add = true;
-						for (int i = 0; i < searches.size(); i++)
+						for (int i = 0; i < searches.size(); i++) {
 							if (searches.get(i)[0] == current[0] && searches.get(i)[1] == nb.getKey()) {
-								if (searches.get(i)[2] <= current[2] + graph.getVertices().get(current[1]).getConnectingEdge(nb).getCost().get())
+								if (searches.get(i)[2] <= current[2] + graph.getVertices().get(current[1]).getConnectingEdge(nb).getCost().get()) {
 									add = false;
-								else {
+								} else {
 									searches.remove(i);
 									i--;
 								}
 							}
-						if (add)
+						}
+						if (add) {
 							binaryInsertion(searches, new Integer[] { current[0], nb.getKey(),
 									current[2] + graph.getVertices().get(current[1]).getConnectingEdge(nb).getCost().get() });
+						}
 					}
 				}
 			}
@@ -288,14 +294,52 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 	}
 
 	public static void binaryInsertion(ArrayList<Integer[]> searches, Integer[] insert) {
-		//////////////////////////////////// INSERTION////////////////////////
-		for (int i = 0; i < searches.size(); i++) {
-			if (insert[2] <= searches.get(i)[2]) {
-				searches.add(i, insert);
-				return;
+		//////////////////////////////////// Binary Insertion Marciano
+		//////////////////////////////////// ////////////////////////
+		int lower = 0, upper = searches.size(), insertionPoint = (lower + upper) / 2;
+		// for (int i = 0; i < searches.size(); i++) {
+		// System.out.println(Arrays.toString(searches.get(i)));
+		// }
+		// System.out.println("");
+		// System.out.println(Arrays.toString(insert));
+		// System.out.println("Searches size: " + searches.size());
+		// System.out.println("");
+		while (true) {
+			// System.out.println(" lower = " + lower + " insertionPoint = " +
+			// insertionPoint + " upper = " + upper);
+			if (lower == upper) {
+				searches.add(insertionPoint, insert);
+				break;
+			} else if (insert[2] < searches.get(insertionPoint)[2]) {
+				upper = insertionPoint;
+			} else {
+				lower = insertionPoint;
 			}
+			if (upper == lower + 1) {
+				if (insert[2] < searches.get(upper - 1)[2]) {
+					searches.add(upper - 1, insert);
+					break;
+				} else {
+					searches.add(upper, insert);
+					break;
+				}
+			}
+			insertionPoint = (lower + upper) / 2;
+
 		}
-		searches.add(insert);
+		System.out.println("Binary insert Searches size: " + searches.size());
+		// for (int i = 0; i < searches.size(); i++) {
+		// System.out.println(Arrays.toString(searches.get(i)));
+		// }
+		// System.out.println("___________________________________________________________________");
+		//////////////////////////////////// INSERTION////////////////////////
+		// for (int i = 0; i < searches.size(); i++) {
+		// if (insert[2] <= searches.get(i)[2]) {
+		// searches.add(i, insert);
+		// return;
+		// }
+		// }
+		// searches.add(insert);
 
 		////////////////////////// BINARY MY TRY///////////////////////
 		// int upper = searches.size() - 1;
@@ -327,7 +371,6 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		// lower = index;
 		// }
 		// }
-
 		////////////////////////// BINARY ALGORITHM///////////////////
 		// int end = searches.size() - 1;
 		// int start = 0;
@@ -476,5 +519,4 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 	//
 	// return result;
 	// }
-
 }
