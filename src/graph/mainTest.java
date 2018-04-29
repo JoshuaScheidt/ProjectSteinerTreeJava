@@ -9,18 +9,43 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import mainAlgorithms.ImproveApproximation;
 import mainAlgorithms.ShortestPathInbetweenNodes;
 import mainAlgorithms.SteinerTreeSolver;
 import mixedIntegerProgramming.CutILP;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class mainTest {
 
 	public static String fileName;
+	public static List<Edge> currentBest;
+	public static boolean written = false;
 
 	public static void main(String[] args) {
+		Scanner in = new Scanner(System.in);
+		final CountDownLatch exit_now = new CountDownLatch(1);
+		SignalHandler termHandler = new SignalHandler() {
+			@Override
+			public void handle(Signal sig) {
+				printSolution(currentBest, false);
+				exit_now.countDown();
+			}
+		};
+		Signal.handle(new Signal("TERM"), termHandler);
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				if (!written)
+					printSolution(currentBest, false);
+			}
+		});
 
 		UndirectedGraph graph = new UndirectedGraphReader().read();
 		PreProcess pp = new PreProcess(graph);
@@ -35,8 +60,9 @@ public class mainTest {
 				pp.removeNonTerminalDegreeTwo();
 			}
 		} while (preProcessable[0] || preProcessable[1]);
-		SteinerTreeSolver solver = new ShortestPathInbetweenNodes();
+		SteinerTreeSolver solver = new ShortestPathInbetweenNodes((ArrayList<Edge> edges) -> setBest(edges));
 		List<Edge> edges = solver.solve(pp.graph);
+		edges = new ImproveApproximation(edges, pp.graph, (ArrayList<Edge> edges) -> setBest(edges)).improve();
 		printSolution(edges, false);
 
 		// File[] files = readFiles(new File("data\\exact\\instance027.gr"));
@@ -106,6 +132,10 @@ public class mainTest {
 		// doAnalysis(files);
 	}
 
+	public static void setBest(List<Edge> edges) {
+		currentBest = edges;
+	}
+
 	/**
 	 * Prints solution to standard out. Checks each edge and vertex to see if it
 	 * contains other hidden edges and or vertices that need to be included
@@ -114,6 +144,7 @@ public class mainTest {
 	 *            Solution including all the edges in the solution
 	 */
 	private static void printSolution(List<Edge> solution, boolean toFile) {
+		written = true;
 		String temp = "";
 		int sum = 0;
 		int[] subsumed;

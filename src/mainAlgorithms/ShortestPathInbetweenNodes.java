@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import graph.Edge;
 import graph.EdgeFake;
@@ -13,9 +14,17 @@ import graph.UndirectedGraph;
 import graph.Vertex;
 
 public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
+	public Consumer<ArrayList<Edge>> sendBest;
+
+	public List<Edge> bestEdges;
+
+	public ShortestPathInbetweenNodes(Consumer<ArrayList<Edge>> object) {
+		this.sendBest = object;
+	}
 
 	@Override
 	public List<Edge> solve(UndirectedGraph G) {
+
 		ArrayList<EdgeFake> bestResult = new ArrayList<>();
 		int bestScore = Integer.MAX_VALUE;
 
@@ -59,6 +68,17 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			if (currentScore < bestScore) {
 				bestScore = currentScore;
 				bestResult = edges;
+				ArrayList<Edge> correspondingEdges = new ArrayList<>();
+				for (EdgeFake e : bestResult) {
+					if (e.getStack() != null) {
+						for (int[] s : e.getStack()) {
+							correspondingEdges.add(G.getVertices().get(s[0]).getConnectingEdge(G.getVertices().get(s[1])));
+						}
+					} else
+						correspondingEdges.add(e.getVertices()[0].getConnectingEdge(e.getVertices()[1]));
+				}
+				this.sendBest.accept(correspondingEdges);
+				this.bestEdges = correspondingEdges;
 			}
 
 			long avgTimeToComplete = (System.currentTimeMillis() - startTime) / counter;
@@ -68,33 +88,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 				stopFinding = true;
 		}
 
-		ArrayList<Edge> tbrEdges = new ArrayList<>();
-		for (Edge e : G.getEdges())
-			tbrEdges.add(e);
-
-		for (EdgeFake e : bestResult) {
-			if (e.getStack() != null) {
-				for (int[] s : e.getStack()) {
-					tbrEdges.remove(G.getVertices().get(s[0]).getConnectingEdge(G.getVertices().get(s[1])));
-				}
-			} else
-				tbrEdges.remove(e.getVertices()[0].getConnectingEdge(e.getVertices()[1]));
-		}
-		for (Edge e : tbrEdges)
-			G.removeEdge(e);
-		ArrayList<Vertex> tbrVertices = new ArrayList<>();
-		for (Vertex v : G.getVertices().values()) {
-			if (v.getEdges().size() == 0)
-				tbrVertices.add(v);
-		}
-		for (Vertex v : tbrVertices) {
-			G.removeVertex(v);
-		}
-		ArrayList<Edge> result = new ArrayList<>();
-		for (Edge e : G.getEdges())
-			result.add(e);
-
-		return result;
+		return this.bestEdges;
 	}
 
 	public ArrayList<EdgeFake> dijkstraAllInbetween(UndirectedGraph graph, ArrayList<Vertex> source, ArrayList<Integer[]> searches,
