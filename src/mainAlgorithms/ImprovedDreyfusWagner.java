@@ -40,6 +40,15 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 				this.set2 = set2;
 			}
 		}
+		
+		@Override
+		public String toString() {
+			String s = v1.getKey() + getStringForSet(set1);
+			if (v2 != null) {
+				s += v2.getKey() + getStringForSet(set2);
+			}
+			return s;
+		}
 	}
 	
 	private UndirectedGraph g;
@@ -47,12 +56,11 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 	private HashMap<String, Integer> gMap = new HashMap<>();
 	private HashMap<String, BookKeeping> bMap = new HashMap<>();
 	private ArrayList<Edge> solutionEdges = new ArrayList<>();
+	private ArrayList<Edge> testSolutionEdges = new ArrayList<>();
 	private ArrayList<Edge> edges;
 	private ArrayList<Vertex> vertices;
 	private ArrayList<Vertex> terminals;
 	
-	// seems to work now, but printed weight differs from returned list of edges combined weight sometimes (not sure why...)
-	// more confident in printed weight
 	@Override
 	public List<Edge> solve(UndirectedGraph g) {
 		
@@ -65,6 +73,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 		for (Vertex u : this.terminals) {
 			HashMap<Integer,graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, u, setDifference(this.vertices, vertexAsSet(u)));
 			for (Vertex v : setDifference(this.vertices, vertexAsSet(u))) {
+				
 				fMap.put(v.getKey()+"{"+u.getKey()+"}", paths.get(v.getKey()).dist);
 				bMap.put(v.getKey()+"{"+u.getKey()+"}", new BookKeeping(u, vertexAsSet(u), null, null));
 			}
@@ -101,7 +110,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 					if (X.contains(v)) {
 						newEdge.setCost(getValue(fMap, v.getKey(), setDifference(X, vertexAsSet(v))));
 					} else {
-						newEdge.setCost(getValue(gMap, v.getKey(), setDifference(X, vertexAsSet(v))));
+//						newEdge.setCost(getValue(gMap, v.getKey(), setDifference(X, vertexAsSet(v))));
+						newEdge.setCost(getValue(gMap, v.getKey(), X));
+
 					}
 				}
 				
@@ -111,6 +122,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 				HashMap<Integer,graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, s, setDifference(setDifference(this.vertices, X), vertexAsSet(s)));	
 				for (Vertex v : setDifference(setDifference(this.vertices, X), vertexAsSet(s))) {
 					fMap.put(v.getKey()+getStringForSet(X), paths.get(v.getKey()).dist);
+					
 					Vertex u = paths.get(v.getKey()).parent;
 					
 					if (u.getKey() != s.getKey()) {
@@ -125,7 +137,32 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 				this.vertices = new ArrayList<>(this.g.getVertices().values());
 			}
 		}
-		System.out.println("Weight: " + getValue(fMap, this.terminals.get(0).getKey(), setDifference(this.terminals, vertexAsSet(this.terminals.get(0)))));
+//		System.out.println("Weight: " + getValue(fMap, this.terminals.get(0).getKey(), setDifference(this.terminals, vertexAsSet(this.terminals.get(0)))));
+//		System.out.println(bMap);
+		
+		int minimum = Integer.MAX_VALUE;
+		for (Vertex terminal : this.terminals) {
+			testSolutionEdges.clear();
+			traceback(terminal, setDifference(this.terminals, vertexAsSet(terminal)));
+			Set<Edge> hs = new HashSet<>();
+			hs.addAll(testSolutionEdges);
+			testSolutionEdges.clear();
+			testSolutionEdges.addAll(hs);
+			int sum = 0;
+			for (Edge e : testSolutionEdges) {
+				sum += e.getCost().get();
+//				System.out.println(e.getVertices()[0].getKey() + "-" + e.getVertices()[1].getKey() + " : " + e.getCost().get());
+			}
+			if (sum < minimum) {
+				minimum = sum;
+				solutionEdges.clear();
+				for (Edge e : testSolutionEdges) {
+					solutionEdges.add(e);
+				}
+			}
+
+		}
+		
 		traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
 		return solutionEdges;
 	}
@@ -145,17 +182,24 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 			}
 			
 			if (getStringForSet(set).equals(getStringForSet(newB.set1))) {
+//				System.out.println("sPath: " + newB.v1.getKey() + " - " + v.getKey());
+				int sum = 0;
 				EdgeFake edge = (new PathFinding().DijkstraMultiPathFakeEdges(this.g, newB.v1, vertexAsSet(v), this.edges)).get(0);
 				if (edge.getStack() == null) {
 					Edge edgeToAdd = newB.v1.getConnectingEdge(v);
-					solutionEdges.add(edgeToAdd);
+					testSolutionEdges.add(edgeToAdd);
+					sum += edgeToAdd.getCost().get();
+//					System.out.println(edgeToAdd.getVertices()[0].getKey() + " - " + edgeToAdd.getVertices()[1].getKey());
 				} else {
 					for (int i=0; i<edge.getStack().size(); i++) {
 						int[] s = edge.getStack().get(i);
 						Edge edgeToAdd = g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1]));
-						solutionEdges.add(edgeToAdd);
+						testSolutionEdges.add(edgeToAdd);
+						sum += edgeToAdd.getCost().get();
+//						System.out.println(edgeToAdd.getVertices()[0].getKey() + " - " + edgeToAdd.getVertices()[1].getKey());
 					}
 				}
+//				System.out.println("sum: " + sum);
 				traceback(newB.v1, set);
 			} else {
 				traceback(newB.v1, newB.set1);
