@@ -62,7 +62,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 			}
 
 			long avgTimeToComplete = (System.currentTimeMillis() - startTime) / counter;
-			if ((30 * 60 * 1000) - (System.currentTimeMillis() - startTime) > (avgTimeToComplete * 2)) {
+			if ((5 * 60 * 1000) - (System.currentTimeMillis() - startTime) > (avgTimeToComplete * 2)) {
 				continue;
 			} else
 				stopFinding = true;
@@ -294,6 +294,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 	}
 
 	public static void binaryInsertion(ArrayList<Integer[]> searches, Integer[] insert) {
+		//////////////////////////////////// INSERTION////////////////////////
 		for (int i = 0; i < searches.size(); i++) {
 			if (insert[2] <= searches.get(i)[2]) {
 				searches.add(i, insert);
@@ -302,10 +303,7 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		}
 		searches.add(insert);
 
-		// System.out.println("Binary");
-		// for (Integer[] i : searches)
-		// System.out.println(Arrays.toString(i));
-		// System.out.println("new");
+		////////////////////////// BINARY MY TRY///////////////////////
 		// int upper = searches.size() - 1;
 		// int lower = 0;
 		// if (searches.size() == 0) {
@@ -313,31 +311,62 @@ public class ShortestPathInbetweenNodes implements SteinerTreeSolver {
 		// return;
 		// }
 		// while (true) {
-		// System.out.println("Upper:" + upper + " Lower:" + lower);
 		// if (upper == lower) {
 		// if (searches.get(upper)[2] > insert[2])
 		// searches.add(upper, insert);
 		// else
 		// searches.add(upper + 1, insert);
-		//
-		// for (Integer[] i : searches)
-		// System.out.println(Arrays.toString(i));
 		// return;
 		// } else {
 		// int index = (int) Math.ceil(lower + ((upper - lower) / 2.0));
-		// System.out.println("index " + index);
-		// // System.out.println(index);
 		// if (searches.get(index)[2] > insert[2]) {
 		// if (upper > index)
 		// upper = index;
 		// else {
+		// if (searches.get(lower)[2] > insert[2])
+		// searches.add(lower, insert);
+		// else
 		// searches.add(index, insert);
-		// for (Integer[] i : searches)
-		// System.out.println(Arrays.toString(i));
 		// return;
 		// }
 		// } else
 		// lower = index;
+		// }
+		// }
+
+		////////////////////////// BINARY ALGORITHM///////////////////
+		// int end = searches.size() - 1;
+		// int start = 0;
+		// int m;
+		// if (searches.size() == 0) {
+		// searches.add(insert);
+		// return;
+		// }
+		// while (true) {
+		// m = (int) Math.ceil(start + ((end - start) / 2.0));
+		// System.out.println(Arrays.toString(insert));
+		// if (insert[2] > searches.get(end)[2]) {
+		// System.out.println("if 1");
+		// searches.add(insert);
+		// return;
+		// } else if (insert[2] < searches.get(start)[2]) {
+		// System.out.println("if 2");
+		// searches.add(0, insert);
+		// return;
+		// } else if (start >= end) {
+		// System.out.println("if 3");
+		// searches.add(start, insert);
+		// return;
+		// } else if (insert[2] < searches.get(m)[2]) {
+		// System.out.println("if 4");
+		// end = m - 1;
+		// } else if (insert[2] > searches.get(m)[2]) {
+		// System.out.println("if 5");
+		// start = m + 1;
+		// } else {
+		// System.out.println("if 6");
+		// searches.add(m, insert);
+		// return;
 		// }
 		// }
 	}
