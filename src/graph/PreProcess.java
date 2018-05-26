@@ -251,6 +251,7 @@ public class PreProcess {
 		HashSet<Vertex> toBeRemoved = new HashSet<>();
 		Vertex current, newCurrent, temp;
 		int currentKey;
+		System.out.println("starting");
 
 		while (it.hasNext()) {
 			currentKey = (int) it.next();
@@ -284,6 +285,12 @@ public class PreProcess {
 						current = newCurrent;
 						toBeRemoved.add(current);
 					}
+					System.out.println(newCurrent.getKey());
+					for (Vertex nb : newCurrent.getNeighbors())
+						System.out.print(nb.getKey() + " ");
+					System.out.println();
+					System.out.println(this.graph.getVertices().containsKey(newCurrent.getKey()));
+					System.out.println(this.checked.get(newCurrent.getKey()));
 					this.checked.get(newCurrent.getKey()).set(0, false);
 				} else {
 					this.checked.get(currentKey).set(0);
@@ -293,6 +300,7 @@ public class PreProcess {
 		it = toBeRemoved.iterator();
 		while (it.hasNext()) {
 			current = (Vertex) it.next();
+			System.out.println(current.getKey());
 			this.checked.remove(current.getKey());
 			this.graph.removeVertex(current);
 		}

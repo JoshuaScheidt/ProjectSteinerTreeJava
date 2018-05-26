@@ -1,25 +1,20 @@
 package graph;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import mainAlgorithms.ImproveApproximation;
-import mainAlgorithms.ShortestPathInbetweenNodes;
-import mainAlgorithms.SteinerTreeSolver;
 import mixedIntegerProgramming.CutILP;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 public class mainTest {
 
@@ -28,45 +23,48 @@ public class mainTest {
 	public static boolean written = false;
 
 	public static void main(String[] args) {
-		Scanner in = new Scanner(System.in);
-		final CountDownLatch exit_now = new CountDownLatch(1);
-		SignalHandler termHandler = new SignalHandler() {
-			@Override
-			public void handle(Signal sig) {
-				printSolution(currentBest, false);
-				exit_now.countDown();
-			}
-		};
-		Signal.handle(new Signal("TERM"), termHandler);
+		// Scanner in = new Scanner(System.in);
+		// final CountDownLatch exit_now = new CountDownLatch(1);
+		// SignalHandler termHandler = new SignalHandler() {
+		// @Override
+		// public void handle(Signal sig) {
+		// printSolution(currentBest, false);
+		// exit_now.countDown();
+		// }
+		// };
+		// Signal.handle(new Signal("TERM"), termHandler);
+		//
+		// Runtime.getRuntime().addShutdownHook(new Thread() {
+		// @Override
+		// public void run() {
+		// if (!written)
+		// printSolution(currentBest, false);
+		// }
+		// });
+		//
+		// UndirectedGraph graph = new UndirectedGraphReader().read();
+		// PreProcess pp = new PreProcess(graph);
+		// boolean[] preProcessable;
+		// do {
+		// preProcessable = pp.graph.preProcessable();
+		// // pp.rangeCheck();
+		// if (preProcessable[0]) {
+		// pp.removeLeafNodes();
+		// }
+		// if (preProcessable[1]) {
+		// pp.removeNonTerminalDegreeTwo();
+		// }
+		// } while (preProcessable[0] || preProcessable[1]);
+		// SteinerTreeSolver solver = new ShortestPathInbetweenNodes((ArrayList<Edge>
+		// edges) -> setBest(edges));
+		// List<Edge> edges = solver.solve(pp.graph);
+		//// edges = new ImproveApproximation(edges, pp.graph, (ArrayList<Edge> edges)
+		// -> setBest(edges)).improve();
+		// printSolution(edges, false);
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				if (!written)
-					printSolution(currentBest, false);
-			}
-		});
-
-		UndirectedGraph graph = new UndirectedGraphReader().read();
-		PreProcess pp = new PreProcess(graph);
-		boolean[] preProcessable;
-		do {
-			preProcessable = pp.graph.preProcessable();
-			// pp.rangeCheck();
-			if (preProcessable[0]) {
-				pp.removeLeafNodes();
-			}
-			if (preProcessable[1]) {
-				pp.removeNonTerminalDegreeTwo();
-			}
-		} while (preProcessable[0] || preProcessable[1]);
-		SteinerTreeSolver solver = new ShortestPathInbetweenNodes((ArrayList<Edge> edges) -> setBest(edges));
-		List<Edge> edges = solver.solve(pp.graph);
-		edges = new ImproveApproximation(edges, pp.graph, (ArrayList<Edge> edges) -> setBest(edges)).improve();
-		printSolution(edges, false);
-
-		// File[] files = readFiles(new File("data\\exact\\instance027.gr"));
-		// // File[] files = readFiles(new File("data\\exact"));
+		File[] files = readFiles(new File("data\\heuristics\\instance058.gr"));
+		doAnalysis(files);
+		// File[] files = readFiles(new File("data\\exact"));
 		// for (int i = 0; i < files.length; i++) {
 		// System.out.println(files[i].toString());
 		// UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
@@ -199,7 +197,7 @@ public class mainTest {
 	 */
 	private static void doAnalysis(File[] files) {
 
-		Integer[][][] results = new Integer[files.length][5][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
+		Integer[][][] results = new Integer[files.length][4][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 		// index has to be changed depending on which comparisons we want. The first
 		// index will always be the base graph without preprocess changes.
 
@@ -214,38 +212,41 @@ public class mainTest {
 			results[fileIndex][0][2] = graph.getEdges().size();
 			results[fileIndex][0][3] = (int) (end - start);
 
-			// Create a cloned graph which will use preprocessing.
-			PreProcess improved = new PreProcess(graph);
-			printCurrentSize(improved);
+			// // Create a cloned graph which will use preprocessing.
+			// PreProcess improved = new PreProcess(graph);
+			// printCurrentSize(improved);
 
 			// Prints the degrees of the vertices from the original graph up to a maximum of
 			// degree 9.
-			System.out.println("Original Degree Scale: ");
-			int[] degrees = graph.countDegree();
-			for (int i = 0; i < degrees.length; i++) {
-				System.out.print(degrees[i] + ", ");
-			}
-			System.out.println("");
+			// System.out.println("Original Degree Scale: ");
+			// int[] degrees = graph.countDegree();
+			// for (int i = 0; i < degrees.length; i++) {
+			// System.out.print(degrees[i] + ", ");
+			// }
+			// System.out.println("");
 
 			// Leaf Node Removal
-			start = System.currentTimeMillis();
-			improved.removeLeafNodes();
-			end = System.currentTimeMillis();
-			results[fileIndex][1][0] = improved.graph.getVertices().size();
-			results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
-			results[fileIndex][1][2] = improved.graph.getEdges().size();
-			results[fileIndex][1][3] = (int) (end - start);
+			PreProcess improved = new PreProcess(graph);
+			// start = System.currentTimeMillis();
+			// improved.removeLeafNodes();
+			// end = System.currentTimeMillis();
+			// results[fileIndex][1][0] = improved.graph.getVertices().size();
+			// results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
+			// results[fileIndex][1][2] = improved.graph.getEdges().size();
+			// results[fileIndex][1][3] = (int) (end - start);
 
 			// Remove non-degree terminal
-			start = System.currentTimeMillis();
-			improved.removeNonTerminalDegreeTwo();
-			end = System.currentTimeMillis();
-			results[fileIndex][2][0] = improved.graph.getVertices().size();
-			results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
-			results[fileIndex][2][2] = improved.graph.getEdges().size();
-			results[fileIndex][2][3] = (int) (end - start);
+			// improved = new PreProcess(graph);
+			// start = System.currentTimeMillis();
+			// improved.removeNonTerminalDegreeTwo();
+			// end = System.currentTimeMillis();
+			// results[fileIndex][2][0] = improved.graph.getVertices().size();
+			// results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
+			// results[fileIndex][2][2] = improved.graph.getEdges().size();
+			// results[fileIndex][2][3] = (int) (end - start);
 
 			// Iterative part here
+			improved = new PreProcess(graph);
 			start = System.currentTimeMillis();
 			boolean[] keepPreProcessing = improved.graph.preProcessable();
 			while (keepPreProcessing[0] || keepPreProcessing[1]) {
@@ -264,15 +265,15 @@ public class mainTest {
 			results[fileIndex][3][3] = (int) (end - start);
 
 			// Bridge Finding
-			start = System.currentTimeMillis();
-			// improved.removeBridgesAndSections(graph.getVertices().size());
-			end = System.currentTimeMillis();
-			results[fileIndex][4][0] = graph.getVertices().size();
-			results[fileIndex][4][1] = graph.getNumberOfTerminals();
-			results[fileIndex][4][2] = graph.getEdges().size();
-			results[fileIndex][4][3] = (int) (end - start);
+			// start = System.currentTimeMillis();
+			// // improved.removeBridgesAndSections(graph.getVertices().size());
+			// end = System.currentTimeMillis();
+			// results[fileIndex][4][0] = graph.getVertices().size();
+			// results[fileIndex][4][1] = graph.getNumberOfTerminals();
+			// results[fileIndex][4][2] = graph.getEdges().size();
+			// results[fileIndex][4][3] = (int) (end - start);
 
-			System.out.println("done");
+			System.out.println("done with index " + fileIndex);
 
 			// Leaf Node Removal
 			// improved.removeLeafNodes();
@@ -288,29 +289,54 @@ public class mainTest {
 			//
 			// improved.removeLeafNodes();
 			//
-			printCurrentSize(improved);
-			printDegreeScale(improved);
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
 			//
 			// improved.removeNonTerminalDegreeTwo();
 		}
-		System.out.println("\n\nTotal results:");
-		double[] percentileReductionVertices = new double[results.length];
-		double[] percentileReductionEdges = new double[results.length];
-		double[] percentileReductionTerminals = new double[results.length];
-		double[] averageTimeTaken = new double[results.length];
-		int counter = 0;
-		for (Integer[][] singleFileResults : results) {
-			System.out.println(Arrays.toString(singleFileResults[0]));
-			percentileReductionVertices[counter] = ((double) (singleFileResults[0][0] - singleFileResults[3][0])) / (double) singleFileResults[0][0];
-			percentileReductionTerminals[counter] = ((double) (singleFileResults[0][1] - singleFileResults[3][1])) / (double) singleFileResults[0][1];
-			percentileReductionEdges[counter] = ((double) (singleFileResults[0][2] - singleFileResults[3][2])) / (double) singleFileResults[0][2];
-			averageTimeTaken[counter] = singleFileResults[1][3] + singleFileResults[2][3] + singleFileResults[3][3];
-			counter++;
+		System.out.println("\n\n Writing Total results:");
+		try {
+			PrintWriter writer = new PrintWriter("E:\\Programming\\Java\\ProjectSteinerTreeJava\\res\\allResults.txt", "UTF-8");
+			// tms = time in ms
+			writer.println(
+					"FileIndex, V(original), T(original), E(original), tms(original), V(leaf), T(leaf), E(leaf), tms(leaf), V(deg2), T(deg2), E(deg2), tms(deg2), V(both), T(both), E(both), tms(both)");
+			String cur = "";
+			for (int i = 0; i < results.length; i++) {
+				cur = Integer.toString(i);
+				for (int j = 0; j < results[i].length; j++) {
+					for (int k = 0; k < results[i][j].length; k++) {
+						cur += ", " + Integer.toString(results[i][j][k]);
+					}
+				}
+				writer.println(cur);
+			}
+			writer.close();
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		System.out.println(Arrays.toString(percentileReductionVertices));
-		System.out.println(Arrays.toString(percentileReductionEdges));
-		System.out.println(Arrays.toString(percentileReductionTerminals));
-		System.out.println(Arrays.toString(averageTimeTaken));
+
+		// double[] percentileReductionVertices = new double[results.length];
+		// double[] percentileReductionEdges = new double[results.length];
+		// double[] percentileReductionTerminals = new double[results.length];
+		// double[] averageTimeTaken = new double[results.length];
+		// int counter = 0;
+		// for (Integer[][] singleFileResults : results) {
+		// System.out.println(Arrays.toString(singleFileResults[0]));
+		// percentileReductionVertices[counter] = ((double) (singleFileResults[0][0] -
+		// singleFileResults[3][0])) / (double) singleFileResults[0][0];
+		// percentileReductionTerminals[counter] = ((double) (singleFileResults[0][1] -
+		// singleFileResults[3][1])) / (double) singleFileResults[0][1];
+		// percentileReductionEdges[counter] = ((double) (singleFileResults[0][2] -
+		// singleFileResults[3][2])) / (double) singleFileResults[0][2];
+		// averageTimeTaken[counter] = singleFileResults[1][3] + singleFileResults[2][3]
+		// + singleFileResults[3][3];
+		// counter++;
+		// }
+		// System.out.println(Arrays.toString(percentileReductionVertices));
+		// System.out.println(Arrays.toString(percentileReductionEdges));
+		// System.out.println(Arrays.toString(percentileReductionTerminals));
+		// System.out.println(Arrays.toString(averageTimeTaken));
 	}
 
 	/**
