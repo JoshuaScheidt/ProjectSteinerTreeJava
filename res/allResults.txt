@@ -1,0 +1,2 @@
+FileIndex, V(original), T(original), E(original), tms(original), V(leaf), T(leaf), E(leaf), tms(leaf), V(deg2), T(deg2), E(deg2), tms(deg2), V(both), T(both), E(both), tms(both)
+0, 2404, 95, 4469, 25, 2361, 90, 4426, 2, 2306, 95, 4371, 4, 2254, 84, 4324, 9

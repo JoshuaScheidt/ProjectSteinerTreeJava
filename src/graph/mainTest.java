@@ -62,7 +62,7 @@ public class mainTest {
 		// -> setBest(edges)).improve();
 		// printSolution(edges, false);
 
-		File[] files = readFiles(new File("data\\heuristics\\instance058.gr"));
+		File[] files = readFiles(new File("data\\heuristics"));
 		doAnalysis(files);
 		// File[] files = readFiles(new File("data\\exact"));
 		// for (int i = 0; i < files.length; i++) {
@@ -227,23 +227,23 @@ public class mainTest {
 
 			// Leaf Node Removal
 			PreProcess improved = new PreProcess(graph);
-			// start = System.currentTimeMillis();
-			// improved.removeLeafNodes();
-			// end = System.currentTimeMillis();
-			// results[fileIndex][1][0] = improved.graph.getVertices().size();
-			// results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
-			// results[fileIndex][1][2] = improved.graph.getEdges().size();
-			// results[fileIndex][1][3] = (int) (end - start);
+			start = System.currentTimeMillis();
+			improved.removeLeafNodes();
+			end = System.currentTimeMillis();
+			results[fileIndex][1][0] = improved.graph.getVertices().size();
+			results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][1][2] = improved.graph.getEdges().size();
+			results[fileIndex][1][3] = (int) (end - start);
 
 			// Remove non-degree terminal
-			// improved = new PreProcess(graph);
-			// start = System.currentTimeMillis();
-			// improved.removeNonTerminalDegreeTwo();
-			// end = System.currentTimeMillis();
-			// results[fileIndex][2][0] = improved.graph.getVertices().size();
-			// results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
-			// results[fileIndex][2][2] = improved.graph.getEdges().size();
-			// results[fileIndex][2][3] = (int) (end - start);
+			improved = new PreProcess(graph);
+			start = System.currentTimeMillis();
+			improved.removeNonTerminalDegreeTwo();
+			end = System.currentTimeMillis();
+			results[fileIndex][2][0] = improved.graph.getVertices().size();
+			results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][2][2] = improved.graph.getEdges().size();
+			results[fileIndex][2][3] = (int) (end - start);
 
 			// Iterative part here
 			improved = new PreProcess(graph);
@@ -302,7 +302,7 @@ public class mainTest {
 					"FileIndex, V(original), T(original), E(original), tms(original), V(leaf), T(leaf), E(leaf), tms(leaf), V(deg2), T(deg2), E(deg2), tms(deg2), V(both), T(both), E(both), tms(both)");
 			String cur = "";
 			for (int i = 0; i < results.length; i++) {
-				cur = Integer.toString(i);
+				cur = Integer.toString(i + 1);
 				for (int j = 0; j < results[i].length; j++) {
 					for (int k = 0; k < results[i][j].length; k++) {
 						cur += ", " + Integer.toString(results[i][j][k]);
