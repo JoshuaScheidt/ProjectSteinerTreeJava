@@ -472,6 +472,7 @@ public class PreProcess {
 			if (current.isTerminal() && current.getNeighbors().size() == 1) {
 				toBeRemoved.add(current);
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				newCurrent.setTerminal(true);
 				while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
 					temp = newCurrent.getOtherNeighborVertex(current);
 					current = newCurrent;
@@ -484,6 +485,7 @@ public class PreProcess {
 					newCurrent.pushSubsumed(
 							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
 					toBeRemoved.add(current);
+					newCurrent.setTerminal(true);
 				}
 				this.graph.setTerminal(newCurrent.getKey());
 			}
