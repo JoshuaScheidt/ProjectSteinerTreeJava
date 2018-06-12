@@ -483,10 +483,9 @@ public class PreProcess {
 					}
 					newCurrent.pushSubsumed(
 							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
-					this.graph.setTerminal(newCurrent.getKey());
-					current = newCurrent;
 					toBeRemoved.add(current);
 				}
+				this.graph.setTerminal(newCurrent.getKey());
 			}
 		}
 		it = toBeRemoved.iterator();
