@@ -88,7 +88,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 		this.edges = new ArrayList<>(this.g.getEdges());
 		this.vertices = new ArrayList<>(this.g.getVertices().values());
 		this.terminals = new ArrayList<>(this.g.getTerminals().values());
-		
+                
 		System.out.println("1 of " + (this.terminals.size()-1));				
 		for (Vertex u : this.terminals) {
 			HashMap<Integer,graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, u, setDifference(this.vertices, vertexAsSet(u)));
@@ -244,9 +244,12 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 						int[] s = edge.getStack().get(i);
                                                 
                                                 System.out.println("\nSee what becomes Null here: ");
+                                                System.out.println(newB.v1.getKey());
+                                                System.out.println(v.getKey());
                                                 System.out.println(s[0]);
                                                 System.out.println(s[1]);
-                                                System.out.println(g.getVertices().get(s[0]).getKey());
+                                                System.out.println("s[0]: " + g.getVertices().get(s[0]));
+                                                System.out.println("s[0] Terminal set: " + g.getTerminals().get(s[0]));
                                                 System.out.println(g.getVertices().get(s[1]).getKey());
                                                 System.out.println("____________");
                                                 System.out.println(g.getVertices().get(s[1]).getEdges().size());

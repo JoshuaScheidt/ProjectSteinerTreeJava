@@ -6,10 +6,12 @@
 package graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
 
 /**
  *
@@ -358,5 +360,71 @@ public class UndirectedGraph {
 		}
 
 		return null;
+	}
+
+	/**
+	 * This Method removes any edges and vertices not contained within the remainder
+	 * List. This is to check if a solution is correct (in the matter of
+	 * connectivity not optimality)
+	 *
+	 * @param remainder
+	 *            Your resulting edge list that you want to have in the graph
+	 */
+	public void checkConnectivity(ArrayList<Edge> remainder) {
+		HashSet<Integer> doNotRemove = new HashSet<>(), remove = new HashSet<>();
+		remainder.forEach((e) -> {
+			if (!(doNotRemove.contains(e.getVertices()[0].getKey()))) {
+				doNotRemove.add(e.getVertices()[0].getKey());
+			}
+			if (!(doNotRemove.contains(e.getVertices()[1].getKey()))) {
+				doNotRemove.add(e.getVertices()[1].getKey());
+			}
+		});
+		System.out.println(Arrays.toString(doNotRemove.toArray()));
+		for (Vertex v : this.vertices.values()) {
+			if (!(doNotRemove.contains(v.getKey()))) {
+				if (this.terminals.containsKey(v.getKey())) {
+					System.out.println("You removed a terminal from the graph: " + v.getKey());
+					System.exit(0);
+				}
+				remove.add(v.getKey());
+			}
+		}
+		for (Integer i : remove) {
+			this.removeVertex(this.vertices.get(i));
+		}
+		HashMap<Integer, Boolean> visited = new HashMap<>();
+		for (Integer i : doNotRemove) {
+			visited.put(i, false);
+		}
+		Stack<Integer> traversal = new Stack<>();
+		traversal.add((int) doNotRemove.iterator().next());
+		int current;
+		int numberOfTerminals = 0;
+		while (!traversal.isEmpty()) {
+			current = traversal.pop();
+			if (visited.get(current) == false) {
+				visited.replace(current, true);
+				if (this.vertices.get(current).isTerminal()) {
+					numberOfTerminals++;
+				}
+			}
+			for (Vertex v : this.vertices.get(current).getNeighbors()) {
+				if (visited.get(v.getKey()) == false) {
+					traversal.add(v.getKey());
+				}
+			}
+		}
+		if (!(this.getNumberOfTerminals() == numberOfTerminals)) {
+			System.out.println("Number of terminals mismatch " + this.getNumberOfTerminals() + " and found " + numberOfTerminals);
+			System.exit(1);
+		}
+		for (Boolean b : visited.values()) {
+			if (b == false) {
+				System.out.println("Not connected. Some Vertices cannot be reached from any other Vertex");
+				System.exit(2);
+			}
+		}
+		System.out.println("It is connected");
 	}
 }
