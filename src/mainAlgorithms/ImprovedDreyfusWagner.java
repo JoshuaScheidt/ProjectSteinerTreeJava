@@ -230,13 +230,31 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 			if (getStringForSet(set).equals(getStringForSet(newB.set1))) {
 				int sum = 0;
 				EdgeFake edge = (new PathFinding().DijkstraMultiPathFakeEdges(this.g, newB.v1, vertexAsSet(v), this.edges)).get(0);
+                                
 				if (edge.getStack() == null) {
 					Edge edgeToAdd = newB.v1.getConnectingEdge(v);
 					testSolutionEdges.add(edgeToAdd);
 					sum += edgeToAdd.getCost().get();
 				} else {
+//                                    System.out.println(newB.v1.getKey() + " " + v.getKey());
+//                                for(int z = 0; z < edge.getStack().size(); z++){
+//                                    System.out.println(edge.getStack().get(z)[0] + " " + edge.getStack().get(z)[1] + " " + edge.getStack().get(z)[2]);
+//                                }
 					for (int i=0; i<edge.getStack().size(); i++) {
 						int[] s = edge.getStack().get(i);
+                                                
+                                                System.out.println("\nSee what becomes Null here: ");
+                                                System.out.println(s[0]);
+                                                System.out.println(s[1]);
+                                                System.out.println(g.getVertices().get(s[0]).getKey());
+                                                System.out.println(g.getVertices().get(s[1]).getKey());
+                                                System.out.println("____________");
+                                                System.out.println(g.getVertices().get(s[1]).getEdges().size());
+                                                for(Edge e : g.getVertices().get(s[1]).getEdges()){
+                                                    System.out.println("Key of other neighbour: " + e.getOtherSide(g.getVertices().get(s[1])).getKey());
+                                                }
+                                                System.out.println(g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1])));
+                                                
 						Edge edgeToAdd = g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1]));
 						testSolutionEdges.add(edgeToAdd);
 						sum += edgeToAdd.getCost().get();

@@ -26,18 +26,26 @@ class IDWTest {
 	public static void main(String[] args) {
 		
 		long start = System.currentTimeMillis();
-		File[] files = readFiles(new File("data\\exact\\instance001.gr")); // windows
+		File[] files = readFiles(new File("data\\exact\\instance009.gr")); // windows
 //		File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
 		graph.UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
 		
 //		UndirectedGraph g = new UndirectedGraphReader().read();
 		
 		
-		PreProcess pp = new PreProcess(g);
-//		pp.removeNonTerminalDegreeTwo();
-		pp.removeTerminals();
-		pp.removeLeafNodes();
-		
+//                PreProcess pp = new PreProcess(g);
+//                boolean[] preProcessable;
+//                do {
+//                preProcessable = pp.graph.preProcessable();
+//                pp.rangeCheck();
+//                if (preProcessable[0]) {
+//                pp.removeLeafNodes();
+//                }
+//                if (preProcessable[1]) {
+//                pp.removeNonTerminalDegreeTwo();
+//                }
+//                } while (preProcessable[0] || preProcessable[1]);
+
 		
 //		 pp.removeBridgesAndSections(g.getVertices().size());
 //		 boolean[] preProcessable;
@@ -53,7 +61,7 @@ class IDWTest {
 //		 } while (preProcessable[0] || preProcessable[1]);
 
 		SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
-		printSolution(solver.solve(pp.graph), false);
+		printSolution(solver.solve(g), false);
 		printTimeNeeded(start);
 	}
 	
@@ -127,7 +135,7 @@ class IDWTest {
 			}
 		} else {
 			System.out.println("VALUE " + sum);
-//			System.out.println(temp);
+			System.out.println(temp);
 		}
 	}
 }
