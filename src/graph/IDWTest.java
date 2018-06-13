@@ -25,10 +25,10 @@ class IDWTest {
 	
 	public static void main(String[] args) {
 		
-		long start = System.currentTimeMillis();
-		File[] files = readFiles(new File("data\\exact\\instance003.gr")); // windows
-//		File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
-		graph.UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
+//		long start = System.currentTimeMillis();
+		File[] files = readFiles(new File("data\\exact\\instance009.gr")); // windows
+////		File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
+		UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
 		
 //		UndirectedGraph g = new UndirectedGraphReader().read();
 		
@@ -48,7 +48,7 @@ class IDWTest {
 		SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
 		printSolution(solver.solve(pp.graph), false);
 //                printSolution(solver.solve(g), false);
-		printTimeNeeded(start);
+//		printTimeNeeded(start);
 	}
 	
 	private static File[] readFiles(File directory) {
@@ -105,6 +105,7 @@ class IDWTest {
 					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
 					sum += subsumed[2];
 				}
+                                continue;
 			}
 			temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
 			sum += solution.get(i).getCost().get();
