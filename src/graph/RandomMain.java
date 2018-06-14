@@ -14,6 +14,7 @@ public class RandomMain {
 
 	public static void main(String[] args) {
 		shortestPathHeuristicV2();
+		// writeArticulationPointsToFile();
 	}
 
 	public static void shortestPathHeuristicV2() {
@@ -24,8 +25,8 @@ public class RandomMain {
 		}
 	}
 
-	public void writeArticulationPointsToFile() {
-		File[] files = readFiles(new File("data\\heuristics"));
+	public static void writeArticulationPointsToFile() {
+		File[] files = readFiles(new File("data\\exact"));
 		int[][] info = new int[files.length][5];
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(i);
@@ -41,7 +42,7 @@ public class RandomMain {
 		}
 		System.out.println("\n\n Writing Total results:");
 		try {
-			PrintWriter writer = new PrintWriter("E:\\Programming\\Java\\ProjectSteinerTreeJava\\res\\artiPoints.txt", "UTF-8");
+			PrintWriter writer = new PrintWriter("E:\\Programming\\Java\\ProjectSteinerTreeJava\\res\\artiPointsExact.txt", "UTF-8");
 			// tms = time in ms
 			writer.println("FileIndex, #Vertices, #Edges, #Terminals, #ArtiPoints, Time(ms)");
 			String cur = "";
