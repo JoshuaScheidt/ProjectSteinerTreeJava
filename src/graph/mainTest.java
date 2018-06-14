@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +24,20 @@ public class mainTest {
 
     public static void main(String[] args) {
         // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-        String file = "data\\exact\\instance009.gr";
+        System.out.println(System.getProperty("java.library.path"));
+        
+        String javaLibPath = System.getProperty("java.library.path");
+        Map<String, String> envVars = System.getenv();
+        System.out.println(envVars.get("Path"));
+        System.out.println(javaLibPath);
+        for (String var : envVars.keySet()) {
+            System.err.println("examining " + var);
+            if (envVars.get(var).equals(javaLibPath)) {
+                System.out.println(var);
+            }
+        }
+        
+        String file = "data\\heuristics100kb\\instance013.gr";
         File[] files = readFiles(new File(file));
         outerloop:
         for (int i = 0; i < files.length; i++) {
