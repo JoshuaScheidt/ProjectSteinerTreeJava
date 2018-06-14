@@ -23,20 +23,7 @@ public class mainTest {
     public static String fileName;
 
     public static void main(String[] args) {
-        // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
-        System.out.println(System.getProperty("java.library.path"));
-        
-        String javaLibPath = System.getProperty("java.library.path");
-        Map<String, String> envVars = System.getenv();
-        System.out.println(envVars.get("Path"));
-        System.out.println(javaLibPath);
-        for (String var : envVars.keySet()) {
-            System.err.println("examining " + var);
-            if (envVars.get(var).equals(javaLibPath)) {
-                System.out.println(var);
-            }
-        }
-        
+        // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));        
         String file = "data\\heuristics100kb\\instance013.gr";
         File[] files = readFiles(new File(file));
         outerloop:
