@@ -78,7 +78,11 @@ public class FlowILP implements SteinerTreeSolver {
             result = this.activateCPLEX(this.LPFile.toString());
             resultingEdges = new ArrayList<>();
         }
+        System.out.println("Total number of variables: " + result.length);
+        System.out.println("Actual number of edges: " + this.g.getEdges().size());
+        System.out.println("Binary edge variables: " + (this.edgeKeys.size() - this.g.getNumberOfTerminals()));
         for (int i = 0; i < this.edgeKeys.size() - this.g.getNumberOfTerminals(); i++) {
+            
             if (result[i] >= 0.5) {
                 resultingEdges.add(this.edgeKeys.get(i + 1).getValue());
             }

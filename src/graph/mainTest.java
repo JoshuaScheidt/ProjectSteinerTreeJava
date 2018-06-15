@@ -23,9 +23,13 @@ public class mainTest {
     public static String fileName;
 
     public static void main(String[] args) {
-        // File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));        
-        String file = "data\\heuristics100kb\\instance013.gr";
+                 
+//        String file = "data\\exact100kb\\instance001.gr";
+//        File[] files = readFiles(new File(file));
+        
+        String file = "data\\heuristics100kb";
         File[] files = readFiles(new File(file));
+        
         outerloop:
         for (int i = 0; i < files.length; i++) {
             System.out.println(files[i].toString());
