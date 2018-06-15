@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Collections;
+import java.util.*;
 
 /**
  * This class implements the IDW algorithm.
@@ -86,7 +88,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
         this.g = g;
         this.edges = new ArrayList<>(this.g.getEdges());
         this.vertices = new ArrayList<>(this.g.getVertices().values());
-        this.terminals = new ArrayList<>(this.g.getTerminals().values());
+        this.terminals = new ArrayList<>(this.g.getTerminals().values());		
 
 //		System.out.println("1 of " + (this.terminals.size()-1));				
         for (Vertex u : this.terminals) {
@@ -163,6 +165,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
             }
         }
+        
+        System.out.println("bMap:");
+        System.out.println(bMap);
 
         // end of pseudo code
         // here starts the weirds part; from the paper: "Using the Tracack procedure we can construct a Steiner tree as Traceback(v, K \ {v}) for some v ∈ K."
@@ -172,6 +177,8 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
         int minimum = Integer.MAX_VALUE;
         for (Vertex terminal : this.terminals) {
             testSolutionEdges.clear();
+            System.out.println("- Calling traceback with " + terminal.getKey() + "" + getStringForSet(setDifference(this.terminals, vertexAsSet(terminal))));
+
             traceback(terminal, setDifference(this.terminals, vertexAsSet(terminal)));
             Set<Edge> hs = new HashSet<>();
             hs.addAll(testSolutionEdges);
@@ -181,7 +188,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
             for (Edge e : testSolutionEdges) {
                 sum += e.getCost().get();
             }
+            System.out.println("Candidate solution weight: " + sum);
             if (sum < minimum) {
+//                System.out.println(terminal.getKey() + " - " + getStringForSet(setDifference(this.terminals, vertexAsSet(terminal))));
                 minimum = sum;
                 solutionEdges.clear();
                 for (Edge e : testSolutionEdges) {
@@ -224,6 +233,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
             // we know that we can add an edge to the solution
             if (getStringForSet(set).equals(getStringForSet(newB.set1))) {
                 int sum = 0;
+                System.out.println("Adding shortest path: " + newB.v1.getKey() + " - " + v.getKey());
                 ArrayList<Edge> path = PathFinding.DijkstraSinglePath(this.g, newB.v1, v);
 
 //                                    System.out.println(newB.v1.getKey() + " " + v.getKey());
@@ -249,8 +259,8 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 //                    System.out.println(g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1])));
                     
                     Edge edgeToAdd = g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1]));
+                    System.out.println("Adding edge " + g.getVertices().get(s[0]).getKey() + " - " + g.getVertices().get(s[1]).getKey());
                     testSolutionEdges.add(edgeToAdd);
-                    sum += edgeToAdd.getCost().get();
                 }
 
                 traceback(newB.v1, set);
