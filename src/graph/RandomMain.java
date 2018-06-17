@@ -12,16 +12,66 @@ import mainAlgorithms.SteinerTreeSolver;
 
 public class RandomMain {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
+		// Scanner in = new Scanner(System.in);
+		// final CountDownLatch exit_now = new CountDownLatch(1);
+		// double worker = 0.0;
+		// int n;
+		//
+		// SignalHandler termHandler = new SignalHandler() {
+		// @Override
+		// public void handle(Signal sig) {
+		// System.out.println("Terminating");
+		// exit_now.countDown();
+		// }
+		// };
+		// Signal.handle(new Signal("TERM"), termHandler);
+		//
+		// n = in.nextInt();
+		// for (int i = 0; i < n && exit_now.getCount() == 1; i++) {
+		// worker += Math.sqrt(i);
+		// }
+		// System.out.print((int) (worker / n));
+
 		shortestPathHeuristicV2();
+		System.out.println("\n");
+		shortestPathHeuristicV2wPP();
 		// writeArticulationPointsToFile();
 	}
 
 	public static void shortestPathHeuristicV2() {
-		File[] files = readFiles(new File("data\\heuristics\\instance001.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance003.gr"));
 		for (int i = 0; i < files.length; i++) {
+			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
-			List<Edge> result = solver.solve(new UndirectedGraphReader().read(files[i]));
+
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+
+			List<Edge> result = solver.solve(graph);
+		}
+	}
+
+	public static void shortestPathHeuristicV2wPP() {
+		File[] files = readFiles(new File("data\\exact\\instance003.gr"));
+		for (int i = 0; i < files.length; i++) {
+			System.out.println(files[i].getParent() + "\\" + files[i].getName());
+			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+			PreProcess processed = new PreProcess(graph);
+			boolean[] preProcessable;
+			do {
+				preProcessable = processed.graph.preProcessable();
+				// pp.rangeCheck();
+				if (preProcessable[0]) {
+					processed.removeLeafNodes();
+				}
+				if (preProcessable[1]) {
+					processed.removeNonTerminalDegreeTwo();
+				}
+			} while (preProcessable[0] || preProcessable[1]);
+
+			List<Edge> result = solver.solve(processed.graph);
 		}
 	}
 

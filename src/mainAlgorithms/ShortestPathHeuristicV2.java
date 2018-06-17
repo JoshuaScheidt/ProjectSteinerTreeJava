@@ -45,29 +45,42 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		List<Integer> terminals = new ArrayList<>();
 		for (int i : this.graph.getTerminals().keySet())
 			terminals.add(i);
-		System.out.println(Arrays.toString(terminals.toArray()));
 		Random rand = new Random(42);
 		int counter = 0;
 		long start = System.currentTimeMillis();
-		while (terminals.size() != 0 && counter < 10) {
+		while (terminals.size() != 0 && counter < 500) {
 			int t = terminals.remove(rand.nextInt(terminals.size()));
-			// System.out.println("Ordering: " +
-			// Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
+			System.out.println("Ordering: " + Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
 			List<Edge> result = this.dijkstraPathPrio(this.dijkstraOrderingPrio(t));
 			// List<Edge> result = this.dijkstraPathFinder(this.dijkstraOrdering(t));
 			int val = 0;
 			for (Edge e : result) {
-				val += e.getCost().get();
-				// System.out.println(e.getVertices()[0].getKey() + " " +
-				// e.getVertices()[1].getKey() + " " + e.getCost().get());
+				if (e.getStack() == null) {
+					val += e.getCost().get();
+				} else {
+					for (int[] i : e.getStack()) {
+						val += i[2];
+					}
+				}
 			}
-			System.out.println("Terminal " + t + " scores " + val);
+			System.out.println("Terminal " + t + " got val " + val);
 			if (val < bestVal) {
 				bestResult = result;
 				bestVal = val;
 			}
 			counter++;
 		}
+		// for (Edge e : bestResult) {
+		// if (e.getStack() == null) {
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// } else {
+		// System.out.println("total stack cost: " + e.getCost().get());
+		// for (int[] i : e.getStack()) {
+		// System.out.println("stack " + i[0] + " " + i[1] + " " + i[2]);
+		// }
+		// }
+		// }
 		System.out.println("Best val: " + bestVal + " took " + (System.currentTimeMillis() - start));
 		return bestResult;
 	}
