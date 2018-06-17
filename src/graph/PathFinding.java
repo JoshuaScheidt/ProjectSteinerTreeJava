@@ -50,13 +50,14 @@ public class PathFinding {
 			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
 			Q.add(i);
 		}
-		System.out
-				.println("Start:" + start.getKey() + "  End:" + end.getKey() + "  G(V):" + G.getVertices().size() + "   G(E):" + G.getEdges().size());
+		// System.out
+		// .println("Start:" + start.getKey() + " End:" + end.getKey() + " G(V):" +
+		// G.getVertices().size() + " G(E):" + G.getEdges().size());
 		datamap.get(start.getKey()).dist = 0;
 
 		boolean reachedEnd = false;
 
-		System.out.println("In here");
+		// System.out.println("In here");
 
 		while (!Q.isEmpty()) {
 			int smallestDist = Integer.MAX_VALUE;
@@ -312,8 +313,9 @@ public class PathFinding {
 	}
 
 	/**
-	 * Performs Dijkstra's path finding algorithm and returns the new edges between
-	 * the vertices.
+	 * Performs Dijkstra's path finding algorithm and returns costs for all the
+	 * paths between the start vertex and every end vertex in the list (very similar
+	 * to DijkstraMultiPath)
 	 *
 	 * @param G
 	 *            The graph in which Dijkstra has to be performed
@@ -564,52 +566,116 @@ public class PathFinding {
 	 * @author Joshua Scheidt
 	 * @author Pit Schneider
 	 */
-	public static ArrayList<Integer> DijkstraForDW(UndirectedGraph g, Vertex start, ArrayList<Vertex> end) {
+	public static HashMap<Integer, DijkstraInfo> DijkstraForDW(UndirectedGraph g, Vertex start, ArrayList<Vertex> end) {
 
 		ArrayList<Vertex> unvisited = new ArrayList<>();
-		HashMap<Vertex, DijkstraInfo> datamap = new HashMap<>();
-		for (Edge e : g.getEdges()) {
-			if (!datamap.containsKey(e.getVertices()[0])) {
-				datamap.put(e.getVertices()[0], new DijkstraInfo(Integer.MAX_VALUE));
-				unvisited.add(e.getVertices()[0]);
-			}
-			if (!datamap.containsKey(e.getVertices()[1])) {
-				datamap.put(e.getVertices()[1], new DijkstraInfo(Integer.MAX_VALUE));
-				unvisited.add(e.getVertices()[1]);
+		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
+		int numReachedEnd = 0;
+
+		for (Vertex v : g.getVertices().values()) {
+			if (!datamap.containsKey(v.getKey())) {
+				datamap.put(v.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
+				unvisited.add(v);
 			}
 		}
-		datamap.get(start).dist = 0;
-		int numReachedEnd = 0;
-		while (!unvisited.isEmpty()) {
+
+		datamap.get(start.getKey()).dist = 0;
+
+		while (!unvisited.isEmpty() && numReachedEnd < end.size()) {
+
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
 			for (Vertex v : unvisited) {
-				if (datamap.get(v).dist < smallestDist) {
+				if (datamap.get(v.getKey()).dist < smallestDist) {
 					current = v;
-					smallestDist = datamap.get(v).dist;
+					smallestDist = datamap.get(v.getKey()).dist;
 				}
 			}
-			if (numReachedEnd == end.size())
-				break;
-			for (Vertex v : end)
-				if (v.getKey() == current.getKey())
+			for (Vertex v : end) {
+				if (v.getKey() == current.getKey()) {
 					numReachedEnd++;
+				}
+			}
 			unvisited.remove(current);
-			int distToCur = datamap.get(current).dist;
+
+			int distToCur = datamap.get(current.getKey()).dist;
+			for (Vertex nb : current.getNeighbors()) {
+				if (unvisited.contains(nb)) {
+					int totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
+					DijkstraInfo currentInfo = datamap.get(nb.getKey());
+					if (totDistToNb < currentInfo.dist) {
+						currentInfo.dist = totDistToNb;
+						currentInfo.parent = current;
+					}
+				}
+			}
+		}
+
+		HashMap<Integer, DijkstraInfo> result = new HashMap<>();
+		for (Vertex v : end) {
+			result.put(v.getKey(), datamap.get(v.getKey()));
+		}
+		return result;
+	}
+
+	/**
+	 * Performs Dijkstra's path finding algorithm. This one was requested for the
+	 * IDW method.
+	 *
+	 * @param G
+	 *            The graph in which Dijkstra has to be performed
+	 * @param start
+	 *            The starting vertex
+	 * @param end
+	 *            The endpoint vertex
+	 * @return The path with the lowest weight
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public static ArrayList<Edge> DijkstraSinglePath(UndirectedGraph G, Vertex start, Vertex end) {
+		ArrayList<Vertex> Q = new ArrayList<>();
+		HashMap<Integer, DijkstraInfo> datamap = new HashMap<>();
+		for (Vertex i : G.getVertices().values()) {
+			datamap.put(i.getKey(), new DijkstraInfo(Integer.MAX_VALUE));
+			Q.add(i);
+		}
+		datamap.get(start.getKey()).dist = 0;
+
+		while (!Q.isEmpty()) {
+			int smallestDist = Integer.MAX_VALUE;
+			Vertex current = null;
+			for (Vertex i : Q) {
+				if (datamap.get(i.getKey()).dist < smallestDist) {
+					current = i;
+					smallestDist = datamap.get(i.getKey()).dist;
+				}
+			}
+			if (current == end)
+				break;
+			if (current == null)
+				System.out.println("ERROR: No shortest distance vertex found with distance < INTEGER.MAX_VALUE");
+			Q.remove(current);
+			int distToCur = datamap.get(current.getKey()).dist;
 			int totDistToNb = 0;
 			for (Vertex nb : current.getNeighbors()) {
 				totDistToNb = distToCur + current.getConnectingEdge(nb).getCost().get();
-				DijkstraInfo nbInfo = datamap.get(nb);
+				DijkstraInfo nbInfo = datamap.get(nb.getKey());
+				if (nbInfo == null)
+					System.out.println(nb.getKey() + " ???");
 				if (totDistToNb < nbInfo.dist) {
 					nbInfo.dist = totDistToNb;
 					nbInfo.parent = current;
 				}
 			}
+
 		}
-		ArrayList<Integer> result = new ArrayList<>();
-		for (Vertex v : end) {
-			result.add(datamap.get(v).dist);
+
+		ArrayList<Edge> path = new ArrayList<>();
+		Vertex current = end;
+		while (datamap.get(current.getKey()).parent != null) {
+			path.add(current.getConnectingEdge(datamap.get(current.getKey()).parent));
+			current = datamap.get(current.getKey()).parent;
 		}
-		return result;
+		return path;
 	}
 }

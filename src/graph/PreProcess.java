@@ -324,7 +324,6 @@ public class PreProcess {
 	// this.graph.removeVertex(current);
 	// }
 	// }
-
 	/**
 	 * This method looks more complicated than what it actually does. It removes all
 	 * Non-terminals with degree 2. It iteratively checks its neighbours until it
@@ -374,6 +373,7 @@ public class PreProcess {
 				while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
 					// Tries the first side of the original Vertex until it finds a Vertex that
 					// doesn't hold to the criteria of this method
+
 					tempEdge = firstVertex.getOtherEdge(firstEdge);
 					tempVertex = tempEdge.getOtherSide(firstVertex);
 					subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
@@ -385,6 +385,7 @@ public class PreProcess {
 				while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
 					// Tries the second side of the original Vertex until it finds a Vertex that
 					// doesn't hold to the criteria of this method
+
 					tempEdge = secondVertex.getOtherEdge(secondEdge);
 					tempVertex = tempEdge.getOtherSide(secondVertex);
 					subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
@@ -431,6 +432,7 @@ public class PreProcess {
 				}
 			}
 		}
+
 		for (int i = 0; i < newEdges.size(); i++) {
 			temp = this.graph.addEdge(newEdges.get(i)[0], newEdges.get(i)[1], newEdges.get(i)[2]);
 			temp.pushStack(containedWithinEdge.get(i));
@@ -470,8 +472,25 @@ public class PreProcess {
 				}
 			}
 			if (current.isTerminal() && current.getNeighbors().size() == 1) {
+
 				toBeRemoved.add(current);
 				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				newCurrent.setTerminal(true);
+
+				if (newCurrent.getSubsumed() != null) {
+					if (newCurrent.getSubsumed().size() > 0) {
+						newCurrent.pushStack(current.getSubsumed());
+					}
+				}
+				if (current.getConnectingEdge(newCurrent).getStack() != null) {
+					if (current.getConnectingEdge(newCurrent).getStack().size() > 0) {
+						newCurrent.pushStack(current.getConnectingEdge(newCurrent).getStack());
+					}
+				} else {
+					newCurrent.pushSubsumed(
+							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+
+				}
 				newCurrent.setTerminal(true);
 				while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
 					temp = newCurrent.getOtherNeighborVertex(current);
@@ -482,10 +501,18 @@ public class PreProcess {
 							newCurrent.pushStack(current.getSubsumed());
 						}
 					}
-					newCurrent.pushSubsumed(
-							new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+					if (current.getConnectingEdge(newCurrent).getStack() != null) {
+						if (current.getConnectingEdge(newCurrent).getStack().size() > 0) {
+							newCurrent.pushStack(current.getConnectingEdge(newCurrent).getStack());
+						}
+					} else {
+						newCurrent.pushSubsumed(
+								new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
+
+					}
 					toBeRemoved.add(current);
 					newCurrent.setTerminal(true);
+
 				}
 				this.graph.setTerminal(newCurrent.getKey());
 			}
@@ -579,8 +606,9 @@ public class PreProcess {
 					break;
 				}
 			}
-			if (remove)
+			if (remove) {
 				articulationBridge.remove(v0);
+			}
 		}
 
 		return articulationBridge;
@@ -647,10 +675,11 @@ public class PreProcess {
 						} else { // Found new unvisited neighbour
 							stack.push(nb);
 							artiNbCheck.get(arti).put(nb, true);
-							if (nb.isTerminal())
+							if (nb.isTerminal()) {
 								tis.add(nb);
-							else
+							} else {
 								vis.add(nb);
+							}
 							hasVisited.put(nb, true);
 							eis.add(arti.getConnectingEdge(nb));
 							break nbCheck;
@@ -681,9 +710,9 @@ public class PreProcess {
 								eis.add(stack.peek().getConnectingEdge(next));
 								if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is unvisited
 									hasVisited.put(next, true);
-									if (next.isTerminal())
+									if (next.isTerminal()) {
 										tis.add(next);
-									else {
+									} else {
 										vis.add(next);
 									}
 									parent = stack.peek();
@@ -761,8 +790,9 @@ public class PreProcess {
 		for (int i = 0; i < articulations.size(); i++) {
 			ends = new ArrayList<>();
 			for (int j = 0; j < terminals.size(); j++) {
-				if (articulations.get(i) == terminals.get(j))
+				if (articulations.get(i) == terminals.get(j)) {
 					continue;
+				}
 				ends.add(terminals.get(j));
 			}
 			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(this.graph, articulations.get(i), ends, edges)
@@ -773,16 +803,18 @@ public class PreProcess {
 		// Remove all vertices and edges which are now not needed anymore
 		for (Edge e : edges) {
 			if (!e.getVertices()[0].isTerminal() && !e.getVertices()[1].isTerminal() && !articulations.contains(e.getVertices()[0])
-					&& !articulations.contains(e.getVertices()[1]))
+					&& !articulations.contains(e.getVertices()[1])) {
 				this.graph.removeEdge(e);
+			}
 		}
 
 		for (Vertex v : vertices) {
 			this.graph.removeVertex(v);
 		}
 
-		for (Edge e : toBeAddedEdges)
+		for (Edge e : toBeAddedEdges) {
 			this.graph.addEdge(e);
+		}
 
 		// if (toBeAddedEdges.size() == 0 && bridgeEndpoints.size() == 1) {
 		// System.out.println("removing");
