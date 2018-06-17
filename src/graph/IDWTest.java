@@ -25,7 +25,7 @@ class IDWTest {
     public static void main(String[] args) {
 
 //		long start = System.currentTimeMillis();
-        File[] files = readFiles(new File("data\\exact\\instance013.gr")); // windows
+        File[] files = readFiles(new File("data\\exact\\instance001.gr")); // windows
 ////		File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
         UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
 
@@ -87,6 +87,12 @@ class IDWTest {
                     subsumed = solution.get(i).getVertices()[0].getSubsumed().pop();
                     temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum += subsumed[2];
+//                    if(subsumed[0] < subsumed[1]){
+//                        System.out.println(subsumed[0] +  " " + subsumed[1] + " " + subsumed[2]);
+//                    } else {
+//                        System.out.println(subsumed[1] +  " " + subsumed[0] + " " + subsumed[2]);
+//                    }
+
                 }
             }
             if (!(solution.get(i).getVertices()[1].getSubsumed() == null)) {
@@ -94,6 +100,11 @@ class IDWTest {
                     subsumed = solution.get(i).getVertices()[1].getSubsumed().pop();
                     temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum += subsumed[2];
+//                    if(subsumed[0] < subsumed[1]){
+//                        System.out.println(subsumed[0] +  " " + subsumed[1] + " " + subsumed[2]);
+//                    } else {
+//                        System.out.println(subsumed[1] +  " " + subsumed[0] + " " + subsumed[2]);
+//                    }
                 }
             }
             if (!(solution.get(i).getStack() == null)) {
@@ -101,12 +112,23 @@ class IDWTest {
                     subsumed = solution.get(i).getStack().pop();
                     temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
                     sum += subsumed[2];
+//                    if(subsumed[0] < subsumed[1]){
+//                        System.out.println(subsumed[0] +  " " + subsumed[1] + " " + subsumed[2]);
+//                    } else {
+//                        System.out.println(subsumed[1] +  " " + subsumed[0] + " " + subsumed[2]);
+//                    }
                 }
                 continue;
             }
             temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
             sum += solution.get(i).getCost().get();
+//            if(solution.get(i).getVertices()[0].getKey() < solution.get(i).getVertices()[1].getKey()){
+//                        System.out.println(solution.get(i).getVertices()[0].getKey() +  " " + solution.get(i).getVertices()[1].getKey() + " " + solution.get(i).getCost().get());
+//                    } else {
+//                        System.out.println(solution.get(i).getVertices()[1].getKey() +  " " + solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getCost().get());
+//                    }
         }
+//        System.out.println("_______________________________");
         if (toFile) {
             Path file = Paths.get(fileName.substring(0, fileName.length() - 3) + ".txt");
             ArrayList<String> output = new ArrayList<>();
