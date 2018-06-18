@@ -33,14 +33,15 @@ public class RandomMain {
 		// }
 		// System.out.print((int) (worker / n));
 
-		shortestPathHeuristicV2();
-		System.out.println("\n");
-		shortestPathHeuristicV2wPP();
+		// shortestPathHeuristicV2();
+		// System.out.println("\n");
+		// shortestPathHeuristicV2wPP();
 		// writeArticulationPointsToFile();
+		testSectioning();
 	}
 
 	public static void shortestPathHeuristicV2() {
-		File[] files = readFiles(new File("data\\exact\\instance003.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance001.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
@@ -72,6 +73,40 @@ public class RandomMain {
 			} while (preProcessable[0] || preProcessable[1]);
 
 			List<Edge> result = solver.solve(processed.graph);
+		}
+	}
+
+	public static void testSectioning() {
+		File[] files = readFiles(new File("data\\exact\\instance030.gr"));
+		for (int i = 0; i < files.length; i++) {
+			System.out.println(files[i].getParent() + "\\" + files[i].getName());
+			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+			PreProcess processed = new PreProcess(graph);
+			ArrayList<UndirectedGraph> subgraphs = processed
+					.createSeparateSections(graph.getVertices().get(graph.getVertices().keySet().toArray()[0]), graph.getVertices().size());
+			// for (UndirectedGraph g : subgraphs) {
+			// System.out.println("New section");
+			// for (Edge e : g.getEdges()) {
+			// System.out.println(e.getVertices()[0].getKey() + " " +
+			// e.getVertices()[1].getKey() + " " + e.getCost().get());
+			// }
+			// for (Vertex t : g.getTerminals().values())
+			// System.out.println("Terminal:" + t.getKey());
+			// }
+			System.out.println(subgraphs.size());
+
+			List<Edge> result = new ArrayList<>();
+			for (UndirectedGraph gr : subgraphs) {
+				List<Edge> subRes = solver.solve(gr);
+				if (subRes != null)
+					result.addAll(subRes);
+			}
+			int res = 0;
+			for (Edge e : result)
+				res += e.getCost().get();
+			System.out.println("result = " + res);
 		}
 	}
 

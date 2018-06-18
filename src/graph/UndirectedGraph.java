@@ -427,4 +427,21 @@ public class UndirectedGraph {
 		}
 		System.out.println("It is connected");
 	}
+
+	/**
+	 * Adds a complete graph to this one.
+	 *
+	 * @param addable
+	 *            the to be added graph
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public void addGraph(UndirectedGraph addable) {
+		for (Edge e : addable.getEdges()) {
+			this.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+		}
+		for (Vertex v : addable.getTerminals().values()) {
+			this.setTerminal(v.getKey());
+		}
+	}
 }
