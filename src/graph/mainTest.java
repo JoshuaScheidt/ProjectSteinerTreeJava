@@ -27,7 +27,7 @@ public class mainTest {
 //        String file = "data\\exact100kb\\instance001.gr";
 //        File[] files = readFiles(new File(file));
         
-        String file = "data\\heuristics100kb";
+        String file = "data\\exact\\instance046.gr";
         File[] files = readFiles(new File(file));
         
         outerloop:
