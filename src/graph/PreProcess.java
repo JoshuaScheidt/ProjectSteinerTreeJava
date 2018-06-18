@@ -596,7 +596,7 @@ public class PreProcess {
                     if (!it.hasNext()) {
                         if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
                             articulationBridge.add(current);
-                            articulationBridge.add(parent);
+//                            articulationBridge.add(parent); //Use when both bridge endpoints need to be articulation points.
                         } else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]) {
                             articulationBridge.add(parent);
                         }
@@ -757,6 +757,142 @@ public class PreProcess {
             }
             stack.removeAllElements();
         }
+    }
+
+    /**
+     * Creates per found section in the graph a new UndirectedGraph object.
+     *
+     * @param artiPoints The articulation points in the graph
+     *
+     * @author Joshua Scheidt
+     */
+    public ArrayList<UndirectedGraph> createSeparateSections(HashSet<Vertex> artiPoints) {
+        ArrayList<UndirectedGraph> subGraphs = new ArrayList<>();
+    	// Map to keep track of all the already visited vertices in the set.
+        // These will hold only the vertices which are not articulation points.
+        Map<Vertex, Boolean> hasVisited;
+        // The stack used for replacement of recursion
+        Stack<Vertex> stack = new Stack<>();
+        // The next and parent vertices in the stack
+        Vertex next, parent;
+        // Temporary vertex used for moving other vertices around
+        Vertex tmp;
+        // The iterator of the neighbours of the stack's last element
+        Iterator<Vertex> it;
+        // Map in a Map which shows for every articulation point which neighbours have
+        // been checked (true=checked)
+        Map<Vertex, Map<Vertex, Boolean>> artiNbCheck = new HashMap<>();
+        for (Vertex v : artiPoints) {
+            Map<Vertex, Boolean> map = new HashMap<>();
+            for (Vertex nb : v.getNeighbors()) {
+                map.put(nb, false);
+            }
+            artiNbCheck.put(v, map);
+        }
+
+        // VerticesInSection, TerminalsInSection, ArticulationInSection and
+        // EdgesInSection
+        // If a terminals is an articulation as well, it will not be added to tis.
+        Set<Vertex> vis, tis, ais;
+        Set<Edge> eis;
+
+        for (Vertex arti : artiPoints) {
+            stack.push(arti);
+            parent = arti;
+            checkArti:
+            while (artiNbCheck.get(arti).values().contains(false)) {
+                hasVisited = new HashMap<>();
+                vis = new HashSet<>();
+                tis = new HashSet<>();
+                ais = new HashSet<>();
+                eis = new HashSet<>();
+                ais.add(arti);
+
+                nbCheck:
+                for (Vertex nb : arti.getNeighbors()) {
+                    if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb)) {
+
+                        // The neighbour of the articulationPoint is an articulation as well.
+                        // Do nothing
+                        if (artiPoints.contains(nb)) {
+                            artiNbCheck.get(arti).put(nb, true);
+                            artiNbCheck.get(nb).put(arti, true);
+                        } else { // Found new unvisited neighbour
+                            stack.push(nb);
+                            artiNbCheck.get(arti).put(nb, true);
+                            if (nb.isTerminal()) {
+                                tis.add(nb);
+                            } else {
+                                vis.add(nb);
+                            }
+                            hasVisited.put(nb, true);
+                            eis.add(arti.getConnectingEdge(nb));
+                            break nbCheck;
+                        }
+                    }
+                }
+                if (stack.size() > 2) {
+                    System.out.println("Something went wrong in the neighbour checking");
+                    System.exit(1);
+                } else if (stack.size() == 1) {
+                    break checkArti;
+                } else { // Stack now contains arti and 1 neighbour
+                    while (stack.size() > 1) { // If size is 1, then only arti available
+                        it = stack.peek().getNeighbors().iterator();
+                        if (!it.hasNext()) { // Current item on the stack has no neighbours
+                            System.out.println("The current stack item does not have any neighbours");
+                            System.exit(1);
+                        }
+                        nbLoop:
+                        while (it.hasNext()) {
+                            next = it.next();
+                            if (parent == next) { // Found parent again, do nothing
+                                // System.out.println("Parent found");
+                            } else if (artiPoints.contains(next) && !artiNbCheck.get(next).get(stack.peek())) { // My next vertex is an arti point
+                                artiNbCheck.get(next).put(stack.peek(), true);
+                                ais.add(next);
+                                eis.add(next.getConnectingEdge(stack.peek()));
+                            } else if (!eis.contains(stack.peek().getConnectingEdge(next))) { // Current edge not in set yet
+                                eis.add(stack.peek().getConnectingEdge(next));
+                                if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is unvisited
+                                    hasVisited.put(next, true);
+                                    if (next.isTerminal()) {
+                                        tis.add(next);
+                                    } else {
+                                        vis.add(next);
+                                    }
+                                    parent = stack.peek();
+                                    stack.push(next);
+                                    break nbLoop;
+                                }
+                            }
+                            if (!it.hasNext()) {
+                                stack.pop(); // Iterator went through all neighbours, thus backtrack.
+                                tmp = stack.pop();
+                                parent = (stack.size() == 0 ? arti : stack.peek());
+                                stack.push(tmp);
+                                break nbLoop;
+                            }
+                        }
+                    }
+                    // We are back to articulation point, thus end of section
+                    UndirectedGraph subGraph = new UndirectedGraph();
+                    for(Edge e : eis) {
+                    	subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+                    }
+                    for(Vertex t : tis) {
+                    	subGraph.setTerminal(t.getKey());
+                    }
+                    for(Vertex a : ais) {
+                    	subGraph.setTerminal(a.getKey());
+                    }
+                    subGraphs.add(subGraph);
+                }
+
+            }
+            stack.removeAllElements();
+        }
+		return subGraphs;
     }
 
     /**
