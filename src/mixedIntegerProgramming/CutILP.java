@@ -37,17 +37,17 @@ public class CutILP {
     private HashMap<Edge, Integer> keys;
     private HashSet<HashSet<Integer>> result;
     private String fileName;
-    private String LPFile;
+    private Path LPFile;
     private final boolean DEBUG = false;
 
     public CutILP(UndirectedGraph g, String fileName) {
         this.g = g;
         this.fileName = fileName;
-        this.LPFile = "data\\ILP\\" + this.fileName + ".lp";
+        this.LPFile = Paths.get("data\\ILP\\" + this.fileName + ".lp");
     }
 
     public void initiateCutSearch() {
-        File f = new File(this.LPFile);
+//        File f = new File(this.LPFile.toString());
 //        if(f.exists()){
 //            System.out.println("This already exists so we can just run it through ILP");
 //            System.out.println(this.LPFile);
@@ -58,7 +58,9 @@ public class CutILP {
         this.writeEndOfFile();
 
 //        }
-        double[] result = this.activateCPLEX(this.LPFile);
+        double[] result = this.activateCPLEX(this.LPFile.toString());
+        this.printSolution(result);
+
     }
 
     public void writeIntermediate() {
@@ -84,14 +86,16 @@ public class CutILP {
                     }
                 }
             }
-            temp = temp.substring(0, temp.length() - 2);
-            temp = temp.concat(" >= 1");
-            lines.add(temp);
+            if (!temp.isEmpty()) {
+                temp = temp.substring(0, temp.length() - 2);
+                temp = temp.concat(" >= 1");
+                lines.add(temp);
+            }
         }
         this.result.clear();
-        Path file = Paths.get(this.LPFile);
+
         try {
-            Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+            Files.write(this.LPFile, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
         } catch (IOException ex) {
             Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -107,9 +111,8 @@ public class CutILP {
             lines.add("x_" + (int) it.next());
         }
         lines.add("End");
-        Path file = Paths.get(this.LPFile);
         try {
-            Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+            Files.write(this.LPFile, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
         } catch (IOException ex) {
             Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -133,9 +136,8 @@ public class CutILP {
         lines.add(temp);
         temp = "Subject To";
         lines.add(temp);
-        Path file = Paths.get(this.LPFile);
         try {
-            Files.write(file, lines, Charset.forName("UTF-8"));
+            Files.write(this.LPFile, lines, Charset.forName("UTF-8"));
         } catch (IOException ex) {
             Logger.getLogger(CutILP.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -144,59 +146,63 @@ public class CutILP {
     public void recursiveInit() {
         Set keys = this.g.getTerminals().keySet();
         Set others = this.g.getVertices().keySet();
-        Set alreadyUsed = new HashSet<>();
+        HashSet alreadyUsed = new HashSet<>();
         Iterator it = keys.iterator();
-        Integer temp;
-        HashSet sub1, sub2;
+        int temp;
+        HashSet<Integer> sub1, sub2, newAlreadyUsed;
         this.result = new HashSet<>();
         int counter = 1;
         while (it.hasNext()) {
-            temp = (Integer) it.next();
+            temp = (int) it.next();
             sub1 = new HashSet<>();
             sub1.add(temp);
             sub2 = new HashSet<>();
             sub2.addAll(others);
             sub2.remove(temp);
-            sub2.removeAll(alreadyUsed);
+            newAlreadyUsed = new HashSet<>();
+            newAlreadyUsed.addAll(alreadyUsed);
             System.out.println("Starts cut finding for Terminal: " + counter);
-            this.recursiveCut(sub1, sub2, counter);
+            this.recursiveCut(sub1, sub2, alreadyUsed, 1);
             alreadyUsed.add(temp);
             counter++;
         }
-        if (DEBUG) {
-            System.out.println("Number of cuts: " + this.result.size());
-            for (int i = 0; i < this.result.size(); i++) {
-                System.out.println(this.result.toArray()[i].toString());
-            }
+        if (this.result.size() > 0) {
+            System.out.println("Just write pls");
+            this.writeIntermediate();
         }
     }
 
-    public void recursiveCut(HashSet<Integer> sub1, HashSet<Integer> sub2, int term1) {
-        if (term1 >= this.g.getNumberOfTerminals()) {
+    public void recursiveCut(HashSet<Integer> sub1, HashSet<Integer> sub2, HashSet<Integer> alreadyUsed, int term1) {
+        if (term1 == this.g.getNumberOfTerminals()) {
             return;
         }
-        System.out.println("Size of sub1: " + sub1.size());
         this.result.add(sub1);
-        if(this.result.size() >= 10){
+        if (this.result.size() >= 50) {
             this.writeIntermediate();
         }
-        Integer temp;
-        HashSet<Integer> newSub1, newSub2;
-        HashSet<Integer> alreadyUsed = new HashSet<>();
-        Iterator it = sub2.iterator();
-        while (it.hasNext()) {
-            temp = (Integer) it.next();
-            alreadyUsed.add(temp);
-            newSub1 = new HashSet<>();
-            newSub1.addAll(sub1);
-            newSub1.add(temp);
-            newSub2 = new HashSet<>();
-            newSub2.addAll(sub2);
-            newSub2.removeAll(alreadyUsed);
-            if (this.g.getTerminals().containsKey((int) temp)) {
-                term1++;
+        HashSet<Integer> newSub1, newSub2, newAlreadyUsed;
+        for (int i : sub1) {
+            for (Vertex v : this.g.getVertices().get(i).getNeighbors()) {
+                if (!sub1.contains(v.getKey()) && !alreadyUsed.contains(v.getKey())) {
+                    newAlreadyUsed = new HashSet<>();
+                    newSub1 = new HashSet<>();
+                    newSub2 = new HashSet<>();
+                    
+                    newSub1.addAll(sub1);
+                    newSub1.add(v.getKey());
+                    
+                    newSub2.addAll(sub2);
+                    
+                    newAlreadyUsed.add(v.getKey());
+                    newAlreadyUsed.addAll(alreadyUsed);
+                    
+                    alreadyUsed.add(v.getKey());
+                    if (this.g.getTerminals().containsKey(v.getKey())) {
+                        term1++;
+                    }
+                    this.recursiveCut(newSub1, newSub2, newAlreadyUsed, term1);
+                }
             }
-            this.recursiveCut(newSub1, newSub2, term1);
         }
     }
 
@@ -259,6 +265,20 @@ public class CutILP {
         return vals;
     }
 
+    public void printSolution(double[] result) {
+        int sum = 0;
+        Edge current = null;
+        String temp = "";
+        for (int i = 0; i < result.length; i++) {
+            if (result[i] == 1) {
+                current = this.edges.get(i + 1);
+                sum += current.getCost().get();
+                temp = temp.concat(current.getVertices()[0].getKey() + " " + current.getVertices()[1].getKey() + "\n");
+            }
+        }
+        System.out.println("VALUE: " + sum);
+        System.out.println(temp);
+    }
 //    public String flowFormulation(){
 //        ArrayList<String> lines = new ArrayList<>();
 //        lines.add("Minimize");

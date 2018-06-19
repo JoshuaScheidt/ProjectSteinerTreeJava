@@ -18,6 +18,7 @@ public class Edge extends Object {
 	private Optional<Integer> cost;
 	private Stack<int[]> subsumed;
 
+        public Edge(){}
 	/**
 	 * Constructor for creating an Edge given 2 Vertices and a cost
 	 *

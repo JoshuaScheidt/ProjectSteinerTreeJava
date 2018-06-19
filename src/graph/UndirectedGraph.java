@@ -58,6 +58,88 @@ public class UndirectedGraph {
 	}
 
 	/**
+	 * This Method removes any edges and vertices not contained within the remainder
+	 * List. This is to check if a solution is correct (in the matter of
+	 * connectivity not optimality)
+	 *
+	 * @param remainder
+	 *            Your resulting edge list that you want to have in the graph
+	 */
+	public void checkConnectivity(ArrayList<Edge> remainder) {
+		HashSet<Integer> doNotRemove = new HashSet<>(), remove = new HashSet<>();
+		remainder.forEach((e) -> {
+			if (!(doNotRemove.contains(e.getVertices()[0].getKey()))) {
+				doNotRemove.add(e.getVertices()[0].getKey());
+			}
+			if (!(doNotRemove.contains(e.getVertices()[1].getKey()))) {
+				doNotRemove.add(e.getVertices()[1].getKey());
+			}
+		});
+		System.out.println(Arrays.toString(doNotRemove.toArray()));
+		for (Vertex v : this.vertices.values()) {
+			if (!(doNotRemove.contains(v.getKey()))) {
+				if (this.terminals.containsKey(v.getKey())) {
+					System.out.println("You removed a terminal from the graph: " + v.getKey());
+					System.exit(0);
+				}
+				remove.add(v.getKey());
+			}
+		}
+		for (Integer i : remove) {
+			this.removeVertex(this.vertices.get(i));
+		}
+		HashMap<Integer, Boolean> visited = new HashMap<>();
+		for (Integer i : doNotRemove) {
+			visited.put(i, false);
+		}
+		Stack<Integer> traversal = new Stack<>();
+		traversal.add((int) doNotRemove.iterator().next());
+		int current;
+		int numberOfTerminals = 0;
+		while (!traversal.isEmpty()) {
+			current = traversal.pop();
+			if (visited.get(current) == false) {
+				visited.replace(current, true);
+				if (this.vertices.get(current).isTerminal()) {
+					numberOfTerminals++;
+				}
+			}
+			for (Vertex v : this.vertices.get(current).getNeighbors()) {
+				if (visited.get(v.getKey()) == false) {
+					traversal.add(v.getKey());
+				}
+			}
+		}
+		if (!(this.getNumberOfTerminals() == numberOfTerminals)) {
+			System.out.println("Number of terminals mismatch " + this.getNumberOfTerminals() + " and found " + numberOfTerminals);
+			System.exit(1);
+		}
+		for (Boolean b : visited.values()) {
+			if (b == false) {
+				System.out.println("Not connected. Some Vertices cannot be reached from any other Vertex");
+				System.exit(2);
+			}
+		}
+		System.out.println("It is connected");
+	}
+
+	public void rangeCheck() {
+		HashMap<Integer, Integer> ranges = new HashMap<>();
+		int cost = 0;
+		for (Edge e : this.getEdges()) {
+			cost = e.getCost().get();
+			if (ranges.containsKey(e.getCost().get())) {
+				ranges.replace(cost, ranges.get(cost).intValue(), ranges.get(cost) + 1);
+			} else {
+				ranges.put(cost, 1);
+			}
+		}
+		for (Integer i : ranges.keySet()) {
+			System.out.println("Cost: " + i + " is found " + ranges.get(i) + " times");
+		}
+	}
+
+	/**
 	 * This method adds a vertex to the graph it also checks if it already contains
 	 * this vertex if it does it will not add it
 	 *
@@ -360,72 +442,6 @@ public class UndirectedGraph {
 		}
 
 		return null;
-	}
-
-	/**
-	 * This Method removes any edges and vertices not contained within the remainder
-	 * List. This is to check if a solution is correct (in the matter of
-	 * connectivity not optimality)
-	 *
-	 * @param remainder
-	 *            Your resulting edge list that you want to have in the graph
-	 */
-	public void checkConnectivity(ArrayList<Edge> remainder) {
-		HashSet<Integer> doNotRemove = new HashSet<>(), remove = new HashSet<>();
-		remainder.forEach((e) -> {
-			if (!(doNotRemove.contains(e.getVertices()[0].getKey()))) {
-				doNotRemove.add(e.getVertices()[0].getKey());
-			}
-			if (!(doNotRemove.contains(e.getVertices()[1].getKey()))) {
-				doNotRemove.add(e.getVertices()[1].getKey());
-			}
-		});
-		System.out.println(Arrays.toString(doNotRemove.toArray()));
-		for (Vertex v : this.vertices.values()) {
-			if (!(doNotRemove.contains(v.getKey()))) {
-				if (this.terminals.containsKey(v.getKey())) {
-					System.out.println("You removed a terminal from the graph: " + v.getKey());
-					System.exit(0);
-				}
-				remove.add(v.getKey());
-			}
-		}
-		for (Integer i : remove) {
-			this.removeVertex(this.vertices.get(i));
-		}
-		HashMap<Integer, Boolean> visited = new HashMap<>();
-		for (Integer i : doNotRemove) {
-			visited.put(i, false);
-		}
-		Stack<Integer> traversal = new Stack<>();
-		traversal.add((int) doNotRemove.iterator().next());
-		int current;
-		int numberOfTerminals = 0;
-		while (!traversal.isEmpty()) {
-			current = traversal.pop();
-			if (visited.get(current) == false) {
-				visited.replace(current, true);
-				if (this.vertices.get(current).isTerminal()) {
-					numberOfTerminals++;
-				}
-			}
-			for (Vertex v : this.vertices.get(current).getNeighbors()) {
-				if (visited.get(v.getKey()) == false) {
-					traversal.add(v.getKey());
-				}
-			}
-		}
-		if (!(this.getNumberOfTerminals() == numberOfTerminals)) {
-			System.out.println("Number of terminals mismatch " + this.getNumberOfTerminals() + " and found " + numberOfTerminals);
-			System.exit(1);
-		}
-		for (Boolean b : visited.values()) {
-			if (b == false) {
-				System.out.println("Not connected. Some Vertices cannot be reached from any other Vertex");
-				System.exit(2);
-			}
-		}
-		System.out.println("It is connected");
 	}
 
 	/**

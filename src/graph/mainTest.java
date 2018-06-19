@@ -107,27 +107,15 @@ public class mainTest {
 		// solver.solve(graph);
 		// processed.removeBridgesAndSections(graph.getVertices().size());
 
-		// Below is used to create a file with same name in lp format
-		// file = file.substring(file.indexOf("\\") + 1);
-		// file = file.substring(file.indexOf("\\") + 1);
-		// file = file.substring(0, file.indexOf("."));
-		// CutILP fp = new CutILP(graph, file);
-		// fp.initiateCutSearch();
-		// System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-		// SteinerTreeSolver solver = new MobiusDynamics();
+		// SteinerTreeSolver fp = new FlowILP(graph, file);
+		// ArrayList<Edge> solution = (ArrayList) fp.solve(graph);
+		// printSolution(solution, true);
+		// graph.checkConnectivity(solution);
+		// SteinerTreeSolver solver = new ShortestPathHeuristic();
 		// solver.solve(graph);
-		// ArrayList<Vertex[]> articulationBridges =
-		// processed.articulationBridgeFinding(graph.getVertices().get(1),
-		// graph.getVertices().size());
-		//
 		// System.out.println("Took " + (System.currentTimeMillis() - starts) + " ms");
-		// for (Vertex[] v : articulationBridges) {
-		// if (v.length == 2) {
-		// System.out.println(v[0].getKey() + " " + v[1].getKey());
-		// } else
-		// System.out.println(v[0].getKey());
-		// }
-		// doAnalysis(files);
+		// System.exit(1);
+		// printSolution(solver.solve(pp.graph), false);
 	}
 
 	public static void setBest(List<Edge> edges) {
@@ -196,7 +184,6 @@ public class mainTest {
 	 * @author Joshua Scheidt
 	 */
 	private static void doAnalysis(File[] files) {
-
 		Integer[][][] results = new Integer[files.length][4][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
 		// index has to be changed depending on which comparisons we want. The first
 		// index will always be the base graph without preprocess changes.
@@ -212,6 +199,10 @@ public class mainTest {
 			results[fileIndex][0][2] = graph.getEdges().size();
 			results[fileIndex][0][3] = (int) (end - start);
 
+			// Create a cloned graph which will use preprocessing.
+			PreProcess improved = new PreProcess(graph);
+			printCurrentSize(improved);
+
 			// // Create a cloned graph which will use preprocessing.
 			// PreProcess improved = new PreProcess(graph);
 			// printCurrentSize(improved);
@@ -226,7 +217,6 @@ public class mainTest {
 			// System.out.println("");
 
 			// Leaf Node Removal
-			PreProcess improved = new PreProcess(graph);
 			start = System.currentTimeMillis();
 			improved.removeLeafNodes();
 			end = System.currentTimeMillis();
@@ -315,28 +305,6 @@ public class mainTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		// double[] percentileReductionVertices = new double[results.length];
-		// double[] percentileReductionEdges = new double[results.length];
-		// double[] percentileReductionTerminals = new double[results.length];
-		// double[] averageTimeTaken = new double[results.length];
-		// int counter = 0;
-		// for (Integer[][] singleFileResults : results) {
-		// System.out.println(Arrays.toString(singleFileResults[0]));
-		// percentileReductionVertices[counter] = ((double) (singleFileResults[0][0] -
-		// singleFileResults[3][0])) / (double) singleFileResults[0][0];
-		// percentileReductionTerminals[counter] = ((double) (singleFileResults[0][1] -
-		// singleFileResults[3][1])) / (double) singleFileResults[0][1];
-		// percentileReductionEdges[counter] = ((double) (singleFileResults[0][2] -
-		// singleFileResults[3][2])) / (double) singleFileResults[0][2];
-		// averageTimeTaken[counter] = singleFileResults[1][3] + singleFileResults[2][3]
-		// + singleFileResults[3][3];
-		// counter++;
-		// }
-		// System.out.println(Arrays.toString(percentileReductionVertices));
-		// System.out.println(Arrays.toString(percentileReductionEdges));
-		// System.out.println(Arrays.toString(percentileReductionTerminals));
-		// System.out.println(Arrays.toString(averageTimeTaken));
 	}
 
 	/**

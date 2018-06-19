@@ -24,12 +24,10 @@ import java.util.Stack;
 public class PreProcess {
 
 	UndirectedGraph graph;
-	int[] range;
 	private HashMap<Integer, BitSet> checked;
 
 	public PreProcess(UndirectedGraph g) {
 		this.graph = g.clone();
-		this.range = new int[] { Integer.MAX_VALUE, Integer.MIN_VALUE };
 		this.checked = new HashMap<>();
 		Iterator it = this.graph.getVertices().keySet().iterator();
 		BitSet allFalse;
@@ -47,18 +45,7 @@ public class PreProcess {
 		// System.out.println(this.checked.get(v.getKey()).get(2));
 		// }
 	}
-
-	public void rangeCheck() {
-		this.graph.getEdges().forEach((e) -> {
-			if (e.getCost().get() < this.range[0]) {
-				this.range[0] = e.getCost().get();
-			} else if (e.getCost().get() > this.range[1]) {
-				this.range[1] = e.getCost().get();
-			}
-		});
-		System.out.println("Range: [" + this.range[0] + ", " + this.range[1] + "]");
-	}
-
+        
 	/**
 	 * The following method checks each clique of size three and sees if any sum of
 	 * two edges is smaller than the third. If that is the case the third edge can
