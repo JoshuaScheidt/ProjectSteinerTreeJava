@@ -468,4 +468,34 @@ public class UndirectedGraph {
 			}
 		}
 	}
+
+	public void adjacencyMatrix(boolean toFile) {
+		String temp = "";
+		Vertex v;
+		temp = temp.concat("[0, ");
+		for (int i = 0; i < this.getVertices().size(); i++) {
+			temp = temp.concat("0, ");
+		}
+		temp = temp.substring(0, temp.length() - 2);
+		temp = temp.concat("]");
+		System.out.println(temp);
+		temp = "";
+		for (int j = 0; j < this.getVertices().size(); j++) {
+			v = this.getVertices().get(j + 1);
+			temp = temp.concat("[0, ");
+			for (int i = 0; i < this.getVertices().size(); i++) {
+				if (v == null || this.getVertices().get(i + 1) == null) {
+					temp = temp.concat("0, ");
+				} else if (v.getNeighbors().contains(this.getVertices().get(i + 1))) {
+					temp = temp.concat(v.getConnectingEdge(this.getVertices().get(i + 1)).getCost().get() + ", ");
+				} else {
+					temp = temp.concat("0, ");
+				}
+			}
+			temp = temp.substring(0, temp.length() - 2);
+			temp = temp.concat("]");
+			System.out.println(temp);
+			temp = "";
+		}
+	}
 }

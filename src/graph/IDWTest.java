@@ -19,10 +19,9 @@ class IDWTest {
 	public static void main(String[] args) {
 
 		// long start = System.currentTimeMillis();
-		File[] files = readFiles(new File("data\\exact\\instance002.gr")); // windows
+		File[] files = readFiles(new File("data\\exact\\instance068.gr")); // windows
 		//// File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
 		UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
-
 		// UndirectedGraph g = new UndirectedGraphReader().read();
 		PreProcess pp = new PreProcess(g);
 		boolean[] preProcessable;
@@ -35,14 +34,23 @@ class IDWTest {
 				pp.removeNonTerminalDegreeTwo();
 			}
 		} while (preProcessable[0] || preProcessable[1]);
-		SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
+		pp.graph.adjacencyMatrix(true);
 
 		// Sectioning part
 		ArrayList<UndirectedGraph> subGraphs = pp
 				.createSeparateSections(pp.graph.getVertices().get(pp.graph.getVertices().keySet().iterator().next()), g.getVertices().size());
 		List<Edge> solution = new ArrayList<>();
 		for (UndirectedGraph sub : subGraphs) {
-			solution.addAll(solver.solve(sub));
+			SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
+			System.out.println("Section:");
+			for (Edge e : sub.getEdges()) {
+				System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost().get());
+			}
+			System.out.println("Section solution:");
+			List<Edge> tmp = solver.solve(sub);
+			for (Edge e : tmp)
+				System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost().get());
+			solution.addAll(tmp);
 		}
 		// End of sectioning part
 

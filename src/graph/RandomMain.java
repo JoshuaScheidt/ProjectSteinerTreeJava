@@ -44,14 +44,16 @@ public class RandomMain {
 
 		// shortestPathHeuristicV2();
 		// System.out.println("\n");
-		long start = System.currentTimeMillis();
-		shortestPathHeuristicV2();
-		long middle = System.currentTimeMillis();
-		shortestPathHeuristicV2FullPreprocess();
-		long end = System.currentTimeMillis();
-		System.out.println("Without preprocess took " + (middle - start) + " ms");
-		System.out.println("With preprocess took " + (end - middle) + " ms");
-		// writeArticulationPointsToFile();
+		
+//		long start = System.currentTimeMillis();
+//		shortestPathHeuristicV2();
+//		long middle = System.currentTimeMillis();
+//		shortestPathHeuristicV2FullPreprocess();
+//		long end = System.currentTimeMillis();
+//		System.out.println("Without preprocess took " + (middle - start) + " ms");
+//		System.out.println("With preprocess took " + (end - middle) + " ms");
+		
+		 writeArticulationPointsToFile();
 		// testSectioning();
 	}
 

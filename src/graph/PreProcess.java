@@ -45,7 +45,7 @@ public class PreProcess {
 		// System.out.println(this.checked.get(v.getKey()).get(2));
 		// }
 	}
-        
+
 	/**
 	 * The following method checks each clique of size three and sees if any sum of
 	 * two edges is smaller than the third. If that is the case the third edge can
@@ -843,7 +843,9 @@ public class PreProcess {
 		for (Edge e : bridges) {
 			artiPoints.add(e.getVertices()[0]);
 		}
-
+		for (Vertex v : artiPoints) {
+			System.out.println("Arti: " + v.getKey());
+		}
 		// System.out.println("Artipoints:");
 		// for (Vertex v : artiPoints) {
 		// System.out.println(v.getKey());
