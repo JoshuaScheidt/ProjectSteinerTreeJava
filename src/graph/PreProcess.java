@@ -1045,6 +1045,13 @@ public class PreProcess {
 			if (recheck.size() == 0)
 				break;
 			else {
+				toBeRemoved.sort((Integer i, Integer j) -> {
+					if (i > j)
+						return 1;
+					if (j > i)
+						return -1;
+					return 0;
+				});
 				for (int i = toBeRemoved.size() - 1; i >= 0; i--) {
 					subGraphs.remove(toBeRemoved.get(i).intValue());
 				}
