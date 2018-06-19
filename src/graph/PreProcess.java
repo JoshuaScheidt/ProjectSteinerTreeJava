@@ -7,6 +7,7 @@ package graph;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -929,7 +930,6 @@ public class PreProcess {
 				} else if (stack.size() == 1) { // No nb found which hasn't been traversed, this articulation point is done
 					break checkArti;
 				} else if (stack.size() == 2 && artiPoints.contains(stack.peek())) {
-					System.out.println("In here with " + stack.peek().getKey() + " " + arti.getKey());
 					stack.pop();// Single edge section, add to the subgraphs directly and afterwards try to
 					// combine
 				} else { // Stack now contains arti and 1 neighbour
@@ -989,9 +989,94 @@ public class PreProcess {
 
 			stack.removeAllElements();
 		}
+
+		// for (UndirectedGraph sub : subGraphs) {
+		// System.out.println("Section:");
+		// for (Edge e : sub.getEdges())
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// }
+
 		// Here we still need to check how we can combine multiple sections
+		Collection<Integer> intersection, toBeIntersected;
+		UndirectedGraph sub0;
+		UndirectedGraph sub1;
+		ArrayList<Integer> toBeRemoved = new ArrayList<>();
+		ArrayList<Integer> recheck = new ArrayList<>();
+		HashSet<Integer[]> toCheck = new HashSet<>();
+		for (int i = 0; i < subGraphs.size(); i++) {
+			for (int j = i + 1; j < subGraphs.size(); j++) {
+				toCheck.add(new Integer[] { i, j });
+				// System.out.println("ToCheck: " + i + " " + j);
+			}
+		}
+
+		while (true) {
+			Iterator<Integer[]> checks = toCheck.iterator();
+			while (checks.hasNext()) {
+				Integer[] cur = checks.next();
+				if (toBeRemoved.contains(cur[0]) || toBeRemoved.contains(cur[1]))
+					continue;
+				// System.out.println("Size: " + subGraphs.size());
+				// System.out.println("Indices: " + cur[0] + " " + cur[1]);
+				sub0 = subGraphs.get(cur[0]);
+				sub1 = subGraphs.get(cur[1]);
+				Set<Vertex> artis0 = artiPerGraph.get(sub0);
+				Set<Vertex> artis1 = artiPerGraph.get(sub1);
+				intersection = new ArrayList<>();
+				for (Vertex v : artis0)
+					intersection.add(v.getKey());
+				toBeIntersected = new ArrayList<>();
+				for (Vertex v : artis1)
+					toBeIntersected.add(v.getKey());
+				intersection.retainAll(toBeIntersected);
+				if (intersection.size() >= 2) { // More than 2 articulation points in common -> Merge them
+					// System.out.println("Merging");
+					sub0.addGraph(sub1);
+					toBeRemoved.add(cur[1]);
+					recheck.add(cur[0]);
+				}
+				// Add more cases here to connect
+				// ....
+			}
+			toCheck.clear();
+			// System.out.println("Removing: " + Arrays.toString(toBeRemoved.toArray()));
+			// System.out.println("Must Recheck: " + Arrays.toString(recheck.toArray()));
+			if (recheck.size() == 0)
+				break;
+			else {
+				for (int i = toBeRemoved.size() - 1; i >= 0; i--) {
+					subGraphs.remove(toBeRemoved.get(i).intValue());
+				}
+				// System.out.println("New subGraph size: " + subGraphs.size());
+				for (int i = 0; i < recheck.size(); i++) {
+					for (int j = 0; j < subGraphs.size(); j++) {
+						if (recheck.get(i) == j)
+							continue;
+						if (!recheck.contains(j) || recheck.indexOf(j) > i) {
+							// System.out.println("Adding to reCheck:" + recheck.get(i) + " " + j);
+							if (recheck.get(i) < j) {
+								toCheck.add(new Integer[] { recheck.get(i), j });
+							} else {
+								toCheck.add(new Integer[] { j, recheck.get(i) });
+							}
+
+						}
+					}
+				}
+				// for (Integer[] i : toCheck)
+				// System.out.println("Recheck " + i[0] + " " + i[1]);
+				recheck.clear();
+				toBeRemoved.clear();
+			}
+		}
+		// If there is no articulation point -> return a deepcopy of the original
+		if (artiPoints.size() == 0) {
+			subGraphs.add(this.graph.clone());
+		}
 
 		return subGraphs;
+
 		//
 		// for (Vertex arti : artiPoints) {
 		// stack.push(arti);

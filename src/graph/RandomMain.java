@@ -77,15 +77,18 @@ public class RandomMain {
 	}
 
 	public static void testSectioning() {
-		File[] files = readFiles(new File("data\\test\\testDijkstra.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance001.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
 
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
 			PreProcess processed = new PreProcess(graph);
+			long start = System.currentTimeMillis();
 			ArrayList<UndirectedGraph> subgraphs = processed
 					.createSeparateSections(graph.getVertices().get(graph.getVertices().keySet().toArray()[0]), graph.getVertices().size());
+			System.out.println("Sectioning took: " + (System.currentTimeMillis() - start) + "ms");
+			// System.out.println("\n\n\n");
 			for (UndirectedGraph g : subgraphs) {
 				System.out.println("New section");
 				for (Edge e : g.getEdges()) {
