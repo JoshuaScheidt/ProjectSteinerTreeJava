@@ -7,6 +7,7 @@ package graph;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -101,6 +102,216 @@ public class PreProcess {
 		}
 	}
 
+	// /**
+	// * This method looks more complicated than what it actually does. It removes
+	// all
+	// * Non-terminals with degree 2. It iteratively checks its neighbours until it
+	// * finds a Terminal or a Vertex with degree higher than 2. It has to keep
+	// track
+	// * of subsumed vertices per New Edge. And it has to keep track of all Vertices
+	// * to be removed and Edges to be created. This cannot happen concurrently as
+	// the
+	// * Iterator doesn't allow it, if we do do this it could cause checks on newly
+	// * created edges which is unnecessary.
+	// */
+	// public void removeNonTerminalDegreeTwo() {
+	// Set keys = this.graph.getVertices().keySet();
+	// Iterator it = keys.iterator();
+	// HashMap<Integer, Vertex> vertices = this.graph.getVertices();
+	// Stack<int[]> subsumed;
+	// HashSet<Integer> toBeRemovedVertices = new HashSet<>();
+	// HashSet<Edge> toBeRemovedEdges = new HashSet<>();
+	// ArrayList<int[]> newEdges = new ArrayList<>();
+	// ArrayList<Stack<int[]>> containedWithinEdge = new ArrayList<>();
+	// Vertex current, firstVertex, secondVertex, tempVertex;
+	// Edge firstEdge, secondEdge, tempEdge, temp;
+	// int cost, currentKey;
+	//
+	// while (it.hasNext()) {
+	// // Gets the current Vertex in the Iterator
+	// currentKey = (int) it.next();
+	// current = vertices.get(currentKey);
+	// // Checks if Vertex is Non-Terminal and degree 2
+	// if (!(this.checked.get(currentKey).cardinality() ==
+	// this.checked.get(currentKey).length())) {
+	// if (!current.isTerminal() && current.getNeighbors().size() == 2 &&
+	// !toBeRemovedVertices.contains(current.getKey())) {
+	// // Creates a stack to be used for all vertices that will be subsumed by the
+	// to
+	// // be created Edge
+	// subsumed = new Stack<>();
+	// cost = 0;
+	// // Creating first steps left and right of current to iteratively find a
+	// terminal
+	// // or degree greater than 2
+	// firstVertex = (Vertex) current.getNeighbors().toArray()[0];
+	// secondVertex = current.getOtherNeighborVertex(firstVertex);
+	// firstEdge = current.getConnectingEdge(firstVertex);
+	// secondEdge = current.getConnectingEdge(secondVertex);
+	// // Pushes the original two removable Edges in the form of their two keys and
+	// // their respective costs
+	// subsumed.push(new int[] { current.getKey(), firstVertex.getKey(),
+	// firstEdge.getCost().get() });
+	// subsumed.push(new int[] { current.getKey(), secondVertex.getKey(),
+	// secondEdge.getCost().get() });
+	// // The total cost of the new Edge is the sum of the removed Edges
+	// cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+	// // Keeps a list of the Vertices to be removed, Removal method will also
+	// remove
+	// // all connected
+	// // Edges so no need to store the Edge objects
+	// toBeRemovedVertices.add(current.getKey());
+	// while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
+	// // Tries the first side of the original Vertex until it finds a Vertex that
+	// // doesn't hold to the criteria of this method
+	// tempEdge = firstVertex.getOtherEdge(firstEdge);
+	// tempVertex = tempEdge.getOtherSide(firstVertex);
+	// subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(),
+	// tempEdge.getCost().get() });
+	// toBeRemovedVertices.add(firstVertex.getKey());
+	// cost += tempEdge.getCost().get();
+	// firstVertex = tempVertex;
+	// firstEdge = tempEdge;
+	// }
+	// while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2)
+	// {
+	// // Tries the second side of the original Vertex until it finds a Vertex that
+	// // doesn't hold to the criteria of this method
+	// tempEdge = secondVertex.getOtherEdge(secondEdge);
+	// tempVertex = tempEdge.getOtherSide(secondVertex);
+	// subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(),
+	// tempEdge.getCost().get() });
+	// toBeRemovedVertices.add(secondVertex.getKey());
+	// cost += tempEdge.getCost().get();
+	// secondVertex = tempVertex;
+	// secondEdge = tempEdge;
+	// }
+	// boolean edgeExists = false;
+	// if (firstVertex.isNeighbor(secondVertex)) {
+	// if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
+	// // Do Nothing the vertices can all be removed because there exists a shorter
+	// // path between the two endpoints
+	// } else {
+	// temp = firstVertex.getConnectingEdge(secondVertex);
+	// temp.setCost(cost);
+	// temp.pushStack(subsumed);
+	// }
+	// edgeExists = true;
+	// } else {
+	// for (int i = 0; i < newEdges.size(); i++) {
+	// if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] ==
+	// secondVertex.getKey()) {
+	// if (newEdges.get(i)[2] > cost) {
+	// newEdges.get(i)[2] = cost;
+	// }
+	// edgeExists = true;
+	// break;
+	// } else if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1]
+	// == secondVertex.getKey()) {
+	// if (newEdges.get(i)[2] > cost) {
+	// newEdges.get(i)[2] = cost;
+	// }
+	// edgeExists = true;
+	// break;
+	// }
+	// }
+	// }
+	// if (!edgeExists) {
+	// newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost
+	// });
+	// containedWithinEdge.add(subsumed);
+	// }
+	// } else {
+	// this.checked.get(currentKey).set(1);
+	// }
+	// }
+	// }
+	// for (int i = 0; i < newEdges.size(); i++) {
+	// this.checked.get(newEdges.get(i)[0]).set(1, false);
+	// this.checked.get(newEdges.get(i)[1]).set(1, false);
+	// temp = this.graph.addEdge(newEdges.get(i)[0], newEdges.get(i)[1],
+	// newEdges.get(i)[2]);
+	// temp.pushStack(containedWithinEdge.get(i));
+	// }
+	// it = toBeRemovedVertices.iterator();
+	// while (it.hasNext()) {
+	// currentKey = (int) it.next();
+	// this.checked.remove(currentKey);
+	// this.graph.removeVertex(this.graph.getVertices().get(currentKey));
+	// }
+	// it = toBeRemovedEdges.iterator();
+	// while (it.hasNext()) {
+	// this.graph.removeEdge((Edge) it.next());
+	// }
+	// }
+	//
+	// /**
+	// * Removes Non-Terminal leaf nodes entirely as they will never be chosen (WE
+	// * ASSUME THERE WILL BE NO NON-NEGATIVE EDGES) Removes Terminal leaf nodes and
+	// * sets its neighbour to be a terminal to ensure connection
+	// */
+	// public void removeLeafNodes() {
+	// Iterator it = this.graph.getVertices().keySet().iterator();
+	// HashMap<Integer, Vertex> vertices = this.graph.getVertices();
+	// HashSet<Vertex> toBeRemoved = new HashSet<>();
+	// Vertex current, newCurrent, temp;
+	// int currentKey;
+	// System.out.println("starting");
+	//
+	// while (it.hasNext()) {
+	// currentKey = (int) it.next();
+	// if (!(this.checked.get(currentKey).cardinality() ==
+	// this.checked.get(currentKey).length())) {
+	// current = vertices.get(currentKey);
+	// if (!current.isTerminal() && current.getNeighbors().size() == 1) {
+	// toBeRemoved.add(current);
+	// newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+	// while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+	// temp = newCurrent.getOtherNeighborVertex(current);
+	// current = newCurrent;
+	// newCurrent = temp;
+	// toBeRemoved.add(current);
+	// }
+	// this.checked.get(newCurrent.getKey()).set(0, false);
+	// } else if (current.isTerminal() && current.getNeighbors().size() == 1) {
+	// toBeRemoved.add(current);
+	// newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+	// while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+	// temp = newCurrent.getOtherNeighborVertex(current);
+	// current = newCurrent;
+	// newCurrent = temp;
+	// if (current.getSubsumed() != null) {
+	// if (current.getSubsumed().size() > 0) {
+	// newCurrent.pushStack(current.getSubsumed());
+	// }
+	// }
+	// newCurrent.pushSubsumed(
+	// new int[] { newCurrent.getKey(), current.getKey(), ((Edge)
+	// (current.getEdges().toArray()[0])).getCost().get() });
+	// this.graph.setTerminal(newCurrent.getKey());
+	// current = newCurrent;
+	// toBeRemoved.add(current);
+	// }
+	// System.out.println(newCurrent.getKey());
+	// for (Vertex nb : newCurrent.getNeighbors())
+	// System.out.print(nb.getKey() + " ");
+	// System.out.println();
+	// System.out.println(this.graph.getVertices().containsKey(newCurrent.getKey()));
+	// System.out.println(this.checked.get(newCurrent.getKey()));
+	// this.checked.get(newCurrent.getKey()).set(0, false);
+	// } else {
+	// this.checked.get(currentKey).set(0);
+	// }
+	// }
+	// }
+	// it = toBeRemoved.iterator();
+	// while (it.hasNext()) {
+	// current = (Vertex) it.next();
+	// System.out.println(current.getKey());
+	// this.checked.remove(current.getKey());
+	// this.graph.removeVertex(current);
+	// }
+	// }
 	/**
 	 * This method looks more complicated than what it actually does. It removes all
 	 * Non-terminals with degree 2. It iteratively checks its neighbours until it
@@ -121,105 +332,103 @@ public class PreProcess {
 		ArrayList<Stack<int[]>> containedWithinEdge = new ArrayList<>();
 		Vertex current, firstVertex, secondVertex, tempVertex;
 		Edge firstEdge, secondEdge, tempEdge, temp;
-		int cost, currentKey;
-
+		int cost;
 		while (it.hasNext()) {
 			// Gets the current Vertex in the Iterator
-			currentKey = (int) it.next();
-			current = vertices.get(currentKey);
+			current = vertices.get((int) it.next());
 			// Checks if Vertex is Non-Terminal and degree 2
-			if (!(this.checked.get(currentKey).cardinality() == this.checked.get(currentKey).length())) {
-				if (!current.isTerminal() && current.getNeighbors().size() == 2 && !toBeRemovedVertices.contains(current.getKey())) {
-					// Creates a stack to be used for all vertices that will be subsumed by the to
-					// be created Edge
-					subsumed = new Stack<>();
-					cost = 0;
-					// Creating first steps left and right of current to iteratively find a terminal
-					// or degree greater than 2
-					firstVertex = (Vertex) current.getNeighbors().toArray()[0];
-					secondVertex = current.getOtherNeighborVertex(firstVertex);
-					firstEdge = current.getConnectingEdge(firstVertex);
-					secondEdge = current.getConnectingEdge(secondVertex);
-					// Pushes the original two removable Edges in the form of their two keys and
-					// their respective costs
-					subsumed.push(new int[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
-					subsumed.push(new int[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
-					// The total cost of the new Edge is the sum of the removed Edges
-					cost += firstEdge.getCost().get() + secondEdge.getCost().get();
-					// Keeps a list of the Vertices to be removed, Removal method will also remove
-					// all connected
-					// Edges so no need to store the Edge objects
-					toBeRemovedVertices.add(current.getKey());
-					while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
-						// Tries the first side of the original Vertex until it finds a Vertex that
-						// doesn't hold to the criteria of this method
-						tempEdge = firstVertex.getOtherEdge(firstEdge);
-						tempVertex = tempEdge.getOtherSide(firstVertex);
-						subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
-						toBeRemovedVertices.add(firstVertex.getKey());
-						cost += tempEdge.getCost().get();
-						firstVertex = tempVertex;
-						firstEdge = tempEdge;
-					}
-					while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
-						// Tries the second side of the original Vertex until it finds a Vertex that
-						// doesn't hold to the criteria of this method
-						tempEdge = secondVertex.getOtherEdge(secondEdge);
-						tempVertex = tempEdge.getOtherSide(secondVertex);
-						subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
-						toBeRemovedVertices.add(secondVertex.getKey());
-						cost += tempEdge.getCost().get();
-						secondVertex = tempVertex;
-						secondEdge = tempEdge;
-					}
-					boolean edgeExists = false;
-					if (firstVertex.isNeighbor(secondVertex)) {
-						if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
-							// Do Nothing the vertices can all be removed because there exists a shorter
-							// path between the two endpoints
-						} else {
-							temp = firstVertex.getConnectingEdge(secondVertex);
-							temp.setCost(cost);
-							temp.pushStack(subsumed);
-						}
-						edgeExists = true;
+			if (!current.isTerminal() && current.getNeighbors().size() == 2 && !toBeRemovedVertices.contains(current.getKey())) {
+				// Creates a stack to be used for all vertices that will be subsumed by the to
+				// be created Edge
+				subsumed = new Stack<>();
+				cost = 0;
+				// Creating first steps left and right of current to iteratively find a terminal
+				// or degree greater than 2
+				firstVertex = (Vertex) current.getNeighbors().toArray()[0];
+				secondVertex = current.getOtherNeighborVertex(firstVertex);
+				firstEdge = current.getConnectingEdge(firstVertex);
+				secondEdge = current.getConnectingEdge(secondVertex);
+				// Pushes the original two removable Edges in the form of their two keys and
+				// their respective costs
+				subsumed.push(new int[] { current.getKey(), firstVertex.getKey(), firstEdge.getCost().get() });
+				subsumed.push(new int[] { current.getKey(), secondVertex.getKey(), secondEdge.getCost().get() });
+				// The total cost of the new Edge is the sum of the removed Edges
+				cost += firstEdge.getCost().get() + secondEdge.getCost().get();
+				// Keeps a list of the Vertices to be removed, Removal method will also remove
+				// all connected
+				// Edges so no need to store the Edge objects
+				toBeRemovedVertices.add(current.getKey());
+				while (!firstVertex.isTerminal() && firstVertex.getNeighbors().size() == 2) {
+					// Tries the first side of the original Vertex until it finds a Vertex that
+					// doesn't hold to the criteria of this method
+
+					tempEdge = firstVertex.getOtherEdge(firstEdge);
+					tempVertex = tempEdge.getOtherSide(firstVertex);
+					subsumed.push(new int[] { firstVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+					toBeRemovedVertices.add(firstVertex.getKey());
+					cost += tempEdge.getCost().get();
+					firstVertex = tempVertex;
+					firstEdge = tempEdge;
+				}
+				while (!secondVertex.isTerminal() && secondVertex.getNeighbors().size() == 2) {
+					// Tries the second side of the original Vertex until it finds a Vertex that
+					// doesn't hold to the criteria of this method
+
+					tempEdge = secondVertex.getOtherEdge(secondEdge);
+					tempVertex = tempEdge.getOtherSide(secondVertex);
+					subsumed.push(new int[] { secondVertex.getKey(), tempVertex.getKey(), tempEdge.getCost().get() });
+					toBeRemovedVertices.add(secondVertex.getKey());
+					cost += tempEdge.getCost().get();
+					secondVertex = tempVertex;
+					secondEdge = tempEdge;
+				}
+				// YOU NEED TO THINK ABOUT THIS MORE THERE COULD BE MULTIPLE NEW EDGES ADDED
+				// THAT CREATE THE SAME PATH
+				// COST SHOULD BE COMPARED TO SEE IF WE NEED TO REMOVE AN ORIGINAL EDGE OR NOT
+				// ADD ANOTHER EDGE AT ALL
+				boolean edgeExists = false;
+				if (firstVertex.isNeighbor(secondVertex)) {
+					if (cost > firstVertex.getConnectingEdge(secondVertex).getCost().get()) {
+						// Do Nothing the vertices can all be removed because there exists a shorter
+						// path between the two endpoints
 					} else {
-						for (int i = 0; i < newEdges.size(); i++) {
-							if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
-								if (newEdges.get(i)[2] > cost) {
-									newEdges.get(i)[2] = cost;
-								}
-								edgeExists = true;
-								break;
-							} else if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
-								if (newEdges.get(i)[2] > cost) {
-									newEdges.get(i)[2] = cost;
-								}
-								edgeExists = true;
-								break;
+						temp = firstVertex.getConnectingEdge(secondVertex);
+						temp.setCost(cost);
+						temp.pushStack(subsumed);
+					}
+					edgeExists = true;
+				} else {
+					for (int i = 0; i < newEdges.size(); i++) {
+						if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
+							if (newEdges.get(i)[2] > cost) {
+								newEdges.get(i)[2] = cost;
 							}
+							edgeExists = true;
+							break;
+						} else if (newEdges.get(i)[0] == firstVertex.getKey() && newEdges.get(i)[1] == secondVertex.getKey()) {
+							if (newEdges.get(i)[2] > cost) {
+								newEdges.get(i)[2] = cost;
+							}
+							edgeExists = true;
+							break;
 						}
 					}
-					if (!edgeExists) {
-						newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost });
-						containedWithinEdge.add(subsumed);
-					}
-				} else {
-					this.checked.get(currentKey).set(1);
+				}
+				if (!edgeExists) {
+					newEdges.add(new int[] { firstVertex.getKey(), secondVertex.getKey(), cost });
+					containedWithinEdge.add(subsumed);
 				}
 			}
 		}
+
 		for (int i = 0; i < newEdges.size(); i++) {
-			this.checked.get(newEdges.get(i)[0]).set(1, false);
-			this.checked.get(newEdges.get(i)[1]).set(1, false);
 			temp = this.graph.addEdge(newEdges.get(i)[0], newEdges.get(i)[1], newEdges.get(i)[2]);
 			temp.pushStack(containedWithinEdge.get(i));
 		}
 		it = toBeRemovedVertices.iterator();
 		while (it.hasNext()) {
-			currentKey = (int) it.next();
-			this.checked.remove(currentKey);
-			this.graph.removeVertex(this.graph.getVertices().get(currentKey));
+			this.graph.removeVertex(this.graph.getVertices().get((int) it.next()));
+			it.remove();
 		}
 		it = toBeRemovedEdges.iterator();
 		while (it.hasNext()) {
@@ -233,56 +442,85 @@ public class PreProcess {
 	 * sets its neighbour to be a terminal to ensure connection
 	 */
 	public void removeLeafNodes() {
-		Iterator it = this.graph.getVertices().keySet().iterator();
+		Set keys = this.graph.getVertices().keySet();
+		Iterator it = keys.iterator();
 		HashMap<Integer, Vertex> vertices = this.graph.getVertices();
 		HashSet<Vertex> toBeRemoved = new HashSet<>();
 		Vertex current, newCurrent, temp;
-		int currentKey;
-
 		while (it.hasNext()) {
-			currentKey = (int) it.next();
-			if (!(this.checked.get(currentKey).cardinality() == this.checked.get(currentKey).length())) {
-				current = vertices.get(currentKey);
-				if (!current.isTerminal() && current.getNeighbors().size() == 1) {
+			current = vertices.get((int) it.next());
+			if (!current.isTerminal() && current.getNeighbors().size() == 1) {
+				toBeRemoved.add(current);
+				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+					temp = newCurrent.getOtherNeighborVertex(current);
+					current = newCurrent;
+					newCurrent = temp;
 					toBeRemoved.add(current);
-					newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-					while (!newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
-						temp = newCurrent.getOtherNeighborVertex(current);
-						current = newCurrent;
-						newCurrent = temp;
-						toBeRemoved.add(current);
+				}
+			}
+			if (current.isTerminal() && current.getNeighbors().size() == 1) {
+				toBeRemoved.add(current);
+				newCurrent = (Vertex) current.getNeighbors().toArray()[0];
+				newCurrent.setTerminal(true);
+				// if (newCurrent.getSubsumed() != null) {
+				// if (newCurrent.getSubsumed().size() > 0) {
+				// newCurrent.pushStack(current.getSubsumed());
+				// }
+				// }
+				if (current.getConnectingEdge(newCurrent).getStack() != null) {
+					if (current.getConnectingEdge(newCurrent).getStack().size() > 0) {
+						newCurrent.pushStack(current.getConnectingEdge(newCurrent).getStack());
 					}
-					this.checked.get(newCurrent.getKey()).set(0, false);
-				} else if (current.isTerminal() && current.getNeighbors().size() == 1) {
-					toBeRemoved.add(current);
-					newCurrent = (Vertex) current.getNeighbors().toArray()[0];
-					while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
-						temp = newCurrent.getOtherNeighborVertex(current);
-						current = newCurrent;
-						newCurrent = temp;
+					if (current.getSubsumed() != null) {
+						newCurrent.pushStack(current.getSubsumed());
+					}
+				} else {
+					if (current.getSubsumed() != null) {
+						newCurrent.pushStack(current.getSubsumed());
+					}
+					newCurrent
+							.pushSubsumed(new int[] { newCurrent.getKey(), current.getKey(), current.getConnectingEdge(newCurrent).getCost().get() });
+
+				}
+				newCurrent.setTerminal(true);
+				while (newCurrent.isTerminal() && newCurrent.getNeighbors().size() == 2) {
+					temp = newCurrent.getOtherNeighborVertex(current);
+					current = newCurrent;
+					newCurrent = temp;
+					// if (current.getSubsumed() != null) {
+					// if (current.getSubsumed().size() > 0) {
+					// newCurrent.pushStack(current.getSubsumed());
+					// }
+					// }
+					if (current.getConnectingEdge(newCurrent).getStack() != null) {
+						if (current.getConnectingEdge(newCurrent).getStack().size() > 0) {
+							newCurrent.pushStack(current.getConnectingEdge(newCurrent).getStack());
+						}
 						if (current.getSubsumed() != null) {
-							if (current.getSubsumed().size() > 0) {
-								newCurrent.pushStack(current.getSubsumed());
-							}
+							newCurrent.pushStack(current.getSubsumed());
+						}
+					} else {
+						if (current.getSubsumed() != null) {
+							newCurrent.pushStack(current.getSubsumed());
 						}
 						newCurrent.pushSubsumed(
-								new int[] { newCurrent.getKey(), current.getKey(), ((Edge) (current.getEdges().toArray()[0])).getCost().get() });
-						this.graph.setTerminal(newCurrent.getKey());
-						current = newCurrent;
-						toBeRemoved.add(current);
+								new int[] { newCurrent.getKey(), current.getKey(), current.getConnectingEdge(newCurrent).getCost().get() });
+
 					}
-					this.checked.get(newCurrent.getKey()).set(0, false);
-				} else {
-					this.checked.get(currentKey).set(0);
+					toBeRemoved.add(current);
+					newCurrent.setTerminal(true);
+
 				}
+				this.graph.setTerminal(newCurrent.getKey());
 			}
 		}
 		it = toBeRemoved.iterator();
 		while (it.hasNext()) {
-			current = (Vertex) it.next();
-			this.checked.remove(current.getKey());
-			this.graph.removeVertex(current);
+			this.graph.removeVertex((Vertex) it.next());
+			// it.remove();
 		}
+		it = null;
 	}
 
 	/**
@@ -347,7 +585,8 @@ public class PreProcess {
 					if (!it.hasNext()) {
 						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
 							articulationBridge.add(current);
-							articulationBridge.add(parent);
+							// articulationBridge.add(parent); //Use when both bridge endpoints need to be
+							// articulation points.
 						} else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]) {
 							articulationBridge.add(parent);
 						}
@@ -366,8 +605,9 @@ public class PreProcess {
 					break;
 				}
 			}
-			if (remove)
+			if (remove) {
 				articulationBridge.remove(v0);
+			}
 		}
 
 		return articulationBridge;
@@ -434,10 +674,11 @@ public class PreProcess {
 						} else { // Found new unvisited neighbour
 							stack.push(nb);
 							artiNbCheck.get(arti).put(nb, true);
-							if (nb.isTerminal())
+							if (nb.isTerminal()) {
 								tis.add(nb);
-							else
+							} else {
 								vis.add(nb);
+							}
 							hasVisited.put(nb, true);
 							eis.add(arti.getConnectingEdge(nb));
 							break nbCheck;
@@ -468,9 +709,9 @@ public class PreProcess {
 								eis.add(stack.peek().getConnectingEdge(next));
 								if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is unvisited
 									hasVisited.put(next, true);
-									if (next.isTerminal())
+									if (next.isTerminal()) {
 										tis.add(next);
-									else {
+									} else {
 										vis.add(next);
 									}
 									parent = stack.peek();
@@ -504,6 +745,522 @@ public class PreProcess {
 			}
 			stack.removeAllElements();
 		}
+	}
+
+	/**
+	 * Creates per found section in the graph a new UndirectedGraph object.
+	 *
+	 * @param artiPoints
+	 *            The articulation points in the graph
+	 *
+	 * @author Joshua Scheidt
+	 */
+	public ArrayList<UndirectedGraph> createSeparateSections(Vertex v0, int totalVertices) {
+		// First start finding all articulationPoints
+		int count = 1;
+		int[] iteratedValues = new int[totalVertices];
+		int[] lowestFoundLabels = new int[totalVertices];
+		HashSet<Vertex> artiPoints = new HashSet<>(); // Need separation between articulation points and bridges for finding only one
+														// of the bridge points
+		HashSet<Vertex> bridgeNodes = new HashSet<>();
+		HashSet<Edge> bridges = new HashSet<>();
+		Stack<Vertex> stack = new Stack<>();
+		Vertex fake = new Vertex(0); // Fake vertex to use as the parent of the initial vertex v0
+		stack.push(fake);
+		stack.push(v0);
+		iteratedValues[v0.getKey() - 1] = count;
+		lowestFoundLabels[v0.getKey() - 1] = count;
+		count++;
+		Vertex current, parent, next;
+		Iterator<Vertex> it;
+		boolean backtracking = false;
+
+		while (stack.size() > 1) { // If the stack is 1, we are back to the fake vertex -> stop
+			current = stack.pop();
+			parent = stack.peek();
+			stack.push(current); // We need to use this trick to get the parent
+			it = current.getNeighbors().iterator();
+			backtracking = true;
+			for (Vertex neighbor : current.getNeighbors()) {
+				if (iteratedValues[neighbor.getKey() - 1] == 0) { // If any neighbor is unexplored, don't backtrack.
+					backtracking = backtracking && false;
+				}
+			}
+			if (!backtracking) { // We still have unexplored neighbors
+				while ((next = it.next()) != null) {
+					if (iteratedValues[next.getKey() - 1] == 0) { // Find the unexplored neighbor
+						iteratedValues[next.getKey() - 1] = count;
+						lowestFoundLabels[next.getKey() - 1] = count;
+						count++;
+						stack.push(next);
+						break;
+					}
+					if (!it.hasNext()) { // Should never get it here, would mean there is something wrong with unexplored
+						// neighbors check
+						System.out.println("Still got in here");
+						break;
+					}
+				}
+			} else { // All neighbors explored
+				while ((next = it.next()) != null) {
+					if (next != parent) {
+						lowestFoundLabels[current.getKey() - 1] = Math.min(lowestFoundLabels[current.getKey() - 1],
+								lowestFoundLabels[next.getKey() - 1]); // Set current lowest to go to lowest neighbor
+					}
+					if (!it.hasNext()) {
+						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) { // Found a bridge
+							bridges.add(current.getConnectingEdge(parent));
+							bridgeNodes.add(current);
+							bridgeNodes.add(parent);
+						} else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]
+								&& !bridgeNodes.contains(parent)) { // Found an articulation point
+							artiPoints.add(parent);
+						}
+						stack.pop();
+						break;
+					}
+				}
+			}
+		}
+		if (v0.getNeighbors().size() > 1) { // Special case: Unless first node is an actual articulation point, remove from
+											// articulation points. This was due to some implementation strategy that v0 was
+											// almost always chosen as articulation
+			int val = iteratedValues[v0.getKey() - 1];
+			boolean remove = true;
+			for (Vertex v : v0.getNeighbors()) {
+				if (lowestFoundLabels[v.getKey() - 1] != val) {
+					remove = false;
+					break;
+				}
+			}
+			if (remove) {
+				artiPoints.remove(v0);
+			}
+		}
+		artiPoints.removeAll(bridgeNodes); // Remove all bridgeNodes from the articulation points, and then add the first
+											// bridgenode again to articulation points to ensure only a single node from
+											// bridge is articulation
+		for (Edge e : bridges) {
+			artiPoints.add(e.getVertices()[0]);
+		}
+
+		// System.out.println("Artipoints:");
+		// for (Vertex v : artiPoints) {
+		// System.out.println(v.getKey());
+		// }
+		// System.out.println("Bridges:");
+		// for (Edge e : bridges) {
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// }
+
+		// FROM HERE, ARTICULATION POINTS HAVE BEEN FOUND
+		// START WITH CREATING THE SECTIONS
+		ArrayList<UndirectedGraph> subGraphs = new ArrayList<>();
+		// Map to keep track of all the already visited vertices in the set.
+		// These will hold only the vertices which are not articulation points.
+		Map<Vertex, Boolean> hasVisited;
+		// The stack used for replacement of recursion
+		stack = new Stack<>();
+		// Temporary vertex used for moving other vertices around
+		Vertex tmp;
+		// Map in a Map which shows for every articulation point which neighbours have
+		// been checked (true=checked)
+		Map<Vertex, Map<Vertex, Boolean>> artiNbCheck = new HashMap<>();
+		for (Vertex v : artiPoints) {
+			Map<Vertex, Boolean> map = new HashMap<>();
+			for (Vertex nb : v.getNeighbors()) {
+				map.put(nb, false);
+			}
+			artiNbCheck.put(v, map);
+		}
+		Map<UndirectedGraph, Set<Vertex>> artiPerGraph = new HashMap<>();
+
+		// VerticesInSection, TerminalsInSection, ArticulationInSection and
+		// EdgesInSection
+		// If a terminals is an articulation as well, it will not be added to tis.
+		Set<Vertex> vis, tis, ais;
+		Set<Edge> eis;
+
+		for (Vertex arti : artiPoints) {
+			stack.push(arti); // Create a new stack with this articulation point as the root
+			parent = arti; // The current will always be a nb, the starting articulation point will be the
+							// parent for the first nb
+			checkArti: while (artiNbCheck.get(arti).values().contains(false)) { // The articulation point has searched all its corresponding sections
+																				// once every edge has been used
+				hasVisited = new HashMap<>();
+				vis = new HashSet<>();
+				tis = new HashSet<>();
+				ais = new HashSet<>();
+				eis = new HashSet<>();
+				ais.add(arti);
+				nbCheck: for (Vertex nb : arti.getNeighbors()) {
+					if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb)) { // Only check if nb is not used yet
+						stack.push(nb);
+						artiNbCheck.get(arti).put(nb, true);
+						if (artiPoints.contains(nb)) {
+							ais.add(nb);
+							artiNbCheck.get(nb).put(arti, true);
+						} else if (nb.isTerminal()) {
+							tis.add(nb);
+						} else {
+							vis.add(nb);
+						}
+						hasVisited.put(nb, true);
+						eis.add(arti.getConnectingEdge(nb));
+						break nbCheck;
+					}
+				}
+				if (stack.size() > 2) {
+					System.out.println("Something went wrong in the neighbour checking");
+					System.exit(1);
+				} else if (stack.size() == 1) { // No nb found which hasn't been traversed, this articulation point is done
+					break checkArti;
+				} else if (stack.size() == 2 && artiPoints.contains(stack.peek())) {
+					stack.pop();// Single edge section, add to the subgraphs directly and afterwards try to
+					// combine
+				} else { // Stack now contains arti and 1 neighbour
+					while (stack.size() > 1) { // There is still at least one node except for the articulation point we need to
+												// traverse
+						it = stack.peek().getNeighbors().iterator();
+						if (!it.hasNext()) { // Current item on the stack has no neighbours
+							System.out.println("The current stack item does not have any neighbours");
+							System.exit(1);
+						}
+						nbLoop: while (it.hasNext()) {
+							next = it.next();
+							if (parent == next) { // Found parent again, do nothing
+								// System.out.println("Parent found");
+							} else if (artiPoints.contains(next) && !artiNbCheck.get(next).get(stack.peek())) { // My next vertex is an arti point
+								artiNbCheck.get(next).put(stack.peek(), true);
+								ais.add(next);
+								eis.add(next.getConnectingEdge(stack.peek()));
+							} else if (!eis.contains(stack.peek().getConnectingEdge(next))) { // Current edge not in set yet
+								eis.add(stack.peek().getConnectingEdge(next));
+								if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is unvisited
+									hasVisited.put(next, true);
+									if (next.isTerminal()) {
+										tis.add(next);
+									} else {
+										vis.add(next);
+									}
+									parent = stack.peek();
+									stack.push(next);
+									break nbLoop;
+								}
+							}
+							if (!it.hasNext()) {
+								stack.pop(); // Iterator went through all neighbours, thus backtrack.
+								tmp = stack.pop();
+								parent = (stack.size() == 0 ? arti : stack.peek());
+								stack.push(tmp);
+								break nbLoop;
+							}
+						}
+					}
+				}
+
+				UndirectedGraph subGraph = new UndirectedGraph();
+				for (Edge e : eis) {
+					subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+					if (e.getStack() != null)
+						subGraph.getVertices().get(e.getVertices()[0].getKey())
+								.getConnectingEdge(subGraph.getVertices().get(e.getVertices()[1].getKey())).pushStack(e.getStack());
+				}
+				for (Vertex t : tis) {
+					subGraph.setTerminal(t.getKey());
+				}
+				for (Vertex a : ais) {
+					subGraph.setTerminal(a.getKey());
+				}
+				for (Vertex v : vis) {
+					if (v.getSubsumed() != null)
+						subGraph.getVertices().get(v.getKey()).pushStack(v.getSubsumed());
+				}
+				subGraphs.add(subGraph);
+				artiPerGraph.put(subGraph, ais);
+			}
+
+			stack.removeAllElements();
+		}
+
+		// for (UndirectedGraph sub : subGraphs) {
+		// System.out.println("Section:");
+		// for (Edge e : sub.getEdges())
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// }
+
+		// Here we still need to check how we can combine multiple sections
+		Collection<Integer> intersection, toBeIntersected;
+		UndirectedGraph sub0;
+		UndirectedGraph sub1;
+		ArrayList<Integer> toBeRemoved = new ArrayList<>();
+		ArrayList<Integer> recheck = new ArrayList<>();
+		HashSet<Integer[]> toCheck = new HashSet<>();
+		for (int i = 0; i < subGraphs.size(); i++) {
+			for (int j = i + 1; j < subGraphs.size(); j++) {
+				toCheck.add(new Integer[] { i, j });
+				// System.out.println("ToCheck: " + i + " " + j);
+			}
+		}
+
+		while (true) {
+			Iterator<Integer[]> checks = toCheck.iterator();
+			while (checks.hasNext()) {
+				Integer[] cur = checks.next();
+				if (toBeRemoved.contains(cur[0]) || toBeRemoved.contains(cur[1]))
+					continue;
+				// System.out.println("Size: " + subGraphs.size());
+				// System.out.println("Indices: " + cur[0] + " " + cur[1]);
+				sub0 = subGraphs.get(cur[0]);
+				sub1 = subGraphs.get(cur[1]);
+				Set<Vertex> artis0 = artiPerGraph.get(sub0);
+				Set<Vertex> artis1 = artiPerGraph.get(sub1);
+				intersection = new ArrayList<>();
+				for (Vertex v : artis0)
+					intersection.add(v.getKey());
+				toBeIntersected = new ArrayList<>();
+				for (Vertex v : artis1)
+					toBeIntersected.add(v.getKey());
+				intersection.retainAll(toBeIntersected);
+				if (intersection.size() >= 2) { // More than 2 articulation points in common -> Merge them
+					// System.out.println("Merging");
+					sub0.addGraph(sub1);
+					toBeRemoved.add(cur[1]);
+					recheck.add(cur[0]);
+				}
+				// Add more cases here to connect
+				// ....
+			}
+			toCheck.clear();
+			// System.out.println("Removing: " + Arrays.toString(toBeRemoved.toArray()));
+			// System.out.println("Must Recheck: " + Arrays.toString(recheck.toArray()));
+			if (recheck.size() == 0)
+				break;
+			else {
+				toBeRemoved.sort((Integer i, Integer j) -> {
+					if (i > j)
+						return 1;
+					if (j > i)
+						return -1;
+					return 0;
+				});
+				for (int i = toBeRemoved.size() - 1; i >= 0; i--) {
+					subGraphs.remove(toBeRemoved.get(i).intValue());
+				}
+				// System.out.println("New subGraph size: " + subGraphs.size());
+				for (int i = 0; i < recheck.size(); i++) {
+					for (int j = 0; j < subGraphs.size(); j++) {
+						if (recheck.get(i) == j)
+							continue;
+						if (!recheck.contains(j) || recheck.indexOf(j) > i) {
+							// System.out.println("Adding to reCheck:" + recheck.get(i) + " " + j);
+							if (recheck.get(i) < j) { // Ensure that the smallest of the two is always first for ordering.
+								toCheck.add(new Integer[] { recheck.get(i), j });
+							} else {
+								toCheck.add(new Integer[] { j, recheck.get(i) });
+							}
+
+						}
+					}
+				}
+				// for (Integer[] i : toCheck)
+				// System.out.println("Recheck " + i[0] + " " + i[1]);
+				recheck.clear();
+				toBeRemoved.clear();
+			}
+		}
+		// If there is no articulation point -> return a deepcopy of the original
+		if (artiPoints.size() == 0) {
+			subGraphs.add(this.graph.clone());
+		}
+
+		return subGraphs;
+
+		//
+		// for (Vertex arti : artiPoints) {
+		// stack.push(arti);
+		// parent = arti;
+		// checkArti: while (artiNbCheck.get(arti).values().contains(false)) {
+		// hasVisited = new HashMap<>();
+		// vis = new HashSet<>();
+		// tis = new HashSet<>();
+		// ais = new HashSet<>();
+		// eis = new HashSet<>();
+		// ais.add(arti);
+		//
+		// nbCheck: for (Vertex nb : arti.getNeighbors()) {
+		// if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb))
+		// {
+		//
+		// // The neighbour of the articulationPoint is an articulation as well.
+		// // Do nothing
+		// if (artiPoints.contains(nb)) {
+		// artiNbCheck.get(arti).put(nb, true);
+		// artiNbCheck.get(nb).put(arti, true);
+		//
+		// Collection<Integer> intersection;
+		// boolean added = false;
+		// for (UndirectedGraph prevGraph : subGraphs) {
+		// intersection = prevGraph.getTerminals().keySet();
+		// HashSet<Integer> arts = new HashSet<>();
+		// // System.out.println(Arrays.toString(intersection.toArray()));
+		// arts.add(arti.getKey());
+		// arts.add(nb.getKey());
+		// // System.out.println(Arrays.toString(arts.toArray()));
+		// intersection.retainAll(arts);
+		// // System.out.println("Checking section:");
+		// // System.out.println(prevGraph.getEdges().size());
+		// // System.out.println("Intersection size: " + intersection.size());
+		// if (intersection.size() >= 2) {
+		// added = true;
+		// prevGraph.addEdge(arti.getKey(), nb.getKey(),
+		// arti.getConnectingEdge(nb).getCost().get());
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.add(nb);
+		// temp.add(arti);
+		// temp.addAll(artiPerGraph.get(prevGraph));
+		// artiPerGraph.replace(prevGraph, temp);
+		// break;
+		// }
+		// }
+		// if (!added) {
+		// UndirectedGraph sub = new UndirectedGraph();
+		// sub.addEdge(arti.getKey(), nb.getKey(),
+		// arti.getConnectingEdge(nb).getCost().get());
+		// subGraphs.add(sub);
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.add(nb);
+		// temp.add(arti);
+		// artiPerGraph.put(sub, temp);
+		// }
+		//
+		// } else { // Found new unvisited neighbour
+		// stack.push(nb);
+		// artiNbCheck.get(arti).put(nb, true);
+		// if (nb.isTerminal()) {
+		// tis.add(nb);
+		// } else {
+		// vis.add(nb);
+		// }
+		// hasVisited.put(nb, true);
+		// eis.add(arti.getConnectingEdge(nb));
+		// break nbCheck;
+		// }
+		// }
+		// }
+		// if (stack.size() > 2) {
+		// System.out.println("Something went wrong in the neighbour checking");
+		// System.exit(1);
+		// } else if (stack.size() == 1) {
+		// break checkArti;
+		// } else { // Stack now contains arti and 1 neighbour
+		// while (stack.size() > 1) { // If size is 1, then only arti available
+		// it = stack.peek().getNeighbors().iterator();
+		// if (!it.hasNext()) { // Current item on the stack has no neighbours
+		// System.out.println("The current stack item does not have any neighbours");
+		// System.exit(1);
+		// }
+		// nbLoop: while (it.hasNext()) {
+		// next = it.next();
+		// if (parent == next) { // Found parent again, do nothing
+		// // System.out.println("Parent found");
+		// } else if (artiPoints.contains(next) &&
+		// !artiNbCheck.get(next).get(stack.peek())) { // My next vertex is an arti
+		// point
+		// artiNbCheck.get(next).put(stack.peek(), true);
+		// ais.add(next);
+		// eis.add(next.getConnectingEdge(stack.peek()));
+		// } else if (!eis.contains(stack.peek().getConnectingEdge(next))) { // Current
+		// edge not in set yet
+		// eis.add(stack.peek().getConnectingEdge(next));
+		// if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is
+		// unvisited
+		// hasVisited.put(next, true);
+		// if (next.isTerminal()) {
+		// tis.add(next);
+		// } else {
+		// vis.add(next);
+		// }
+		// parent = stack.peek();
+		// stack.push(next);
+		// break nbLoop;
+		// }
+		// }
+		// if (!it.hasNext()) {
+		// stack.pop(); // Iterator went through all neighbours, thus backtrack.
+		// tmp = stack.pop();
+		// parent = (stack.size() == 0 ? arti : stack.peek());
+		// stack.push(tmp);
+		// break nbLoop;
+		// }
+		// }
+		// }
+		// // if (ais.size() == 2 && tis.size() == 0) {
+		// // System.out.println("THIS HAPPENED");
+		// // }
+		// Collection<Integer> intersection;
+		// boolean added = false;
+		// for (UndirectedGraph prevGraph : subGraphs) {
+		// intersection = new ArrayList<>(prevGraph.getTerminals().keySet());
+		// HashSet<Integer> arts = new HashSet<>();
+		// // System.out.println(Arrays.toString(intersection.toArray()));
+		// for (Vertex v : ais)
+		// arts.add(v.getKey());
+		// // System.out.println(Arrays.toString(arts.toArray()));
+		// intersection.retainAll(arts);
+		// // System.out.println("Checking section:");
+		// // System.out.println(prevGraph.getEdges().size());
+		// // System.out.println("Intersection size: " + intersection.size());
+		// if (intersection.size() >= 2) {
+		// added = true;
+		// for (Edge e : eis) {
+		// prevGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(),
+		// e.getCost().get());
+		// }
+		// for (Vertex t : tis) {
+		// prevGraph.setTerminal(t.getKey());
+		// }
+		// for (Vertex a : ais) {
+		// prevGraph.setTerminal(a.getKey());
+		// }
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.addAll(ais);
+		// temp.addAll(artiPerGraph.get(prevGraph));
+		// artiPerGraph.replace(prevGraph, temp);
+		// break;
+		// }
+		// }
+		// if (!added) {
+		// // We are back to articulation point, thus end of section
+		// UndirectedGraph subGraph = new UndirectedGraph();
+		// for (Edge e : eis) {
+		// subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(),
+		// e.getCost().get());
+		// }
+		// for (Vertex t : tis) {
+		// subGraph.setTerminal(t.getKey());
+		// }
+		// for (Vertex a : ais) {
+		// subGraph.setTerminal(a.getKey());
+		// }
+		// subGraphs.add(subGraph);
+		// artiPerGraph.put(subGraph, ais);
+		// }
+		// }
+		//
+		// }
+		// stack.removeAllElements();
+		// }
+		// //
+		// // for (UndirectedGraph sub1 : subGraphs) {
+		// // for (UndirectedGraph sub2 : subGraphs) {
+		// //
+		// // }
+		// // }
+		//
+		// return subGraphs;
 	}
 
 	/**
@@ -548,8 +1305,9 @@ public class PreProcess {
 		for (int i = 0; i < articulations.size(); i++) {
 			ends = new ArrayList<>();
 			for (int j = 0; j < terminals.size(); j++) {
-				if (articulations.get(i) == terminals.get(j))
+				if (articulations.get(i) == terminals.get(j)) {
 					continue;
+				}
 				ends.add(terminals.get(j));
 			}
 			ArrayList<Edge> tmp = (ends.size() > 0 ? PathFinding.DijkstraMultiPath(this.graph, articulations.get(i), ends, edges)
@@ -560,16 +1318,18 @@ public class PreProcess {
 		// Remove all vertices and edges which are now not needed anymore
 		for (Edge e : edges) {
 			if (!e.getVertices()[0].isTerminal() && !e.getVertices()[1].isTerminal() && !articulations.contains(e.getVertices()[0])
-					&& !articulations.contains(e.getVertices()[1]))
+					&& !articulations.contains(e.getVertices()[1])) {
 				this.graph.removeEdge(e);
+			}
 		}
 
 		for (Vertex v : vertices) {
 			this.graph.removeVertex(v);
 		}
 
-		for (Edge e : toBeAddedEdges)
+		for (Edge e : toBeAddedEdges) {
 			this.graph.addEdge(e);
+		}
 
 		// if (toBeAddedEdges.size() == 0 && bridgeEndpoints.size() == 1) {
 		// System.out.println("removing");
@@ -618,9 +1378,9 @@ public class PreProcess {
 					counter++;
 				}
 			}
-			if (counter > 0) {
-				System.out.println("This Terminal has " + counter + " Terminal neighbours");
-			}
+			// if (counter > 0) {
+			// System.out.println("This Terminal has " + counter + " Terminal neighbours");
+			// }
 			if (current.getNeighbors().size() == 2 && ((Vertex) (current.getNeighbors().toArray()[0])).isTerminal()
 					&& ((Vertex) (current.getNeighbors().toArray()[1])).isTerminal()) {
 				System.out.println("This actually happens?");
