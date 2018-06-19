@@ -5,7 +5,6 @@
 package mainAlgorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +49,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		long start = System.currentTimeMillis();
 		while (terminals.size() != 0 && counter < 500) {
 			int t = terminals.remove(rand.nextInt(terminals.size()));
-			System.out.println("Ordering: " + Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
+			// System.out.println("Ordering: " +
+			// Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
 			List<Edge> result = this.dijkstraPathPrio(this.dijkstraOrderingPrio(t));
 			// List<Edge> result = this.dijkstraPathFinder(this.dijkstraOrdering(t));
 			int val = 0;
@@ -63,7 +63,7 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 					}
 				}
 			}
-			System.out.println("Terminal " + t + " got val " + val);
+			// System.out.println("Terminal " + t + " got val " + val);
 			if (val < bestVal) {
 				bestResult = result;
 				bestVal = val;
@@ -81,7 +81,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		// }
 		// }
 		// }
-		System.out.println("Best val: " + bestVal + " took " + (System.currentTimeMillis() - start));
+		// System.out.println("Best val: " + bestVal + " took " +
+		// (System.currentTimeMillis() - start));
 		return bestResult;
 	}
 

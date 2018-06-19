@@ -7,7 +7,6 @@ package graph;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -769,14 +768,16 @@ public class PreProcess {
 	 * @author Joshua Scheidt
 	 */
 	public ArrayList<UndirectedGraph> createSeparateSections(Vertex v0, int totalVertices) {
+		// First start finding all articulationPoints
 		int count = 1;
 		int[] iteratedValues = new int[totalVertices];
 		int[] lowestFoundLabels = new int[totalVertices];
-		HashSet<Vertex> artiPoints = new HashSet<>();
+		HashSet<Vertex> artiPoints = new HashSet<>(); // Need separation between articulation points and bridges for finding only one
+														// of the bridge points
 		HashSet<Vertex> bridgeNodes = new HashSet<>();
 		HashSet<Edge> bridges = new HashSet<>();
 		Stack<Vertex> stack = new Stack<>();
-		Vertex fake = new Vertex(0);
+		Vertex fake = new Vertex(0); // Fake vertex to use as the parent of the initial vertex v0
 		stack.push(fake);
 		stack.push(v0);
 		iteratedValues[v0.getKey() - 1] = count;
@@ -786,10 +787,10 @@ public class PreProcess {
 		Iterator<Vertex> it;
 		boolean backtracking = false;
 
-		while (stack.size() > 1) {
+		while (stack.size() > 1) { // If the stack is 1, we are back to the fake vertex -> stop
 			current = stack.pop();
 			parent = stack.peek();
-			stack.push(current);
+			stack.push(current); // We need to use this trick to get the parent
 			it = current.getNeighbors().iterator();
 			backtracking = true;
 			for (Vertex neighbor : current.getNeighbors()) {
@@ -819,12 +820,12 @@ public class PreProcess {
 								lowestFoundLabels[next.getKey() - 1]); // Set current lowest to go to lowest neighbor
 					}
 					if (!it.hasNext()) {
-						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) {
+						if (lowestFoundLabels[current.getKey() - 1] == iteratedValues[current.getKey() - 1] && parent != fake) { // Found a bridge
 							bridges.add(current.getConnectingEdge(parent));
 							bridgeNodes.add(current);
 							bridgeNodes.add(parent);
 						} else if (parent != fake && lowestFoundLabels[current.getKey() - 1] >= iteratedValues[parent.getKey() - 1]
-								&& !bridgeNodes.contains(parent)) {
+								&& !bridgeNodes.contains(parent)) { // Found an articulation point
 							artiPoints.add(parent);
 						}
 						stack.pop();
@@ -833,7 +834,9 @@ public class PreProcess {
 				}
 			}
 		}
-		if (v0.getNeighbors().size() > 1) {
+		if (v0.getNeighbors().size() > 1) { // Special case: Unless first node is an actual articulation point, remove from
+											// articulation points. This was due to some implementation strategy that v0 was
+											// almost always chosen as articulation
 			int val = iteratedValues[v0.getKey() - 1];
 			boolean remove = true;
 			for (Vertex v : v0.getNeighbors()) {
@@ -846,7 +849,9 @@ public class PreProcess {
 				artiPoints.remove(v0);
 			}
 		}
-		artiPoints.removeAll(bridgeNodes);
+		artiPoints.removeAll(bridgeNodes); // Remove all bridgeNodes from the articulation points, and then add the first
+											// bridgenode again to articulation points to ensure only a single node from
+											// bridge is articulation
 		for (Edge e : bridges) {
 			artiPoints.add(e.getVertices()[0]);
 		}
@@ -861,6 +866,8 @@ public class PreProcess {
 		// e.getVertices()[1].getKey() + " " + e.getCost().get());
 		// }
 
+		// FROM HERE, ARTICULATION POINTS HAVE BEEN FOUND
+		// START WITH CREATING THE SECTIONS
 		ArrayList<UndirectedGraph> subGraphs = new ArrayList<>();
 		// Map to keep track of all the already visited vertices in the set.
 		// These will hold only the vertices which are not articulation points.
@@ -888,80 +895,46 @@ public class PreProcess {
 		Set<Edge> eis;
 
 		for (Vertex arti : artiPoints) {
-			stack.push(arti);
-			parent = arti;
-			checkArti: while (artiNbCheck.get(arti).values().contains(false)) {
+			stack.push(arti); // Create a new stack with this articulation point as the root
+			parent = arti; // The current will always be a nb, the starting articulation point will be the
+							// parent for the first nb
+			checkArti: while (artiNbCheck.get(arti).values().contains(false)) { // The articulation point has searched all its corresponding sections
+																				// once every edge has been used
 				hasVisited = new HashMap<>();
 				vis = new HashSet<>();
 				tis = new HashSet<>();
 				ais = new HashSet<>();
 				eis = new HashSet<>();
 				ais.add(arti);
-
 				nbCheck: for (Vertex nb : arti.getNeighbors()) {
-					if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb)) {
-
-						// The neighbour of the articulationPoint is an articulation as well.
-						// Do nothing
+					if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb)) { // Only check if nb is not used yet
+						stack.push(nb);
+						artiNbCheck.get(arti).put(nb, true);
 						if (artiPoints.contains(nb)) {
-							artiNbCheck.get(arti).put(nb, true);
+							ais.add(nb);
 							artiNbCheck.get(nb).put(arti, true);
-
-							Collection<Integer> intersection;
-							boolean added = false;
-							for (UndirectedGraph prevGraph : subGraphs) {
-								intersection = prevGraph.getTerminals().keySet();
-								HashSet<Integer> arts = new HashSet<>();
-								// System.out.println(Arrays.toString(intersection.toArray()));
-								arts.add(arti.getKey());
-								arts.add(nb.getKey());
-								// System.out.println(Arrays.toString(arts.toArray()));
-								intersection.retainAll(arts);
-								// System.out.println("Checking section:");
-								// System.out.println(prevGraph.getEdges().size());
-								// System.out.println("Intersection size: " + intersection.size());
-								if (intersection.size() >= 2) {
-									added = true;
-									prevGraph.addEdge(arti.getKey(), nb.getKey(), arti.getConnectingEdge(nb).getCost().get());
-									HashSet<Vertex> temp = new HashSet<>();
-									temp.add(nb);
-									temp.add(arti);
-									temp.addAll(artiPerGraph.get(prevGraph));
-									artiPerGraph.replace(prevGraph, temp);
-									break;
-								}
-							}
-							if (!added) {
-								UndirectedGraph sub = new UndirectedGraph();
-								sub.addEdge(arti.getKey(), nb.getKey(), arti.getConnectingEdge(nb).getCost().get());
-								subGraphs.add(sub);
-								HashSet<Vertex> temp = new HashSet<>();
-								temp.add(nb);
-								temp.add(arti);
-								artiPerGraph.put(sub, temp);
-							}
-
-						} else { // Found new unvisited neighbour
-							stack.push(nb);
-							artiNbCheck.get(arti).put(nb, true);
-							if (nb.isTerminal()) {
-								tis.add(nb);
-							} else {
-								vis.add(nb);
-							}
-							hasVisited.put(nb, true);
-							eis.add(arti.getConnectingEdge(nb));
-							break nbCheck;
+						} else if (nb.isTerminal()) {
+							tis.add(nb);
+						} else {
+							vis.add(nb);
 						}
+						hasVisited.put(nb, true);
+						eis.add(arti.getConnectingEdge(nb));
+						break nbCheck;
 					}
 				}
 				if (stack.size() > 2) {
 					System.out.println("Something went wrong in the neighbour checking");
 					System.exit(1);
-				} else if (stack.size() == 1) {
+				} else if (stack.size() == 1) { // No nb found which hasn't been traversed, this articulation point is done
 					break checkArti;
+				} else if (stack.size() == 2 && artiPoints.contains(stack.peek())) {
+					System.out.println("In here with " + stack.peek().getKey() + " " + arti.getKey());
+					stack.pop();// Single edge section, add to the subgraphs directly and afterwards try to
+					// combine
 				} else { // Stack now contains arti and 1 neighbour
-					while (stack.size() > 1) { // If size is 1, then only arti available
+					while (stack.size() > 1) { // There is still at least one node except for the articulation point we need to
+												// traverse
 						it = stack.peek().getNeighbors().iterator();
 						if (!it.hasNext()) { // Current item on the stack has no neighbours
 							System.out.println("The current stack item does not have any neighbours");
@@ -998,68 +971,210 @@ public class PreProcess {
 							}
 						}
 					}
-					// if (ais.size() == 2 && tis.size() == 0) {
-					// System.out.println("THIS HAPPENED");
-					// }
-					Collection<Integer> intersection;
-					boolean added = false;
-					for (UndirectedGraph prevGraph : subGraphs) {
-						intersection = new ArrayList<>(prevGraph.getTerminals().keySet());
-						HashSet<Integer> arts = new HashSet<>();
-						// System.out.println(Arrays.toString(intersection.toArray()));
-						for (Vertex v : ais)
-							arts.add(v.getKey());
-						// System.out.println(Arrays.toString(arts.toArray()));
-						intersection.retainAll(arts);
-						// System.out.println("Checking section:");
-						// System.out.println(prevGraph.getEdges().size());
-						// System.out.println("Intersection size: " + intersection.size());
-						if (intersection.size() >= 2) {
-							added = true;
-							for (Edge e : eis) {
-								prevGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
-							}
-							for (Vertex t : tis) {
-								prevGraph.setTerminal(t.getKey());
-							}
-							for (Vertex a : ais) {
-								prevGraph.setTerminal(a.getKey());
-							}
-							HashSet<Vertex> temp = new HashSet<>();
-							temp.addAll(ais);
-							temp.addAll(artiPerGraph.get(prevGraph));
-							artiPerGraph.replace(prevGraph, temp);
-							break;
-						}
-					}
-					if (!added) {
-						// We are back to articulation point, thus end of section
-						UndirectedGraph subGraph = new UndirectedGraph();
-						for (Edge e : eis) {
-							subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
-						}
-						for (Vertex t : tis) {
-							subGraph.setTerminal(t.getKey());
-						}
-						for (Vertex a : ais) {
-							subGraph.setTerminal(a.getKey());
-						}
-						subGraphs.add(subGraph);
-						artiPerGraph.put(subGraph, ais);
-					}
 				}
 
+				UndirectedGraph subGraph = new UndirectedGraph();
+				for (Edge e : eis) {
+					subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+				}
+				for (Vertex t : tis) {
+					subGraph.setTerminal(t.getKey());
+				}
+				for (Vertex a : ais) {
+					subGraph.setTerminal(a.getKey());
+				}
+				subGraphs.add(subGraph);
+				artiPerGraph.put(subGraph, ais);
 			}
+
 			stack.removeAllElements();
 		}
-		//
-		// for (UndirectedGraph sub1 : subGraphs) {
-		// for (UndirectedGraph sub2 : subGraphs) {
-		//
-		// }
-		// }
+		// Here we still need to check how we can combine multiple sections
 
 		return subGraphs;
+		//
+		// for (Vertex arti : artiPoints) {
+		// stack.push(arti);
+		// parent = arti;
+		// checkArti: while (artiNbCheck.get(arti).values().contains(false)) {
+		// hasVisited = new HashMap<>();
+		// vis = new HashSet<>();
+		// tis = new HashSet<>();
+		// ais = new HashSet<>();
+		// eis = new HashSet<>();
+		// ais.add(arti);
+		//
+		// nbCheck: for (Vertex nb : arti.getNeighbors()) {
+		// if (artiNbCheck.get(arti).containsKey(nb) && !artiNbCheck.get(arti).get(nb))
+		// {
+		//
+		// // The neighbour of the articulationPoint is an articulation as well.
+		// // Do nothing
+		// if (artiPoints.contains(nb)) {
+		// artiNbCheck.get(arti).put(nb, true);
+		// artiNbCheck.get(nb).put(arti, true);
+		//
+		// Collection<Integer> intersection;
+		// boolean added = false;
+		// for (UndirectedGraph prevGraph : subGraphs) {
+		// intersection = prevGraph.getTerminals().keySet();
+		// HashSet<Integer> arts = new HashSet<>();
+		// // System.out.println(Arrays.toString(intersection.toArray()));
+		// arts.add(arti.getKey());
+		// arts.add(nb.getKey());
+		// // System.out.println(Arrays.toString(arts.toArray()));
+		// intersection.retainAll(arts);
+		// // System.out.println("Checking section:");
+		// // System.out.println(prevGraph.getEdges().size());
+		// // System.out.println("Intersection size: " + intersection.size());
+		// if (intersection.size() >= 2) {
+		// added = true;
+		// prevGraph.addEdge(arti.getKey(), nb.getKey(),
+		// arti.getConnectingEdge(nb).getCost().get());
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.add(nb);
+		// temp.add(arti);
+		// temp.addAll(artiPerGraph.get(prevGraph));
+		// artiPerGraph.replace(prevGraph, temp);
+		// break;
+		// }
+		// }
+		// if (!added) {
+		// UndirectedGraph sub = new UndirectedGraph();
+		// sub.addEdge(arti.getKey(), nb.getKey(),
+		// arti.getConnectingEdge(nb).getCost().get());
+		// subGraphs.add(sub);
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.add(nb);
+		// temp.add(arti);
+		// artiPerGraph.put(sub, temp);
+		// }
+		//
+		// } else { // Found new unvisited neighbour
+		// stack.push(nb);
+		// artiNbCheck.get(arti).put(nb, true);
+		// if (nb.isTerminal()) {
+		// tis.add(nb);
+		// } else {
+		// vis.add(nb);
+		// }
+		// hasVisited.put(nb, true);
+		// eis.add(arti.getConnectingEdge(nb));
+		// break nbCheck;
+		// }
+		// }
+		// }
+		// if (stack.size() > 2) {
+		// System.out.println("Something went wrong in the neighbour checking");
+		// System.exit(1);
+		// } else if (stack.size() == 1) {
+		// break checkArti;
+		// } else { // Stack now contains arti and 1 neighbour
+		// while (stack.size() > 1) { // If size is 1, then only arti available
+		// it = stack.peek().getNeighbors().iterator();
+		// if (!it.hasNext()) { // Current item on the stack has no neighbours
+		// System.out.println("The current stack item does not have any neighbours");
+		// System.exit(1);
+		// }
+		// nbLoop: while (it.hasNext()) {
+		// next = it.next();
+		// if (parent == next) { // Found parent again, do nothing
+		// // System.out.println("Parent found");
+		// } else if (artiPoints.contains(next) &&
+		// !artiNbCheck.get(next).get(stack.peek())) { // My next vertex is an arti
+		// point
+		// artiNbCheck.get(next).put(stack.peek(), true);
+		// ais.add(next);
+		// eis.add(next.getConnectingEdge(stack.peek()));
+		// } else if (!eis.contains(stack.peek().getConnectingEdge(next))) { // Current
+		// edge not in set yet
+		// eis.add(stack.peek().getConnectingEdge(next));
+		// if (!hasVisited.containsKey(next) || !hasVisited.get(next)) { // Neighbour is
+		// unvisited
+		// hasVisited.put(next, true);
+		// if (next.isTerminal()) {
+		// tis.add(next);
+		// } else {
+		// vis.add(next);
+		// }
+		// parent = stack.peek();
+		// stack.push(next);
+		// break nbLoop;
+		// }
+		// }
+		// if (!it.hasNext()) {
+		// stack.pop(); // Iterator went through all neighbours, thus backtrack.
+		// tmp = stack.pop();
+		// parent = (stack.size() == 0 ? arti : stack.peek());
+		// stack.push(tmp);
+		// break nbLoop;
+		// }
+		// }
+		// }
+		// // if (ais.size() == 2 && tis.size() == 0) {
+		// // System.out.println("THIS HAPPENED");
+		// // }
+		// Collection<Integer> intersection;
+		// boolean added = false;
+		// for (UndirectedGraph prevGraph : subGraphs) {
+		// intersection = new ArrayList<>(prevGraph.getTerminals().keySet());
+		// HashSet<Integer> arts = new HashSet<>();
+		// // System.out.println(Arrays.toString(intersection.toArray()));
+		// for (Vertex v : ais)
+		// arts.add(v.getKey());
+		// // System.out.println(Arrays.toString(arts.toArray()));
+		// intersection.retainAll(arts);
+		// // System.out.println("Checking section:");
+		// // System.out.println(prevGraph.getEdges().size());
+		// // System.out.println("Intersection size: " + intersection.size());
+		// if (intersection.size() >= 2) {
+		// added = true;
+		// for (Edge e : eis) {
+		// prevGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(),
+		// e.getCost().get());
+		// }
+		// for (Vertex t : tis) {
+		// prevGraph.setTerminal(t.getKey());
+		// }
+		// for (Vertex a : ais) {
+		// prevGraph.setTerminal(a.getKey());
+		// }
+		// HashSet<Vertex> temp = new HashSet<>();
+		// temp.addAll(ais);
+		// temp.addAll(artiPerGraph.get(prevGraph));
+		// artiPerGraph.replace(prevGraph, temp);
+		// break;
+		// }
+		// }
+		// if (!added) {
+		// // We are back to articulation point, thus end of section
+		// UndirectedGraph subGraph = new UndirectedGraph();
+		// for (Edge e : eis) {
+		// subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(),
+		// e.getCost().get());
+		// }
+		// for (Vertex t : tis) {
+		// subGraph.setTerminal(t.getKey());
+		// }
+		// for (Vertex a : ais) {
+		// subGraph.setTerminal(a.getKey());
+		// }
+		// subGraphs.add(subGraph);
+		// artiPerGraph.put(subGraph, ais);
+		// }
+		// }
+		//
+		// }
+		// stack.removeAllElements();
+		// }
+		// //
+		// // for (UndirectedGraph sub1 : subGraphs) {
+		// // for (UndirectedGraph sub2 : subGraphs) {
+		// //
+		// // }
+		// // }
+		//
+		// return subGraphs;
 	}
 
 	/**
