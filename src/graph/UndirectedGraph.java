@@ -439,9 +439,17 @@ public class UndirectedGraph {
 	public void addGraph(UndirectedGraph addable) {
 		for (Edge e : addable.getEdges()) {
 			this.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+			if (e.getStack() != null)
+				this.getVertices().get(e.getVertices()[0].getKey()).getConnectingEdge(this.getVertices().get(e.getVertices()[1].getKey()))
+						.pushStack(e.getStack());
 		}
-		for (Vertex v : addable.getTerminals().values()) {
-			this.setTerminal(v.getKey());
+		for (Vertex t : addable.getTerminals().values()) {
+			this.setTerminal(t.getKey());
+		}
+		for (Vertex v : addable.getVertices().values()) {
+			if (v.getSubsumed() != null) {
+				this.getVertices().get(v.getKey()).pushStack(v.getSubsumed());
+			}
 		}
 	}
 }

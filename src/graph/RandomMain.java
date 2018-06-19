@@ -2,8 +2,13 @@ package graph;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +16,10 @@ import mainAlgorithms.ShortestPathHeuristicV2;
 import mainAlgorithms.SteinerTreeSolver;
 
 public class RandomMain {
+
+	public static String fileName;
+	public static List<Edge> currentBest;
+	public static boolean written = false;
 
 	public static void main(String[] args) throws InterruptedException {
 		// Scanner in = new Scanner(System.in);
@@ -35,13 +44,19 @@ public class RandomMain {
 
 		// shortestPathHeuristicV2();
 		// System.out.println("\n");
-		// shortestPathHeuristicV2wPP();
+		long start = System.currentTimeMillis();
+		shortestPathHeuristicV2();
+		long middle = System.currentTimeMillis();
+		shortestPathHeuristicV2FullPreprocess();
+		long end = System.currentTimeMillis();
+		System.out.println("Without preprocess took " + (middle - start) + " ms");
+		System.out.println("With preprocess took " + (end - middle) + " ms");
 		// writeArticulationPointsToFile();
-		testSectioning();
+		// testSectioning();
 	}
 
 	public static void shortestPathHeuristicV2() {
-		File[] files = readFiles(new File("data\\exact\\instance001.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance020.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
@@ -49,11 +64,47 @@ public class RandomMain {
 			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
 
 			List<Edge> result = solver.solve(graph);
+			System.out.println("Value without preprocess: ");
+			printSolution(result, false);
+		}
+	}
+
+	public static void shortestPathHeuristicV2FullPreprocess() {
+		File[] files = readFiles(new File("data\\exact\\instance020.gr"));
+		for (int i = 0; i < files.length; i++) {
+			System.out.println(files[i].getParent() + "\\" + files[i].getName());
+			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+			PreProcess processed = new PreProcess(graph);
+			boolean[] preProcessable;
+			do {
+				preProcessable = processed.graph.preProcessable();
+				// pp.rangeCheck();
+				if (preProcessable[0]) {
+					processed.removeLeafNodes();
+				}
+				if (preProcessable[1]) {
+					processed.removeNonTerminalDegreeTwo();
+				}
+			} while (preProcessable[0] || preProcessable[1]);
+
+			// Sectioning part
+			ArrayList<UndirectedGraph> subGraphs = processed.createSeparateSections(
+					processed.graph.getVertices().get(processed.graph.getVertices().keySet().iterator().next()), graph.getVertices().size());
+			List<Edge> solution = new ArrayList<>();
+			for (UndirectedGraph sub : subGraphs) {
+				solution.addAll(solver.solve(sub));
+			}
+			// End of sectioning part
+
+			System.out.println("Value with full preprocessing: ");
+			printSolution(solution, false);
 		}
 	}
 
 	public static void shortestPathHeuristicV2wPP() {
-		File[] files = readFiles(new File("data\\exact\\instance003.gr"));
+		File[] files = readFiles(new File("data\\exact\\instance030.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
@@ -73,6 +124,10 @@ public class RandomMain {
 			} while (preProcessable[0] || preProcessable[1]);
 
 			List<Edge> result = solver.solve(processed.graph);
+			int res = 0;
+			for (Edge e : result)
+				res += e.getCost().get();
+			System.out.println("Value with 2 preprocess: " + res);
 		}
 	}
 
@@ -173,6 +228,58 @@ public class RandomMain {
 			}
 		}
 		return new File[] {};
+	}
+
+	/**
+	 * Prints solution to standard out. Checks each edge and vertex to see if it
+	 * contains other hidden edges and or vertices that need to be included
+	 *
+	 * @param solution
+	 *            Solution including all the edges in the solution
+	 */
+	private static void printSolution(List<Edge> solution, boolean toFile) {
+		String temp = "";
+		int sum = 0;
+		int[] subsumed;
+		for (int i = 0; i < solution.size(); i++) {
+			if (!(solution.get(i).getVertices()[0].getSubsumed() == null)) {
+				while (!solution.get(i).getVertices()[0].getSubsumed().isEmpty()) {
+					subsumed = solution.get(i).getVertices()[0].getSubsumed().pop();
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
+					sum += subsumed[2];
+				}
+			}
+			if (!(solution.get(i).getVertices()[1].getSubsumed() == null)) {
+				while (!solution.get(i).getVertices()[1].getSubsumed().isEmpty()) {
+					subsumed = solution.get(i).getVertices()[1].getSubsumed().pop();
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
+					sum += subsumed[2];
+				}
+			}
+			if (!(solution.get(i).getStack() == null)) {
+				while (!solution.get(i).getStack().isEmpty()) {
+					subsumed = solution.get(i).getStack().pop();
+					temp = temp.concat(subsumed[0] + " " + subsumed[1] + "\n");
+					sum += subsumed[2];
+				}
+				continue;
+			}
+			temp = temp.concat(solution.get(i).getVertices()[0].getKey() + " " + solution.get(i).getVertices()[1].getKey() + "\n");
+			sum += solution.get(i).getCost().get();
+		}
+		if (toFile) {
+			Path file = Paths.get(fileName.substring(0, fileName.length() - 3) + ".txt");
+			ArrayList<String> output = new ArrayList<>();
+			output.add("VALUE" + sum);
+			output.add(temp);
+			try {
+				Files.write(file, output, Charset.forName("UTF-8"));
+			} catch (IOException ex) {
+			}
+		} else {
+			System.out.println("VALUE " + sum);
+			System.out.println(temp);
+		}
 	}
 
 }

@@ -976,12 +976,19 @@ public class PreProcess {
 				UndirectedGraph subGraph = new UndirectedGraph();
 				for (Edge e : eis) {
 					subGraph.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+					if (e.getStack() != null)
+						subGraph.getVertices().get(e.getVertices()[0].getKey())
+								.getConnectingEdge(subGraph.getVertices().get(e.getVertices()[1].getKey())).pushStack(e.getStack());
 				}
 				for (Vertex t : tis) {
 					subGraph.setTerminal(t.getKey());
 				}
 				for (Vertex a : ais) {
 					subGraph.setTerminal(a.getKey());
+				}
+				for (Vertex v : vis) {
+					if (v.getSubsumed() != null)
+						subGraph.getVertices().get(v.getKey()).pushStack(v.getSubsumed());
 				}
 				subGraphs.add(subGraph);
 				artiPerGraph.put(subGraph, ais);
@@ -1062,7 +1069,7 @@ public class PreProcess {
 							continue;
 						if (!recheck.contains(j) || recheck.indexOf(j) > i) {
 							// System.out.println("Adding to reCheck:" + recheck.get(i) + " " + j);
-							if (recheck.get(i) < j) {
+							if (recheck.get(i) < j) { // Ensure that the smallest of the two is always first for ordering.
 								toCheck.add(new Integer[] { recheck.get(i), j });
 							} else {
 								toCheck.add(new Integer[] { j, recheck.get(i) });
