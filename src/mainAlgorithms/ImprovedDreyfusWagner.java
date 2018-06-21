@@ -16,14 +16,13 @@ import java.util.stream.Collectors;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
-import java.util.*;
 
 /**
  * This class implements the IDW algorithm.
  *
  * @author Pit Schneider
  */
-public class ImprovedDreyfusWagner implements SteinerTreeSolver {
+public class ImprovedDreyfusWagner2 implements SteinerTreeSolver {
 
     /**
      * This class is used to store the edges that are part of the solution.
@@ -63,12 +62,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 
     private UndirectedGraph g; // graph used for algorithm
     // String in following 3 HashMaps is of form: "1{1,2,3}" where 1 is the vertex and {1,2,3} the set used as key to the map value
-    private HashMap<String, Integer> fMap = new HashMap<>(); // f function in pseudo code
-    private HashMap<String, Integer> gMap = new HashMap<>(); // g function in pseudo code
+    private HashMap<String, Integer> map = new HashMap<>(); // f an g function in pseudo code
     private HashMap<String, BookKeeping> bMap = new HashMap<>(); // b function in pseudo code
     private ArrayList<Edge> solutionEdges = new ArrayList<>(); // final solution of algorithm
-    private ArrayList<Edge> testSolutionEdges = new ArrayList<>(); // candidate for the solution
-    private ArrayList<Edge> edges; // all edges of g
     private ArrayList<Vertex> vertices; // all vertices of g
     private ArrayList<Vertex> terminals; // all terminals of g
 
@@ -84,37 +80,36 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
      */
     @Override
     public List<Edge> solve(UndirectedGraph g) {
-
+        
         this.g = g;
-        this.edges = new ArrayList<>(this.g.getEdges());
         this.vertices = new ArrayList<>(this.g.getVertices().values());
         this.terminals = new ArrayList<>(this.g.getTerminals().values());		
 
-//		System.out.println("1 of " + (this.terminals.size()-1));				
+        System.out.println("1 of " + (this.terminals.size()-1));				
         for (Vertex u : this.terminals) {
             HashMap<Integer, graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, u, setDifference(this.vertices, vertexAsSet(u)));
             for (Vertex v : setDifference(this.vertices, vertexAsSet(u))) {
-                fMap.put(v.getKey() + getStringForSet(vertexAsSet(u)), paths.get(v.getKey()).dist);
+                map.put("f" + v.getKey() + getStringForSet(vertexAsSet(u)), paths.get(v.getKey()).dist);
                 bMap.put(v.getKey() + getStringForSet(vertexAsSet(u)), new BookKeeping(u, vertexAsSet(u), null, null));
             }
         }
 
         for (int m = 2; m <= this.terminals.size() - 1; m++) {
-//			System.out.println(m + " of " + (this.terminals.size()-1));
+            System.out.println(m + " of " + (this.terminals.size()-1));
             ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
             int counter = 0;
             for (ArrayList<Vertex> X : subsets) {
-//				System.out.println("\t" + ++counter + " of " + subsets.size());
+                System.out.println("\t" + ++counter + " of " + subsets.size());
                 for (Vertex v : this.vertices) {
                     for (ArrayList<Vertex> XPrime : powerSet(X)) {
                         if (XPrime.size() != X.size() && !XPrime.toString().equals("[]")) {
                             // gMapVX, fMapVXPrime, fMapVXDiff are computed only once to speed up algorithm a little
-                            int gMapVX = getValue(gMap, v.getKey(), X);
-                            int fMapVXPrime = getValue(fMap, v.getKey(), XPrime);
-                            int fMapVXDiff = getValue(fMap, v.getKey(), setDifference(X, XPrime));
+                            int gMapVX = getValue("g" + v.getKey(), X);
+                            int fMapVXPrime = getValue("f" + v.getKey(), XPrime);
+                            int fMapVXDiff = getValue("f" + v.getKey(), setDifference(X, XPrime));
                             // if gMapVX does not exist yet and is equal to MAX_VALUE we can avoid calculating fMapVXPrime + fMapVXDiff < gMapVX
                             if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
-                                gMap.put(v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
+                                map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
                                 bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
                             }
                         }
@@ -133,20 +128,19 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                     this.g.addEdge(newEdge);
                     newEdges.add(newEdge);
                     if (X.contains(v)) {
-                        newEdge.setCost(getValue(fMap, v.getKey(), setDifference(X, vertexAsSet(v))));
+                        newEdge.setCost(getValue("f" + v.getKey(), setDifference(X, vertexAsSet(v))));
                     } else {
-                        newEdge.setCost(getValue(gMap, v.getKey(), X));
+                        newEdge.setCost(getValue("g" + v.getKey(), X));
 
                     }
                 }
 
-                // update gloable variables to reflect changes
-                this.edges = new ArrayList<>(this.g.getEdges());
+                // update gloable variable to reflect changes
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
 
                 HashMap<Integer, graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, s, setDifference(setDifference(this.vertices, X), vertexAsSet(s)));
                 for (Vertex v : setDifference(setDifference(this.vertices, X), vertexAsSet(s))) {
-                    fMap.put(v.getKey() + getStringForSet(X), paths.get(v.getKey()).dist);
+                    map.put("f" + v.getKey() + getStringForSet(X), paths.get(v.getKey()).dist);
 
                     Vertex u = paths.get(v.getKey()).parent;
 
@@ -159,14 +153,13 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                 this.g.removeVertex(s);
                 this.g.getEdges().removeAll(newEdges);
 
-                // update gloabl variables again so they correspond to the normal g edges and vertices
-                this.edges = new ArrayList<>(this.g.getEdges());
+                // update gloabl variable again so it corresponds to the normal g vertices
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
             }
         }
-        
+                
         traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
-
+            
         return solutionEdges;
     }
 
@@ -233,10 +226,10 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
      *
      * @author Pit Schneider
      */
-    private int getValue(HashMap<String, Integer> func, Integer vertex, ArrayList<Vertex> set) {
+    private int getValue(String key, ArrayList<Vertex> set) {
 
-        String keyString = vertex + getStringForSet(set);
-        Object value = func.get(keyString);
+        String keyString = key + getStringForSet(set);
+        Object value = map.get(keyString);
         if (value != null) {
             return (int) (value);
         }
@@ -252,16 +245,13 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
      * @author Pit Schneider
      */
     private String getStringForSet(ArrayList<Vertex> set) {
-        if (set.isEmpty()) {
-            return "{}";
-        }
-        String s = "{";
+        
+        StringBuilder tmp = new StringBuilder();
+        tmp.append("{");
         for (Vertex v : set) {
-            s += v.getKey() + ",";
+           tmp.append(v.getKey() + ",");
         }
-        s = s.substring(0, s.length() - 1);
-        s += "}";
-        return s;
+        return tmp.toString();
     }
 
     /**
