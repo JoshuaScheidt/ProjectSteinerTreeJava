@@ -44,15 +44,17 @@ public class RandomMain {
 
 		// shortestPathHeuristicV2();
 		// System.out.println("\n");
-		long start = System.currentTimeMillis();
-		shortestPathHeuristicV2();
-		long middle = System.currentTimeMillis();
-		shortestPathHeuristicV2FullPreprocess();
-		long end = System.currentTimeMillis();
-		System.out.println("Without preprocess took " + (middle - start) + " ms");
-		System.out.println("With preprocess took " + (end - middle) + " ms");
+
+		// long start = System.currentTimeMillis();
+		// shortestPathHeuristicV2();
+		// long middle = System.currentTimeMillis();
+		// shortestPathHeuristicV2FullPreprocess();
+		// long end = System.currentTimeMillis();
+		// System.out.println("Without preprocess took " + (middle - start) + " ms");
+		// System.out.println("With preprocess took " + (end - middle) + " ms");
+
 		// writeArticulationPointsToFile();
-		// testSectioning();
+		testSectioning();
 	}
 
 	public static void shortestPathHeuristicV2() {
@@ -132,7 +134,7 @@ public class RandomMain {
 	}
 
 	public static void testSectioning() {
-		File[] files = readFiles(new File("data\\exact\\instance002.gr"));
+		File[] files = readFiles(new File("data\\test\\testArticulationNew.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();

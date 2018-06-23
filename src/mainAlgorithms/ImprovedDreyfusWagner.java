@@ -94,6 +94,8 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
             }
         }
 
+//        int casesAvoided = 0;
+        
         for (int m = 2; m <= this.terminals.size() - 1; m++) {
             System.out.println(m + " of " + (this.terminals.size()-1));
             ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
@@ -108,10 +110,23 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                             int fMapVXPrime = getValue("f" + v.getKey(), XPrime);
                             int fMapVXDiff = getValue("f" + v.getKey(), setDifference(X, XPrime));
                             // if gMapVX does not exist yet and is equal to MAX_VALUE we can avoid calculating fMapVXPrime + fMapVXDiff < gMapVX
-                            if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
+
+                            if ((gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) && !(XPrime.contains(v) && XPrime.size() > 1)) {
+//                                if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
                                 map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
                                 bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
-                            }
+                            } 
+//                            else {
+////                                if(!(XPrime.contains(v) && XPrime.size() > 1)){
+//////                                    System.out.println("Catches one of those cases:");
+//////                                    System.out.println(v.getKey());
+//////                                    System.out.println("Set: ");
+//////                                    for(Vertex checking : XPrime){
+//////                                        System.out.println(checking.getKey());
+//////                                    }
+////                                    casesAvoided++;
+////                                }
+//                            }
                         }
                     }
                 }
@@ -157,7 +172,12 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
             }
         }
+<<<<<<< HEAD
                 
+=======
+//        System.out.println("Cases Avoided: " + casesAvoided);
+        
+>>>>>>> testingSections
         traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
             
         return solutionEdges;
@@ -177,7 +197,6 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
     private void traceback(Vertex v, ArrayList<Vertex> set) {
 
         Object obj = bMap.get(v.getKey() + getStringForSet(set));
-
         if (obj != null) {
 
             BookKeeping newB = (BookKeeping) (obj);
