@@ -290,11 +290,12 @@ public class UndirectedGraph {
 			if (e.getStack() != null)
 				graph.getVertices().get(e.getVertices()[0].getKey()).getConnectingEdge(graph.getVertices().get(e.getVertices()[1].getKey()))
 						.pushStack(e.getStack());
-			if (e.getVertices()[0].getSubsumed() != null)
+			if (e.getVertices()[0].getSubsumed() != null && graph.getVertices().get(e.getVertices()[0].getKey()).getSubsumed() == null)
 				graph.getVertices().get(e.getVertices()[0].getKey()).pushStack(e.getVertices()[0].getSubsumed());
-			if (e.getVertices()[1].getSubsumed() != null)
+			if (e.getVertices()[1].getSubsumed() != null && graph.getVertices().get(e.getVertices()[1].getKey()).getSubsumed() == null)
 				graph.getVertices().get(e.getVertices()[1].getKey()).pushStack(e.getVertices()[1].getSubsumed());
 		}
+
 		for (int key : this.terminals.keySet()) {
 			(graph.vertices.get(key)).setTerminal(true);
 		}

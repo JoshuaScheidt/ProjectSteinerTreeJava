@@ -1121,9 +1121,9 @@ public class PreProcess {
 				}
 				// Found the articulation points of this graph.
 				// If none are found, then the section cannot be reduced in size:
-				System.out.println("Arti's:");
-				for (Vertex a : artiPoints)
-					System.out.println(a.getKey());
+				// System.out.println("Arti's:");
+				// for (Vertex a : artiPoints)
+				// System.out.println(a.getKey());
 				// Set the original arti's. Only happens once.
 				if (originalArtiPoints == null)
 					originalArtiPoints = artiPoints;
@@ -1348,15 +1348,16 @@ public class PreProcess {
 					// resultGraphs.addAll(sectionSubs); // Done with this section
 				}
 			}
-			System.out.println("Done with section");
+			// System.out.println("Done with section");
 		}
-		for (UndirectedGraph sub : resultGraphs) {
-			System.out.println("Section:");
-			for (Edge e : sub.getEdges())
-				System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost().get());
-			for (Vertex t : sub.getTerminals().values())
-				System.out.println("Terminal: " + t.getKey());
-		}
+		// for (UndirectedGraph sub : resultGraphs) {
+		// System.out.println("Section:");
+		// for (Edge e : sub.getEdges())
+		// System.out.println(e.getVertices()[0].getKey() + " " +
+		// e.getVertices()[1].getKey() + " " + e.getCost().get());
+		// for (Vertex t : sub.getTerminals().values())
+		// System.out.println("Terminal: " + t.getKey());
+		// }
 		// OLD
 		// OLD
 		// OLD
