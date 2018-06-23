@@ -22,7 +22,7 @@ import java.util.Collections;
  *
  * @author Pit Schneider
  */
-public class ImprovedDreyfusWagner2 implements SteinerTreeSolver {
+public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 
     /**
      * This class is used to store the edges that are part of the solution.
