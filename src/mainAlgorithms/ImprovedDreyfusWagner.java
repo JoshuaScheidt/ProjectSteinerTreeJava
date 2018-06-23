@@ -117,15 +117,15 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                                 bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
                             } 
 //                            else {
-////                                if(!(XPrime.contains(v) && XPrime.size() > 1)){
-//////                                    System.out.println("Catches one of those cases:");
-//////                                    System.out.println(v.getKey());
-//////                                    System.out.println("Set: ");
-//////                                    for(Vertex checking : XPrime){
-//////                                        System.out.println(checking.getKey());
-//////                                    }
+//                                if(!(XPrime.contains(v) && XPrime.size() > 1)){
+//                                    System.out.println("Catches one of those cases:");
+//                                    System.out.println(v.getKey());
+//                                    System.out.println("Set: ");
+//                                    for(Vertex checking : XPrime){
+//                                        System.out.println(checking.getKey());
+//                                    }
 ////                                    casesAvoided++;
-////                                }
+//                                }
 //                            }
                         }
                     }
@@ -172,12 +172,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
             }
         }
-<<<<<<< HEAD
-                
-=======
 //        System.out.println("Cases Avoided: " + casesAvoided);
-        
->>>>>>> testingSections
         traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
             
         return solutionEdges;
