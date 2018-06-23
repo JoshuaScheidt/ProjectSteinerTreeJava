@@ -134,7 +134,7 @@ public class RandomMain {
 	}
 
 	public static void testSectioning() {
-		File[] files = readFiles(new File("data\\test\\testArticulationNew2.gr"));
+		File[] files = readFiles(new File("data\\test\\testArticulationNew.gr"));
 		for (int i = 0; i < files.length; i++) {
 			System.out.println(files[i].getParent() + "\\" + files[i].getName());
 			SteinerTreeSolver solver = new ShortestPathHeuristicV2();

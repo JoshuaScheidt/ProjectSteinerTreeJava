@@ -34,7 +34,7 @@ class IDWTest {
 				pp.removeNonTerminalDegreeTwo();
 			}
 		} while (preProcessable[0] || preProcessable[1]);
-		pp.graph.adjacencyMatrix(true);
+		// pp.graph.adjacencyMatrix(true);
 
 		// Sectioning part
 		ArrayList<UndirectedGraph> subGraphs = pp
