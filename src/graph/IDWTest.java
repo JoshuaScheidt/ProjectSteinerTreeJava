@@ -63,7 +63,10 @@ class IDWTest {
 
 //                SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
 //                List<Edge> solution = solver.solve(pp.graph);
+        long start = System.nanoTime();
         printSolution(solution, false);
+        long stop = System.nanoTime();
+        System.out.println("Time taken: " + (double)(stop-start)/1000000000.0);
         // printSolution(solver.solve(pp.graph), false);
         // printSolution(solver.solve(g), false);
         // printTimeNeeded(start);

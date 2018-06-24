@@ -120,12 +120,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                             if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
 //                                if ((!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) && !X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex))) {
                                     if (!X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex) && (!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1))) {
-
+//                                        if (!X.contains(startingVertex)){
                                     map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
                                     bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
-                                    if(X.contains(v)){
-                                    System.out.println(v.getKey() + "" + getStringForSet(X));
-                                    }
                                     bMapInsertions[0]++;
                                     bMapInsertions[1]++;
 //                                }
@@ -205,6 +202,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
         System.out.println(casesAvoided[3] + " | " + casesAvoided[4] + " | " + casesAvoided[5]);
         System.out.println("Total: " + casesAvoided[6]);
         System.out.println("Original: " + bMapInsertions[1] + " Pruned version: " + bMapInsertions[0]);
+        System.out.println("bMap size: " + bMap.size());
 //        traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
 
         traceback(startingVertex, setDifference(this.terminals, vertexAsSet(startingVertex)));
