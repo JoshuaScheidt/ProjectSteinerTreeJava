@@ -118,7 +118,9 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 
 //                            if ((gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) && (!(XPrime.contains(v) && XPrime.size() > 1) || !(X.contains(v) && X.size() > 1) || !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) || X.contains(startingVertex) || XPrime.contains(startingVertex) || setDifference(X, XPrime).contains(startingVertex))) {
                             if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
-                                if ((!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) && !X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex))) {
+//                                if ((!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) && !X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex))) {
+                                    if (!X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex) && (!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1))) {
+
                                     map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
                                     bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
                                     if(X.contains(v)){
