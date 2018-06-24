@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -80,28 +81,32 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
      */
     @Override
     public List<Edge> solve(UndirectedGraph g) {
-        
+
         this.g = g;
         this.vertices = new ArrayList<>(this.g.getVertices().values());
-        this.terminals = new ArrayList<>(this.g.getTerminals().values());		
+        this.terminals = new ArrayList<>(this.g.getTerminals().values());
+        Vertex startingVertex = this.terminals.get(0);
+//        System.out.println("1 of " + (this.terminals.size()-1));	
 
-        System.out.println("1 of " + (this.terminals.size()-1));				
+        int[] casesAvoided = new int[7];
+        int[] bMapInsertions = new int[2];
+
         for (Vertex u : this.terminals) {
             HashMap<Integer, graph.PathFinding.DijkstraInfo> paths = new graph.PathFinding().DijkstraForDW(this.g, u, setDifference(this.vertices, vertexAsSet(u)));
             for (Vertex v : setDifference(this.vertices, vertexAsSet(u))) {
                 map.put("f" + v.getKey() + getStringForSet(vertexAsSet(u)), paths.get(v.getKey()).dist);
                 bMap.put(v.getKey() + getStringForSet(vertexAsSet(u)), new BookKeeping(u, vertexAsSet(u), null, null));
+                bMapInsertions[0]++;
+                bMapInsertions[1]++;
             }
         }
 
-//        int casesAvoided = 0;
-        
         for (int m = 2; m <= this.terminals.size() - 1; m++) {
-            System.out.println(m + " of " + (this.terminals.size()-1));
+//            System.out.println(m + " of " + (this.terminals.size()-1));
             ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
             int counter = 0;
             for (ArrayList<Vertex> X : subsets) {
-                System.out.println("\t" + ++counter + " of " + subsets.size());
+//                System.out.println("\t" + ++counter + " of " + subsets.size());
                 for (Vertex v : this.vertices) {
                     for (ArrayList<Vertex> XPrime : powerSet(X)) {
                         if (XPrime.size() != X.size() && !XPrime.toString().equals("[]")) {
@@ -111,22 +116,41 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                             int fMapVXDiff = getValue("f" + v.getKey(), setDifference(X, XPrime));
                             // if gMapVX does not exist yet and is equal to MAX_VALUE we can avoid calculating fMapVXPrime + fMapVXDiff < gMapVX
 
-                            if ((gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) && !(XPrime.contains(v) && XPrime.size() > 1)) {
-//                                if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
-                                map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
-                                bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
-                            } 
-//                            else {
-//                                if(!(XPrime.contains(v) && XPrime.size() > 1)){
-//                                    System.out.println("Catches one of those cases:");
-//                                    System.out.println(v.getKey());
-//                                    System.out.println("Set: ");
-//                                    for(Vertex checking : XPrime){
-//                                        System.out.println(checking.getKey());
-//                                    }
-////                                    casesAvoided++;
+//                            if ((gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) && (!(XPrime.contains(v) && XPrime.size() > 1) || !(X.contains(v) && X.size() > 1) || !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) || X.contains(startingVertex) || XPrime.contains(startingVertex) || setDifference(X, XPrime).contains(startingVertex))) {
+                            if (gMapVX == Integer.MAX_VALUE || fMapVXPrime + fMapVXDiff < gMapVX) {
+                                if ((!(XPrime.contains(v) && XPrime.size() > 1) && !(X.contains(v) && X.size() > 1) && !(setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1) && !X.contains(startingVertex) && !XPrime.contains(startingVertex) && !setDifference(X, XPrime).contains(startingVertex))) {
+                                    map.put("g" + v.getKey() + getStringForSet(X), fMapVXPrime + fMapVXDiff);
+                                    bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(v, XPrime, v, setDifference(X, XPrime)));
+                                    if(X.contains(v)){
+                                    System.out.println(v.getKey() + "" + getStringForSet(X));
+                                    }
+                                    bMapInsertions[0]++;
+                                    bMapInsertions[1]++;
 //                                }
-//                            }
+                                } else {
+                                    bMapInsertions[1]++;
+                                    if ((X.contains(v) && X.size() > 1)) {
+                                        casesAvoided[0]++;
+                                    }
+                                    if ((XPrime.contains(v) && XPrime.size() > 1)) {
+                                        casesAvoided[1]++;
+                                    }
+                                    if ((setDifference(X, XPrime).contains(v) && (setDifference(X, XPrime)).size() > 1)) {
+                                        casesAvoided[2]++;
+                                    }
+                                    if (X.contains(startingVertex)) {
+                                        casesAvoided[3]++;
+                                    }
+                                    if (X.contains(startingVertex)) {
+                                        casesAvoided[4]++;
+                                    }
+                                    if (setDifference(X, XPrime).contains(startingVertex)) {
+                                        casesAvoided[5]++;
+                                    }
+                                    casesAvoided[6]++;
+                                }
+                                
+                            }
                         }
                     }
                 }
@@ -161,6 +185,8 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 
                     if (u.getKey() != s.getKey()) {
                         bMap.put(v.getKey() + getStringForSet(X), new BookKeeping(u, X, null, null));
+                        bMapInsertions[0]++;
+                        bMapInsertions[1]++;
                     }
                 }
 
@@ -172,9 +198,15 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
                 this.vertices = new ArrayList<>(this.g.getVertices().values());
             }
         }
-//        System.out.println("Cases Avoided: " + casesAvoided);
-        traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
-            
+        System.out.println("Cases Avoided: " + casesAvoided[0] + " | " + casesAvoided[1] + " | " + casesAvoided[2]);
+        System.out.println("Starting Vertex not allowed in X, XPrime, X/XPrime respectively");
+        System.out.println(casesAvoided[3] + " | " + casesAvoided[4] + " | " + casesAvoided[5]);
+        System.out.println("Total: " + casesAvoided[6]);
+        System.out.println("Original: " + bMapInsertions[1] + " Pruned version: " + bMapInsertions[0]);
+//        traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
+
+        traceback(startingVertex, setDifference(this.terminals, vertexAsSet(startingVertex)));
+
         return solutionEdges;
     }
 
@@ -208,13 +240,12 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
             if (getStringForSet(set).equals(getStringForSet(newB.set1)) && newB.onePair) {
                 ArrayList<Edge> path = PathFinding.DijkstraSinglePath(this.g, newB.v1, v);
                 for (Edge e : path) {
-                    int[] s = {e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get()};         
+                    int[] s = {e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get()};
                     Edge edgeToAdd = g.getVertices().get(s[0]).getConnectingEdge(g.getVertices().get(s[1]));
                     solutionEdges.add(edgeToAdd);
                 }
                 traceback(newB.v1, setDifference(set, vertexAsSet(newB.v1)));
-            }
-            // else we make 1 or 2 recursive calls depending on how many vertex-set pairs we find in the b function
+            } // else we make 1 or 2 recursive calls depending on how many vertex-set pairs we find in the b function
             else {
                 traceback(newB.v1, newB.set1);
                 if (!newB.onePair) {
@@ -259,11 +290,11 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
      * @author Pit Schneider
      */
     private String getStringForSet(ArrayList<Vertex> set) {
-        
+
         StringBuilder tmp = new StringBuilder();
         tmp.append("{");
         for (Vertex v : set) {
-           tmp.append(v.getKey() + ",");
+            tmp.append(v.getKey() + ",");
         }
         return tmp.toString();
     }
