@@ -85,6 +85,7 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
         this.g = g;
         this.vertices = new ArrayList<>(this.g.getVertices().values());
         this.terminals = new ArrayList<>(this.g.getTerminals().values());
+        Vertex startingTerminal = this.terminals.get(0);
 //        System.out.println("1 of " + (this.terminals.size()-1));	
 
         for (Vertex u : this.terminals) {
@@ -95,9 +96,13 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
             }
         }
 
+        ArrayList<Vertex> copyTerminals = new ArrayList<>(this.terminals);
+        copyTerminals.remove(startingTerminal);
         for (int m = 2; m <= this.terminals.size() - 1; m++) {
+//            for(int m = this.terminals.size()-1; m >=2; m--){
 //            System.out.println(m + " of " + (this.terminals.size()-1));
-            ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
+//            ArrayList<ArrayList<Vertex>> subsets = getSubsets(this.terminals, m);
+            ArrayList<ArrayList<Vertex>> subsets = getSubsets(copyTerminals, m);
             int counter = 0;
             for (ArrayList<Vertex> X : subsets) {
 //                System.out.println("\t" + ++counter + " of " + subsets.size());

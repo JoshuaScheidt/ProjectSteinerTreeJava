@@ -23,7 +23,7 @@ class IDWTest {
         //// File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
 //                for(int i = 0; i <files.length; i++){
 //		UndirectedGraph g = new graph.UndirectedGraphReader().read(files[i]);
-        File[] files = readFiles(new File("data\\exact\\instance014.gr"));
+        File[] files = readFiles(new File("data\\exact\\instance005.gr"));
         UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
 //        UndirectedGraph g = new UndirectedGraphReader().read();
 
@@ -43,6 +43,7 @@ class IDWTest {
         ArrayList<UndirectedGraph> subGraphs = pp
                 .createSeparateSections(pp.graph.getVertices().get(pp.graph.getVertices().keySet().iterator().next()), g.getVertices().size());
         List<Edge> solution = new ArrayList<>();
+        long start = System.nanoTime();
         for (UndirectedGraph sub : subGraphs) {
             SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
 //			System.out.println("Section:");
@@ -59,13 +60,14 @@ class IDWTest {
 //				System.out.println(e.getVertices()[0].getKey() + " " + e.getVertices()[1].getKey() + " " + e.getCost().get());
             solution.addAll(tmp);
         }
+         long stop = System.nanoTime();
         // End of sectioning part
 
 //                SteinerTreeSolver solver = new mainAlgorithms.ImprovedDreyfusWagner();
 //                List<Edge> solution = solver.solve(pp.graph);
-        long start = System.nanoTime();
+        
         printSolution(solution, false);
-        long stop = System.nanoTime();
+       
         System.out.println("Time taken: " + (double)(stop-start)/1000000000.0);
         // printSolution(solver.solve(pp.graph), false);
         // printSolution(solver.solve(g), false);
