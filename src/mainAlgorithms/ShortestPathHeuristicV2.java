@@ -7,6 +7,7 @@ package mainAlgorithms;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.Stack;
 
 import graph.Edge;
+import graph.RandomMain;
 import graph.UndirectedGraph;
 import graph.Vertex;
 
@@ -47,9 +49,11 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		Random rand = new Random(42);
 		int counter = 0;
 		long start = System.currentTimeMillis();
-		while (terminals.size() != 0 && counter < 500) {
+		while (terminals.size() != 0 && counter < 15) {
+			// if (RandomMain.killed)
+			// break;
 			int t = terminals.remove(rand.nextInt(terminals.size()));
-			// System.out.println("Ordering: " +
+			// System.out.println("Ordering for " + t + ": " +
 			// Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
 			List<Edge> result = this.dijkstraPathPrio(this.dijkstraOrderingPrio(t));
 			// List<Edge> result = this.dijkstraPathFinder(this.dijkstraOrdering(t));
@@ -66,24 +70,168 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 			// System.out.println("Terminal " + t + " got val " + val);
 			if (val < bestVal) {
 				bestResult = result;
+				RandomMain.currentBest = bestResult;
 				bestVal = val;
 			}
 			counter++;
 		}
-		// for (Edge e : bestResult) {
-		// if (e.getStack() == null) {
-		// System.out.println(e.getVertices()[0].getKey() + " " +
-		// e.getVertices()[1].getKey() + " " + e.getCost().get());
-		// } else {
-		// System.out.println("total stack cost: " + e.getCost().get());
-		// for (int[] i : e.getStack()) {
-		// System.out.println("stack " + i[0] + " " + i[1] + " " + i[2]);
-		// }
-		// }
-		// }
-		// System.out.println("Best val: " + bestVal + " took " +
-		// (System.currentTimeMillis() - start));
-		return bestResult;
+		// RandomMain.printSolution(RandomMain.currentBest, false);
+		return this.improve(bestResult);
+	}
+
+	public List<Edge> improve(List<Edge> currentBest) {
+		// if (RandomMain.killed)
+		// return null;
+		int upperBound = 3;
+		int maxBound = 6;
+		// First make a copy of the best result as graph without terminals
+		UndirectedGraph currentPlain = new UndirectedGraph();
+
+		for (Edge e : currentBest) {
+			currentPlain.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+			if (e.getStack() != null) {
+				currentPlain.getVertices().get(e.getVertices()[0].getKey())
+						.getConnectingEdge(currentPlain.getVertices().get(e.getVertices()[1].getKey())).pushStack(e.getStack());
+			}
+			if (e.getVertices()[0].getSubsumed() != null && currentPlain.getVertices().get(e.getVertices()[0].getKey()).getSubsumed() == null) {
+				currentPlain.getVertices().get(e.getVertices()[0].getKey()).pushStack(e.getVertices()[0].getSubsumed());
+			}
+			if (e.getVertices()[1].getSubsumed() != null && currentPlain.getVertices().get(e.getVertices()[1].getKey()).getSubsumed() == null) {
+				currentPlain.getVertices().get(e.getVertices()[1].getKey()).pushStack(e.getVertices()[1].getSubsumed());
+			}
+		}
+		ArrayList<Integer> terminals = new ArrayList<>();
+		for (int key : this.graph.getTerminals().keySet()) {
+			terminals.add(key);
+		}
+
+		boolean noNew = false;
+		primary: while (!noNew) {
+			// if (RandomMain.killed)
+			// return null;
+			noNew = true;
+			HashSet<Integer> possibleStarts = new HashSet<>();
+			// Check which vertices are worth looking at
+			for (Vertex v : currentPlain.getVertices().values()) {
+				if (terminals.contains(v.getKey()) && v.getEdges().size() >= 2) {
+					possibleStarts.add(v.getKey());
+				} else if (v.getEdges().size() > 2) {
+					possibleStarts.add(v.getKey());
+				}
+			}
+			while (!possibleStarts.isEmpty()) {
+				Integer start = possibleStarts.iterator().next();
+				HashSet<Edge> usedSet = new HashSet<>();
+				// Perform breadth-first search on the start until it has found between lower
+				// and upper bound terminals
+				// Calculate the distance of the subtree
+				HashSet<Integer> visited = new HashSet<>();
+				LinkedList<Integer> queue = new LinkedList<>();
+				HashSet<Integer> currentTerminals = new HashSet<>();
+				int expectedTerminalsCount = 0;
+				visited.add(start);
+				queue.add(start);
+				if (terminals.contains(start)) {
+					expectedTerminalsCount++;
+					currentTerminals.add(start);
+				}
+				Integer s;
+				while (queue.size() > 0 && expectedTerminalsCount < upperBound) {
+					// System.out.println(queue.size() + " " + expectedTerminalsCount + " " +
+					// currentTerminals.size());
+					s = queue.poll();
+					if (!terminals.contains(s)) {
+						expectedTerminalsCount--;
+					} else
+						currentTerminals.add(s);
+					// System.out.println(currentPlain.getVertices().get(s));
+					if (currentPlain.getVertices().get(s).getEdges().size() - 1 > upperBound - expectedTerminalsCount) {
+						currentTerminals.add(s);
+					} else
+						for (Edge nb : currentPlain.getVertices().get(s).getEdges()) {
+							if (!visited.contains(nb.getOtherSide(currentPlain.getVertices().get(s)).getKey())) {
+								usedSet.add(nb);
+								visited.add(nb.getOtherSide(currentPlain.getVertices().get(s)).getKey());
+								queue.add(nb.getOtherSide(currentPlain.getVertices().get(s)).getKey());
+								expectedTerminalsCount++;
+							}
+						}
+				}
+				// Check if all endPoints are terminals, if not, make them terminals.
+				while (queue.size() > 0) {
+					s = queue.poll();
+					if (!terminals.contains(s)) {
+						if (currentPlain.getVertices().get(s).getEdges().size() > 2) {
+							currentTerminals.add(s);
+						} else if (currentPlain.getVertices().get(s).getEdges().size() == 2) {
+							for (Vertex v : currentPlain.getVertices().get(s).getNeighbors())
+								if (!visited.contains(v.getKey())) {
+									queue.add(v.getKey());
+									usedSet.add(currentPlain.getVertices().get(s).getConnectingEdge(v));
+									visited.add(v.getKey());
+								}
+						}
+					} else {
+						currentTerminals.add(s);
+					}
+				}
+
+				int dist = 0;
+				for (Edge e : usedSet) {
+					dist += e.getCost().get();
+				}
+				// System.out.println("Number of terminals: " + currentTerminals.size());
+				UndirectedGraph adapterClone = this.graph.cloneNoTerminal();
+				for (Integer t : currentTerminals)
+					adapterClone.setTerminal(t);
+				// System.out.println("dist: " + dist);
+				List<Edge> tmp = new mainAlgorithms.ImprovedDreyfusWagner().solve(adapterClone);
+				int newDist = 0;
+				for (Edge e : tmp) {
+					newDist += e.getCost().get();
+				}
+				// System.out.println("new dist: " + newDist);
+
+				// RandomMain.printSolution(RandomMain.currentBest, false);
+
+				possibleStarts.removeAll(visited);
+				// possibleStarts.remove(start);
+
+				if (newDist < dist) {
+					// System.out.println("Improvement from " + dist + " to " + newDist);
+					// Better subgraph found
+					noNew = false;
+					for (Edge e : usedSet)
+						currentPlain.removeEdge(e);
+					for (Edge e : tmp) {
+						currentPlain.addEdge(e.getVertices()[0].getKey(), e.getVertices()[1].getKey(), e.getCost().get());
+						if (e.getStack() != null) {
+							currentPlain.getVertices().get(e.getVertices()[0].getKey())
+									.getConnectingEdge(currentPlain.getVertices().get(e.getVertices()[1].getKey())).pushStack(e.getStack());
+						}
+					}
+					List<Edge> newBestSolution = new ArrayList<>();
+
+					newBestSolution.addAll(currentPlain.getEdges());
+					RandomMain.currentBest = newBestSolution;
+					continue primary;
+				}
+				// RandomMain.printSolution(RandomMain.currentBest, false);
+				// System.exit(1);
+				// System.out.println("Iteration done");
+			}
+			// System.out.println("All starts done");
+			if (noNew && upperBound != maxBound) {
+				noNew = false;
+				upperBound++;
+			}
+		}
+
+		List<Edge> newOpt = new ArrayList<>();
+		for (Edge e : currentPlain.getEdges())
+			newOpt.add(e);
+
+		return newOpt;
 	}
 
 	private static class QueuePair implements Comparable<QueuePair> {

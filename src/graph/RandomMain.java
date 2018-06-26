@@ -14,35 +14,30 @@ import java.util.List;
 
 import mainAlgorithms.ShortestPathHeuristicV2;
 import mainAlgorithms.SteinerTreeSolver;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class RandomMain {
 
 	public static String fileName;
 	public static List<Edge> currentBest;
 	public static boolean written = false;
+	public static boolean killed = false;
 
 	public static void main(String[] args) throws InterruptedException {
-		// Scanner in = new Scanner(System.in);
-		// final CountDownLatch exit_now = new CountDownLatch(1);
-		// double worker = 0.0;
-		// int n;
-		//
-		// SignalHandler termHandler = new SignalHandler() {
-		// @Override
-		// public void handle(Signal sig) {
-		// System.out.println("Terminating");
-		// exit_now.countDown();
-		// }
-		// };
-		// Signal.handle(new Signal("TERM"), termHandler);
-		//
-		// n = in.nextInt();
-		// for (int i = 0; i < n && exit_now.getCount() == 1; i++) {
-		// worker += Math.sqrt(i);
-		// }
-		// System.out.print((int) (worker / n));
+		// System.out.println(Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]));
+		SignalHandler termHandler = new SignalHandler() {
+			@Override
+			public void handle(Signal sig) {
+				printSolution(currentBest, false);
+				System.exit(1);
+			}
+		};
+		Signal.handle(new Signal("TERM"), termHandler);
+		Signal.handle(new Signal("INT"), termHandler);
+		Signal.handle(new Signal("KILL"), termHandler);
 
-		// shortestPathHeuristicV2();
+		shortestPathHeuristicV2();
 		// System.out.println("\n");
 
 		// long start = System.currentTimeMillis();
@@ -55,27 +50,47 @@ public class RandomMain {
 
 		// writeArticulationPointsToFile();
 		// doAnalysisLeafDegree2();
-		try {
-			doAnalysisSectioning();
-		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// try {
+		// doAnalysisSectioning();
+		// } catch (FileNotFoundException | UnsupportedEncodingException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 		// testSectioning();
 	}
 
 	public static void shortestPathHeuristicV2() {
-		File[] files = readFiles(new File("data\\exact\\instance020.gr"));
-		for (int i = 0; i < files.length; i++) {
-			System.out.println(files[i].getParent() + "\\" + files[i].getName());
-			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		// File[] files = readFiles(new File("data\\heuristics\\instance010.gr"));
+		// for (int i = 0; i < files.length; i++) {
+		// System.out.println(files[i].getParent() + "\\" + files[i].getName());
+		// SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		//
+		// UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+		//
+		// List<Edge> result = solver.solve(graph);
+		// printSolution(result, false);
+		// }
+		// File[] files = readFiles(new File("data\\heuristics\\instance010.gr"));
+		// for (int i = 0; i < files.length; i++) {
+		SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		UndirectedGraph graph = new UndirectedGraphReader().read();// readFiles(new File("data\\heuristics\\instance001.gr"))[0]); //
 
-			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+		// PreProcess processed = new PreProcess(graph);
+		// boolean[] preProcessable;
+		// do {
+		// preProcessable = processed.graph.preProcessable();
+		// // pp.rangeCheck();
+		// if (preProcessable[0]) {
+		// processed.removeLeafNodes();
+		// }
+		// if (preProcessable[1]) {
+		// processed.removeNonTerminalDegreeTwo();
+		// }
+		// } while (preProcessable[0] || preProcessable[1]);
 
-			List<Edge> result = solver.solve(graph);
-			System.out.println("Value without preprocess: ");
-			printSolution(result, false);
-		}
+		solver.solve(graph);
+		printSolution(RandomMain.currentBest, false);
+		// }
 	}
 
 	public static void shortestPathHeuristicV2FullPreprocess() {
@@ -246,7 +261,7 @@ public class RandomMain {
 	 * @param solution
 	 *            Solution including all the edges in the solution
 	 */
-	private static void printSolution(List<Edge> solution, boolean toFile) {
+	public static void printSolution(List<Edge> solution, boolean toFile) {
 		String temp = "";
 		int sum = 0;
 		int[] subsumed;
