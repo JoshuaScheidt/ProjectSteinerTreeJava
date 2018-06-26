@@ -50,12 +50,14 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		int counter = 0;
 		long start = System.currentTimeMillis();
 		while (terminals.size() != 0 && counter < 15) {
-			// if (RandomMain.killed)
-			// break;
+			if (RandomMain.killed)
+				break;
 			int t = terminals.remove(rand.nextInt(terminals.size()));
 			// System.out.println("Ordering for " + t + ": " +
 			// Arrays.toString(this.dijkstraOrderingPrio(t).toArray()));
 			List<Edge> result = this.dijkstraPathPrio(this.dijkstraOrderingPrio(t));
+			if (result == null)
+				return null;
 			// List<Edge> result = this.dijkstraPathFinder(this.dijkstraOrdering(t));
 			int val = 0;
 			for (Edge e : result) {
@@ -80,8 +82,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 	}
 
 	public List<Edge> improve(List<Edge> currentBest) {
-		// if (RandomMain.killed)
-		// return null;
+		if (RandomMain.killed)
+			return null;
 		int upperBound = 3;
 		int maxBound = 6;
 		// First make a copy of the best result as graph without terminals
@@ -107,8 +109,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 
 		boolean noNew = false;
 		primary: while (!noNew) {
-			// if (RandomMain.killed)
-			// return null;
+			if (RandomMain.killed)
+				return null;
 			noNew = true;
 			HashSet<Integer> possibleStarts = new HashSet<>();
 			// Check which vertices are worth looking at
@@ -137,6 +139,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 				}
 				Integer s;
 				while (queue.size() > 0 && expectedTerminalsCount < upperBound) {
+					if (RandomMain.killed)
+						return null;
 					// System.out.println(queue.size() + " " + expectedTerminalsCount + " " +
 					// currentTerminals.size());
 					s = queue.poll();
@@ -159,6 +163,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 				}
 				// Check if all endPoints are terminals, if not, make them terminals.
 				while (queue.size() > 0) {
+					if (RandomMain.killed)
+						return null;
 					s = queue.poll();
 					if (!terminals.contains(s)) {
 						if (currentPlain.getVertices().get(s).getEdges().size() > 2) {
@@ -281,6 +287,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 		int totTerms = this.graph.getNumberOfTerminals();
 
 		while (!Q.isEmpty() && numTerms < totTerms) {
+			if (RandomMain.killed)
+				return null;
 			int current = Q.poll().node;
 			if (processed.contains(current))
 				continue;
@@ -313,6 +321,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 	 * @author Joshua Scheidt
 	 */
 	private List<Edge> dijkstraPathPrio(ArrayList<Integer> ordering) {
+		if (ordering == null)
+			return null;
 		HashSet<Integer> solNodes = new HashSet<>();
 		List<Edge> result = new ArrayList<>();
 		solNodes.add(ordering.get(0));
@@ -328,6 +338,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 			Q.add(new QueuePair(0, ordering.get(i)));
 			int current = -1;
 			while (!Q.isEmpty()) {
+				if (RandomMain.killed)
+					return null;
 				current = Q.poll().node;
 				if (processed.contains(current)) {
 					// System.out.println("processed contains:" + current);

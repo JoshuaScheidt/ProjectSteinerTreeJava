@@ -30,12 +30,12 @@ public class RandomMain {
 			@Override
 			public void handle(Signal sig) {
 				printSolution(currentBest, false);
-				System.exit(1);
+				// System.exit(1);
 			}
 		};
 		Signal.handle(new Signal("TERM"), termHandler);
 		Signal.handle(new Signal("INT"), termHandler);
-		Signal.handle(new Signal("KILL"), termHandler);
+		// Signal.handle(new Signal("KILL"), termHandler);
 
 		shortestPathHeuristicV2();
 		// System.out.println("\n");
@@ -89,7 +89,8 @@ public class RandomMain {
 		// } while (preProcessable[0] || preProcessable[1]);
 
 		solver.solve(graph);
-		printSolution(RandomMain.currentBest, false);
+		if (!RandomMain.killed)
+			printSolution(RandomMain.currentBest, false);
 		// }
 	}
 
