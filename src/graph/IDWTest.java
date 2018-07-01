@@ -23,7 +23,7 @@ class IDWTest {
         //// File[] files = readFiles(new File("data/exact/instance001.gr")); // mac
 //                for(int i = 0; i <files.length; i++){
 //		UndirectedGraph g = new graph.UndirectedGraphReader().read(files[i]);
-        File[] files = readFiles(new File("data\\exact\\instance005.gr"));
+        File[] files = readFiles(new File("data\\exact\\instance001.gr"));
         UndirectedGraph g = new graph.UndirectedGraphReader().read(files[0]);
 //        UndirectedGraph g = new UndirectedGraphReader().read();
 
