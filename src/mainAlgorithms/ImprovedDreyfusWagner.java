@@ -1,6 +1,12 @@
 package mainAlgorithms;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import graph.Edge;
+import graph.PathFinding;
+import graph.RandomMain;
 import graph.UndirectedGraph;
 import graph.Vertex;
 import graph.EdgeFake;
@@ -24,7 +30,6 @@ import java.util.Collections;
  * @author Pit Schneider
  */
 public class ImprovedDreyfusWagner implements SteinerTreeSolver {
-
     /**
      * This class is used to store the edges that are part of the solution.
      * Instances of this class are basically entries of the b function in the

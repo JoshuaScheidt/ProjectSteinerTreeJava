@@ -14,35 +14,32 @@ import java.util.List;
 
 import mainAlgorithms.ShortestPathHeuristicV2;
 import mainAlgorithms.SteinerTreeSolver;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class RandomMain {
 
 	public static String fileName;
 	public static List<Edge> currentBest;
 	public static boolean written = false;
+	public static boolean killed = false;
+	public static int localSearchCount = 0;
 
 	public static void main(String[] args) throws InterruptedException {
-		// Scanner in = new Scanner(System.in);
-		// final CountDownLatch exit_now = new CountDownLatch(1);
-		// double worker = 0.0;
-		// int n;
-		//
-		// SignalHandler termHandler = new SignalHandler() {
-		// @Override
-		// public void handle(Signal sig) {
-		// System.out.println("Terminating");
-		// exit_now.countDown();
-		// }
-		// };
-		// Signal.handle(new Signal("TERM"), termHandler);
-		//
-		// n = in.nextInt();
-		// for (int i = 0; i < n && exit_now.getCount() == 1; i++) {
-		// worker += Math.sqrt(i);
-		// }
-		// System.out.print((int) (worker / n));
+		// System.out.println(Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]));
+		SignalHandler termHandler = new SignalHandler() {
+			@Override
+			public void handle(Signal sig) {
+				killed = true;
+				printSolution(currentBest, false);
+				System.out.println("Performed local searches: " + localSearchCount);
+			}
+		};
+		Signal.handle(new Signal("TERM"), termHandler);
+		Signal.handle(new Signal("INT"), termHandler);
+		// Signal.handle(new Signal("KILL"), termHandler);
 
-		// shortestPathHeuristicV2();
+		shortestPathHeuristicV2();
 		// System.out.println("\n");
 
 		// long start = System.currentTimeMillis();
@@ -54,21 +51,49 @@ public class RandomMain {
 		// System.out.println("With preprocess took " + (end - middle) + " ms");
 
 		// writeArticulationPointsToFile();
-		testSectioning();
+		// doAnalysisLeafDegree2();
+		// try {
+		// doAnalysisSectioning();
+		// } catch (FileNotFoundException | UnsupportedEncodingException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// testSectioning();
 	}
 
 	public static void shortestPathHeuristicV2() {
-		File[] files = readFiles(new File("data\\exact\\instance020.gr"));
-		for (int i = 0; i < files.length; i++) {
-			System.out.println(files[i].getParent() + "\\" + files[i].getName());
-			SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		// File[] files = readFiles(new File("data\\heuristics\\instance010.gr"));
+		// for (int i = 0; i < files.length; i++) {
+		// System.out.println(files[i].getParent() + "\\" + files[i].getName());
+		// SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		//
+		// UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+		//
+		// List<Edge> result = solver.solve(graph);
+		// printSolution(result, false);
+		// }
+		// File[] files = readFiles(new File("data\\heuristics\\instance010.gr"));
+		// for (int i = 0; i < files.length; i++) {
+		SteinerTreeSolver solver = new ShortestPathHeuristicV2();
+		UndirectedGraph graph = new UndirectedGraphReader().read();// readFiles(new File("data\\heuristics\\instance001.gr"))[0]); //
 
-			UndirectedGraph graph = new UndirectedGraphReader().read(files[i]);
+		// PreProcess processed = new PreProcess(graph);
+		// boolean[] preProcessable;
+		// do {
+		// preProcessable = processed.graph.preProcessable();
+		// // pp.rangeCheck();
+		// if (preProcessable[0]) {
+		// processed.removeLeafNodes();
+		// }
+		// if (preProcessable[1]) {
+		// processed.removeNonTerminalDegreeTwo();
+		// }
+		// } while (preProcessable[0] || preProcessable[1]);
 
-			List<Edge> result = solver.solve(graph);
-			System.out.println("Value without preprocess: ");
-			printSolution(result, false);
-		}
+		solver.solve(graph);
+		if (!RandomMain.killed)
+			printSolution(RandomMain.currentBest, false);
+		// }
 	}
 
 	public static void shortestPathHeuristicV2FullPreprocess() {
@@ -239,7 +264,7 @@ public class RandomMain {
 	 * @param solution
 	 *            Solution including all the edges in the solution
 	 */
-	private static void printSolution(List<Edge> solution, boolean toFile) {
+	public static void printSolution(List<Edge> solution, boolean toFile) {
 		String temp = "";
 		int sum = 0;
 		int[] subsumed;
@@ -282,6 +307,227 @@ public class RandomMain {
 			System.out.println("VALUE " + sum);
 			System.out.println(temp);
 		}
+	}
+
+	/**
+	 * Perform analysis
+	 *
+	 * @param files
+	 *
+	 * @author Marciano Geijselaers
+	 * @author Joshua Scheidt
+	 */
+	private static void doAnalysisLeafDegree2() {
+		File[] files = readFiles(new File("data\\heuristics"));
+		Integer[][][] results = new Integer[files.length][4][4]; // Per file, save all different graphs' Nodes, Terminals and Edges. The second
+		// index has to be changed depending on which comparisons we want. The first
+		// index will always be the base graph without preprocess changes.
+
+		for (int fileIndex = 0; fileIndex < files.length; fileIndex++) {
+			// Read the standard graph and set its values to the first index of the results.
+			Long start, end;
+			start = System.currentTimeMillis();
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[fileIndex]);
+			end = System.currentTimeMillis();
+			results[fileIndex][0][0] = graph.getVertices().size();
+			results[fileIndex][0][1] = graph.getNumberOfTerminals();
+			results[fileIndex][0][2] = graph.getEdges().size();
+			results[fileIndex][0][3] = (int) (end - start);
+
+			// Create a cloned graph which will use preprocessing.
+			PreProcess improved = new PreProcess(graph);
+
+			// // Create a cloned graph which will use preprocessing.
+			// PreProcess improved = new PreProcess(graph);
+			// printCurrentSize(improved);
+
+			// Prints the degrees of the vertices from the original graph up to a maximum of
+			// degree 9.
+			// System.out.println("Original Degree Scale: ");
+			// int[] degrees = graph.countDegree();
+			// for (int i = 0; i < degrees.length; i++) {
+			// System.out.print(degrees[i] + ", ");
+			// }
+			// System.out.println("");
+
+			// Leaf Node Removal
+			start = System.currentTimeMillis();
+			improved.removeLeafNodes();
+			end = System.currentTimeMillis();
+			results[fileIndex][1][0] = improved.graph.getVertices().size();
+			results[fileIndex][1][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][1][2] = improved.graph.getEdges().size();
+			results[fileIndex][1][3] = (int) (end - start);
+
+			// Remove non-degree terminal
+			improved = new PreProcess(graph);
+			start = System.currentTimeMillis();
+			improved.removeNonTerminalDegreeTwo();
+			end = System.currentTimeMillis();
+			results[fileIndex][2][0] = improved.graph.getVertices().size();
+			results[fileIndex][2][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][2][2] = improved.graph.getEdges().size();
+			results[fileIndex][2][3] = (int) (end - start);
+
+			// Iterative part here
+			improved = new PreProcess(graph);
+			start = System.currentTimeMillis();
+			boolean[] keepPreProcessing = improved.graph.preProcessable();
+			while (keepPreProcessing[0] || keepPreProcessing[1]) {
+				if (keepPreProcessing[0]) {
+					improved.removeLeafNodes();
+				}
+				if (keepPreProcessing[1]) {
+					improved.removeNonTerminalDegreeTwo();
+				}
+				keepPreProcessing = improved.graph.preProcessable();
+			}
+			end = System.currentTimeMillis();
+			results[fileIndex][3][0] = improved.graph.getVertices().size();
+			results[fileIndex][3][1] = improved.graph.getNumberOfTerminals();
+			results[fileIndex][3][2] = improved.graph.getEdges().size();
+			results[fileIndex][3][3] = (int) (end - start);
+
+			// Bridge Finding
+			// start = System.currentTimeMillis();
+			// // improved.removeBridgesAndSections(graph.getVertices().size());
+			// end = System.currentTimeMillis();
+			// results[fileIndex][4][0] = graph.getVertices().size();
+			// results[fileIndex][4][1] = graph.getNumberOfTerminals();
+			// results[fileIndex][4][2] = graph.getEdges().size();
+			// results[fileIndex][4][3] = (int) (end - start);
+
+			System.out.println("done with index " + fileIndex);
+
+			// Leaf Node Removal
+			// improved.removeLeafNodes();
+			//
+			// // Non-Terminal Degree Two removal
+			// long start = System.nanoTime();
+			// improved.removeNonTerminalDegreeTwo();
+			// long stop = System.nanoTime();
+			// System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeLeafNodes();
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeNonTerminalDegreeTwo();
+		}
+		System.out.println("\n\n Writing Total results:");
+		try {
+			PrintWriter writer = new PrintWriter("E:\\Programming\\Java\\ProjectSteinerTreeJava\\res\\preprocessingStatsHeuristics.txt", "UTF-8");
+			// tms = time in ms
+			writer.println(files[0].getParentFile().getPath());
+			writer.println(
+					"FileIndex, V(original), T(original), E(original), tms(original), V(leaf), T(leaf), E(leaf), tms(leaf), V(deg2), T(deg2), E(deg2), tms(deg2), V(both), T(both), E(both), tms(both)");
+			String cur = "";
+			for (int i = 0; i < results.length; i++) {
+				cur = Integer.toString(i + 1);
+				for (int j = 0; j < results[i].length; j++) {
+					for (int k = 0; k < results[i][j].length; k++) {
+						cur += ", " + Integer.toString(results[i][j][k]);
+					}
+				}
+				writer.println(cur);
+			}
+			writer.close();
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Perform analysis
+	 *
+	 * @param files
+	 *
+	 * @author Marciano Geijselaers
+	 * @author Joshua Scheidt
+	 * @throws UnsupportedEncodingException
+	 * @throws FileNotFoundException
+	 */
+	private static void doAnalysisSectioning() throws FileNotFoundException, UnsupportedEncodingException {
+		File[] files = readFiles(new File("data\\exact"));
+		// PrintWriter writer = new
+		// PrintWriter("E:\\Programming\\Java\\ProjectSteinerTreeJava\\res\\sectioningStatsExact.txt",
+		// "UTF-8");
+		// writer.println(files[0].getParentFile().getPath());
+		// writer.println("FileIndex, V(combined), T(combined), E(combined),
+		// tms(sectioning), empty, V(i), T(i), E(i), empty, repeat");
+		// Integer[][][] results = new Integer[files.length][4][4]; // Per file, save
+		// all different graphs' Nodes, Terminals and Edges. The second
+		// index has to be changed depending on which comparisons we want. The first
+		// index will always be the base graph without preprocess changes.
+
+		for (int fileIndex = 0; fileIndex < files.length; fileIndex++) {
+			// Read the standard graph and set its values to the first index of the results.
+			Long start, end;
+			UndirectedGraph graph = new UndirectedGraphReader().read(files[fileIndex]);
+
+			// Create a cloned graph which will use preprocessing.
+			PreProcess improved = new PreProcess(graph);
+			boolean[] keepPreProcessing = improved.graph.preProcessable();
+			while (keepPreProcessing[0] || keepPreProcessing[1]) {
+				if (keepPreProcessing[0]) {
+					improved.removeLeafNodes();
+				}
+				if (keepPreProcessing[1]) {
+					improved.removeNonTerminalDegreeTwo();
+				}
+				keepPreProcessing = improved.graph.preProcessable();
+			}
+
+			start = System.currentTimeMillis();
+
+			ArrayList<UndirectedGraph> subGraphs = improved.createSeparateSections(
+					improved.graph.getVertices().get(improved.graph.getVertices().keySet().iterator().next()), graph.getVertices().size());
+			end = System.currentTimeMillis();
+			System.out.println(subGraphs.size());
+
+			String tmp = fileIndex + "," + improved.graph.getVertices().size() + "," + improved.graph.getNumberOfTerminals() + ","
+					+ improved.graph.getEdges().size() + "," + (end - start);
+			for (UndirectedGraph sub : subGraphs) {
+				tmp += ", ," + sub.getVertices().size() + "," + sub.getNumberOfTerminals() + "," + sub.getEdges().size();
+			}
+			// writer.println(tmp);
+			// Bridge Finding
+			// start = System.currentTimeMillis();
+			// // improved.removeBridgesAndSections(graph.getVertices().size());
+			// end = System.currentTimeMillis();
+			// results[fileIndex][4][0] = graph.getVertices().size();
+			// results[fileIndex][4][1] = graph.getNumberOfTerminals();
+			// results[fileIndex][4][2] = graph.getEdges().size();
+			// results[fileIndex][4][3] = (int) (end - start);
+
+			System.out.println("done with index " + fileIndex);
+
+			// Leaf Node Removal
+			// improved.removeLeafNodes();
+			//
+			// // Non-Terminal Degree Two removal
+			// long start = System.nanoTime();
+			// improved.removeNonTerminalDegreeTwo();
+			// long stop = System.nanoTime();
+			// System.out.println("Time Taken: " + (stop - start) / 1000000000.0);
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeLeafNodes();
+			//
+			// printCurrentSize(improved);
+			// printDegreeScale(improved);
+			//
+			// improved.removeNonTerminalDegreeTwo();
+		}
+		// writer.close();
+
 	}
 
 }

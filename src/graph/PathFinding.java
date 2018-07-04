@@ -582,6 +582,8 @@ public class PathFinding {
 		datamap.get(start.getKey()).dist = 0;
 
 		while (!unvisited.isEmpty() && numReachedEnd < end.size()) {
+			if (RandomMain.killed)
+				return null;
 
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
@@ -642,6 +644,8 @@ public class PathFinding {
 		datamap.get(start.getKey()).dist = 0;
 
 		while (!Q.isEmpty()) {
+			if (RandomMain.killed)
+				return null;
 			int smallestDist = Integer.MAX_VALUE;
 			Vertex current = null;
 			for (Vertex i : Q) {
