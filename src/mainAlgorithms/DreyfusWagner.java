@@ -72,7 +72,7 @@ public class DreyfusWagner implements SteinerTreeSolver {
 	// for the moment only prints out the weight of the steiner tree, does not yet return used edges
 	@Override
 	public List<Edge> solve(UndirectedGraph g) {
-		
+				
 		this.g = g;
 		this.edges = new ArrayList<>(this.g.getEdges());
 		this.vertices = new ArrayList<>(this.g.getVertices().values());
@@ -137,7 +137,7 @@ public class DreyfusWagner implements SteinerTreeSolver {
 		}
 		
 		System.out.println(getValue(fMap, this.terminals.get(0).getKey(), setDifference(this.terminals, vertexAsSet(this.terminals.get(0)))));
-		
+				
 		traceback(this.terminals.get(0), setDifference(this.terminals, vertexAsSet(this.terminals.get(0))));
 
 		return solutionEdges;
@@ -225,16 +225,15 @@ public class DreyfusWagner implements SteinerTreeSolver {
 	 * @author Pit Schneider
 	 */
 	private String getStringForSet(ArrayList<Vertex> set) {
-		if (set.isEmpty()) {
-			return "{}";
-		}
-		String s = "{";
+		
+		StringBuilder tmp = new StringBuilder();
+		tmp.append("{");
 		for (Vertex v : set) {
-			s += v.getKey() + ",";
+		   tmp.append(v.getKey() + ",");
 		}
-		s = s.substring(0, s.length() - 1);
-		s += "}";
-		return s;
+		tmp.deleteCharAt(tmp.length()-1);
+		tmp.append("}");
+		return tmp.toString();
 	}
 	
 	/**
