@@ -257,7 +257,7 @@ public class UndirectedGraph {
 				this.vertices.get(key).setTerminal(true);
 				this.terminals.put(key, this.vertices.get(key));
 			} else {
-				System.out.println("Terminal appointed to non-existing Vertex");
+				// System.out.println("Terminal appointed to non-existing Vertex");
 			}
 		}
 	}
@@ -273,7 +273,7 @@ public class UndirectedGraph {
 			this.vertices.get(key).setTerminal(true);
 			this.terminals.put(key, this.vertices.get(key));
 		} else {
-			System.out.println("Terminal appointed to non-existing Vertex");
+			// System.out.println("Terminal appointed to non-existing Vertex");
 		}
 	}
 

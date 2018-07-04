@@ -193,6 +193,9 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 				// System.out.println("dist: " + dist);
 				List<Edge> tmp = new mainAlgorithms.ImprovedDreyfusWagner().solve(adapterClone);
 				int newDist = 0;
+				if (RandomMain.killed)
+					return null;
+				RandomMain.localSearchCount++;
 				for (Edge e : tmp) {
 					newDist += e.getCost().get();
 				}
@@ -217,6 +220,8 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 						}
 					}
 					List<Edge> newBestSolution = new ArrayList<>();
+					if (RandomMain.killed)
+						return null;
 
 					newBestSolution.addAll(currentPlain.getEdges());
 					RandomMain.currentBest = newBestSolution;
@@ -232,12 +237,7 @@ public class ShortestPathHeuristicV2 implements SteinerTreeSolver {
 				upperBound++;
 			}
 		}
-
-		List<Edge> newOpt = new ArrayList<>();
-		for (Edge e : currentPlain.getEdges())
-			newOpt.add(e);
-
-		return newOpt;
+		return null;
 	}
 
 	private static class QueuePair implements Comparable<QueuePair> {

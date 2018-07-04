@@ -23,14 +23,16 @@ public class RandomMain {
 	public static List<Edge> currentBest;
 	public static boolean written = false;
 	public static boolean killed = false;
+	public static int localSearchCount = 0;
 
 	public static void main(String[] args) throws InterruptedException {
 		// System.out.println(Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]));
 		SignalHandler termHandler = new SignalHandler() {
 			@Override
 			public void handle(Signal sig) {
+				killed = true;
 				printSolution(currentBest, false);
-				// System.exit(1);
+				System.out.println("Performed local searches: " + localSearchCount);
 			}
 		};
 		Signal.handle(new Signal("TERM"), termHandler);

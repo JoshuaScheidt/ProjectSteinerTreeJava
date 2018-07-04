@@ -225,6 +225,8 @@ public class ImprovedDreyfusWagner implements SteinerTreeSolver {
 
 			// we know that we can add an edge to the solution
 			if (this.getStringForSet(set).equals(this.getStringForSet(newB.set1)) && newB.onePair) {
+				if (RandomMain.killed)
+					return;
 				ArrayList<Edge> path = PathFinding.DijkstraSinglePath(this.g, newB.v1, v);
 				if (path == null)
 					return;
